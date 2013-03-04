@@ -40,6 +40,53 @@ There will be two blank lines before and after the Abstract. \dots
 \end{abstract}
 %
 \section{Introduction}
+
+We want to use the JavaScript API. Fast interpreters,
+running in a browser advantage, 
+
+We do not want to program in Javascript.
+
+Example: hp2ps?
+
+\section{Background}
+
+Choices when compiling to Javascript
+ * Port a compiler to JavaScript - issues, mismatching API
+ * Provide an FFI - back and forward cost.
+ * Compile a custom, cut down FP language. - example
+ * DSL, restrictive, syntactically, how do we handle binding?
+
+We use monad reification.
+ * binding in Haskell becomes binding in reified language.
+ * Feels like a native monad, cf STM.
+ * Can build abstractions on top of this.
+
+PUSH: how like a native Haskell monad can we make the JS monad feel?
+
+PUSH: isomorphism between 
+ 
+   a -> JS b  
+
+and
+
+   JSFunction a b
+ 
+Compiling
+ * If we transliterate, we have straight line code, can not pause.
+    (Wait for Mvar, for example)
+ * If we CPS translate, we can use continuations to capture the
+   notion of a paused thread. Works well.
+   Problems:
+     * Can not translate functions, how do they get there return value
+     * (Assumes straight line code.)
+     * Also, the code becomes unreadable to anyone except a die-hard 
+       compiler freak.
+ 
+Choice:
+ * We support both!
+ * Phantom argument to JS
+ * A = Atomic, B = Blockable.
+
 %
 % ---- Bibliography ----
 %
