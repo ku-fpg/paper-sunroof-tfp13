@@ -3,14 +3,7 @@
 
 **RESOLVE TODOS!**
 
-About nine months ago we 
-[presented the idea][SunroofBlogIntro] 
-to use reification of a monad
-to implement a Javascript compiler.
-The compiler made some progress and today we 
-want to give a short introduction of how to use it.
-
-This post is supposed to be a quick and dirty tutorial to 
+This is supposed to be a quick and dirty tutorial to 
 give you a feeling for what can be done with Sunroof and where
 to look to get started. If you need more detailed information 
 look at [the sources][SunroofSource] and generate the documentation from them.
@@ -195,9 +188,10 @@ computations as needed.
 
 [The Sunroof examples][SunroofExamples] are also a good starting point
 to see how Sunroof can be used.
-Also take a look at the follow up post. It explains the clock example
-and it will show you how to create Javascript functions!
 The examples provided here are collected in [this file][ExampleFile].
+
+The next part of the tutorial will show how the clock example
+works and it will show you how to create Javascript functions!
 
 **RESOLVE TODOS!**
 
