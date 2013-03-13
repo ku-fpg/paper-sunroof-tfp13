@@ -1,18 +1,14 @@
  
-# Sunroof Javascript Compiler: Clockwork progress
+# Part 2: Clock Example
 
-About nine months ago we 
-[presented the idea][SunroofBlogIntro] 
-to use reification of a monad
-to implement a Javascript compiler.
-The compiler made some progress and today we 
-want to present one of our examples.
+The clock example demonstrates how Sunroof can produce self-contained 
+Javascript that renders a clock using the HTML5 canvas element.
 
-The clock example demonstrates how Sunroof can produce self-contained Javascript.
+![The Clock Example](clock.png)
 
-To render the clock we use the HTML5 canvas element. Its Javascript API
-is already provided by Sunroof. Lets look how we can render one line of the
-clock face using Sunroof:
+The Javascript API for HTML5 canvas element is already provided by 
+Sunroof in the module `Language.Sunroof.JS.Canvas`. 
+Lets look how we can render one line of the clock face using Sunroof:
 
     c # save
     -- Draw one of the indicator lines

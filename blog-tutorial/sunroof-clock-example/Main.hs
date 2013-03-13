@@ -17,17 +17,17 @@ import Language.Sunroof.Types
 import Language.Sunroof.JS.Canvas
 import Language.Sunroof.JS.Browser hiding ( eval )
 import Language.Sunroof.JS.JQuery
+import Language.Sunroof.JS.Date
 
 main :: IO ()
-main = staticCompiler def "main" clockJS >>= writeFile "main.js"
+main = sunroofCompileJS def "main" clockJS >>= writeFile "main.js"
 
 default(JSNumber, JSString, String)
 
 type instance BooleanOf () = JSBool
 
--- TODO: Would be neat to create JS functions with more then one parameter.
-clockJS :: JS A ()
-clockJS = do
+clockJS :: JS A (JSFunction () ())
+clockJS = function $ \() -> do
 
   -- Renders a single line (with number) of the clock face.
   renderClockFaceLine <- function $ \(c, u, n) -> do
@@ -124,7 +124,7 @@ clockJS = do
 canvas :: JS A JSObject
 canvas = document # getElementById "canvas"
 
-context :: JS A JSObject
+context :: JS A JSCanvas
 context = canvas >>= getContext "2d"
 
 clockUnit :: JS A JSNumber
@@ -135,14 +135,14 @@ clockUnit = do
 canvasSize :: JS A (JSNumber, JSNumber)
 canvasSize = do
   c <- jQuery "#canvas"
-  w <- c # method "innerWidth" ()
-  h <- c # method "innerHeight" ()
+  w <- c # invoke "innerWidth" ()
+  h <- c # invoke "innerHeight" ()
   return (w, h)
 
 currentTime :: JS A (JSNumber, JSNumber, JSNumber)
 currentTime = do
-  date <- evaluate $ object "new Date()"
-  h <- date # method "getHours" ()
-  m <- date # method "getMinutes" ()
-  s <- date # method "getSeconds" ()
+  date <- newDate ()
+  h <- date # getHours
+  m <- date # getMinutes
+  s <- date # getSeconds
   return (h, m, s)

@@ -7,6 +7,14 @@ to implement a Javascript compiler.
 The compiler made some progress and today we 
 want to give a short introduction of how to use it.
 
+
+About nine months ago we 
+[presented the idea][SunroofBlogIntro] 
+to use reification of a monad
+to implement a Javascript compiler.
+The compiler made some progress and today we 
+want to present one of our examples.
+
 ## Infrastructure
 
 As client server infrastructure we utilize [kansas-comet][KansasComet].
