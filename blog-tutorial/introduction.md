@@ -1,6 +1,8 @@
 
 # Introduction to Sunroof
 
+**RESOLVE TODOS!**
+
 About nine months ago we 
 [presented the idea][SunroofBlogIntro] 
 to use reification of a monad
@@ -13,19 +15,24 @@ give you a feeling for what can be done with Sunroof and where
 to look to get started. If you need more detailed information 
 look at [the sources][SunroofSource] and generate the documentation from them.
 
-## Installation
+## Installation and Setup
 
-To install Sunroof you have to check out a few packages from GitHub.
-Please, look into the provided README.md to find further instruction.
+To install Sunroof you have to check out [a few packages from GitHub][SunroofReadme].
+Please, look into the provided readme to find further instruction.
 It will be up to date.
 
-Lets look at expression in Sunroof first and then move on to monadic statements.
+Lets look at expressions in Sunroof first and then move on to monadic statements.
 
 ## Expressions: Basic building blocks
 
 All types in Sunroof that represent a Javascript value and therefore
 can form expressions in Javascript implement the class `Sunroof`.
-Everything in this section works when importing `Language.Sunroof`.
+Everything in this section works when importing the following packages:
+
+    import Data.Default     -- Provides defaults for value
+    import Data.Monoid      -- Monoids are important for strings
+    import Data.Boolean     -- Overloaded booleans
+    import Language.Sunroof -- All Sunroof functionality
 
 If you want to play around with the compiler you can use this 
 function to compile your expressions directly:
@@ -34,8 +41,8 @@ function to compile your expressions directly:
     test o = sunroofCompileJS def "main" (return o) >>= putStrLn
 
 Lets look at the basic types that are provided. First of all there
-is unit `()`. It can be thought of as an equivalent of void or `null`
-in Javascript, because it indicates nothing interesting.
+is unit. It can be thought of as an equivalent of void or `null`
+in Javascript, because it indicates nothing of interest.
 
 Of course, there is a boolean type `JSBool`. Sunroof uses the 
 [`Data.Boolean`][BooleanPackage] package to overload booleans.
@@ -75,16 +82,16 @@ instance of `Monoid`, therefore you can just use `<>` instead.
 
 In case you are wondering how we can use a Haskell string literal here:
 To do that you need to activate the GHC language extension `OverloadedStrings`.
-In case you do not want to do that you can just you the `string`
+In case you do not want to do that, you can just use the `string`
 conbintor to convert a Haskell string into a Sunroof string.
 
-There also is `JSArray a` which can roughly be thought of a equivalent 
+There also is `JSArray a` which can roughly be thought of an equivalent 
 to `[a]`. You can create
 your own array instances from lists using the `array` combinator.
 
     array [0 .. 5 :: Int]
 
-This seems nice and type safe doesn't it? 
+This seems nice and type safe, does it not? 
 But Javascript does not hava static typing you might say. 
 Of course, you are right. In case you really need to convert types 
 into each other Sunroof provides the `cast` function which can 
@@ -108,7 +115,12 @@ Now lets move on to statements!
 
 Sunroof provides a deep embedding of Javascript into Haskell.
 All code written is structured in a monad to capture its sequential 
-nature.
+nature. Also a major difference between monadic statements and expression,
+like we have seen in the previous section, is that expressions provided 
+by Sunroof can be assumed to be free of side effects. Everything
+inside a monadic statement may have a side effect in Javascript.
+In fact binding itself is the most basic side effect, an assignment
+to a variable.
 
 The central monadic type in Sunroof is `JS t a`. The `t` type parameter 
 represents the threading model. In the
@@ -133,11 +145,11 @@ It actually translates into what you would expect:
 
 The monadic binding (`<-`) can be thought of as assignment to a 
 new variable (it is literally translated to that). Statements that 
-produce `()` as return value are not assigned to a variable, because
+produce unit as return value are not assigned to a variable, because
 assigning `void` to a variable is not a useful thing to do.
 
-The `#`-operator is analog to the `.`-operator (we did not want to 
-get in confict with function composition).
+The `#`-operator is analog to the `.`-operator, because we do not want to 
+get in confict with function composition.
 
 The `document` object is a `JSObject` provided by the `Language.Sunroof.JS.Browser`
 module for convenience. This module also provides the `getElementById` function.
@@ -163,6 +175,14 @@ The example will produce the following result:
       (v1).fillRect(10,10,100,100);
     })();
 
+All statements are wrapped into the local scope of a function. This
+protects the global Javascript namespace from being polluted with all the 
+new variables produced by Sunroof. Also it prevents us from getting in
+conflict with global bindings. At the same time effects can escape the 
+scope. If the compiled Sunroof has a interesting result it is returned
+by the function. Looking back at the `test` function you can see how this
+works.
+
 This is all you need to know to get started writing your own Javascript
 with Sunroof.
 
@@ -170,15 +190,20 @@ If you are interested in writing more complex application that require
 communication between client and server you should look into the 
 `Language.Sunroof.KansasComet` package. It provides ready to use 
 infrastructure for setting up a Kansas Comet server and communicating
-with the browser.
+with the browser. This makes it possible to interleave Haskell and Javascript
+computations as needed.
 
-[The Sunroof examples][SunroofExamples] are also good to see how Sunroof can be used.
+[The Sunroof examples][SunroofExamples] are also a good starting point
+to see how Sunroof can be used.
 Also take a look at the follow up post. It explains the clock example
-and it will show you have to create Javascript functions!
+and it will show you how to create Javascript functions!
 The examples provided here are collected in [this file][ExampleFile].
+
+**RESOLVE TODOS!**
 
 [SunroofBlogIntro]: http://www.ittc.ku.edu/csdlblog/?p=88 "Monad Reification in Haskell and the Sunroof Javascript compiler"
 [BooleanPackage]: http://hackage.haskell.org/package/Boolean-0.1.2 "Boolean package on Hackage"
 [SunroofSource]: https://github.com/ku-fpg/sunroof "Sunroof sources on GitHub"
 [SunroofExamples]: https://github.com/ku-fpg/sunroof/tree/master/examples "Sunroof examples on GitHub"
 [ExampleFile]: TODO/tutorial.hs "Introduction examples"
+[SunroofReadme]: https://github.com/ku-fpg/sunroof/blob/master/README.md "Sunroof README on GitHub"
