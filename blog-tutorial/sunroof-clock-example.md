@@ -31,8 +31,8 @@ Lets look how we can render one line of the clock face using Sunroof:
         ) (return ())
     c # restore
 
-The monadic `do`-notation is used for sequencing Javascript statements
-in a neat fashion.
+As mentioned before the monadic `do`-notation is used for sequencing 
+Javascript statements in a neat fashion.
 
 The first few lines probably look familiar to people how have written 
 Javascript before.
@@ -48,7 +48,7 @@ that we are calling methods on the Javascript object `c` (Our canvas context).
 The methods without parameters do not require empty paranthesis, as
 a Hasekell programmer would expect. The tuple used in the call of `moveTo`
 is only their to indicate that this parameter is a coordinate, not 
-to single numbers. You can also see that Javascript numbers are neatly
+two single numbers. You can also see that Javascript numbers are neatly
 embedded using the `Num`-class and can be used naturally.
 
 The next few lines show a branch.
@@ -57,7 +57,7 @@ The next few lines show a branch.
         (c # lineTo (0, -u * 0.8)) -- Minute line
         (c # lineTo (0, -u * 0.9)) -- Hour line
 
-Haskells lack the possibilities to deep embed branches and
+Haskell lacks the possibilities to deep embed branches and
 boolean expressions. For that reason we are using the 
 [`Data.Boolean`][BooleanPackage] package. Instead of `if-then-else`
 you are required to use `ifB` when writing Javascript. 
@@ -81,7 +81,7 @@ the API correctly (by not working around it) compile time
 errors can show mistakes in the Javascript code.
 
 Getting back to the initial code block: How do we render the other 
-59 lines of the clock face? We just frap this code into a function.
+59 lines of the clock face? We just wrap this code into a function.
 Of course, we do this at Javascript level.
 
     renderClockFaceLine <- function $ \(c, u, n) -> do
@@ -220,6 +220,6 @@ If you want to see the rest of Sunroof you can find it on [github][SunroofClockE
 [BooleanPackage]: http://hackage.haskell.org/package/Boolean-0.1.2 "Boolean package on Hackage"
 [ExampleRunning]: TODO "Sunroof clock example"
 [ProducedJS]: TODO "Sunroof clock example"
-[HaskellSource]: TODO "Sunroof clock example"
+[HaskellSource]: tutorial.hs "Sunroof clock example"
 
 
