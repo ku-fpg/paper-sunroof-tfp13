@@ -5,6 +5,12 @@
 %
 \documentclass{llncs}
 %
+\usepackage{amsfonts}
+
+\newcommand{\SunroofAnalog}[1]{#1\ensuremath{_\downarrow}}
+\newcommand{\HaskellAnalog}[1]{#1\ensuremath{_\uparrow}}
+
+
 \begin{document}
 %
 \title{Sunroof}
@@ -31,12 +37,30 @@ Lawrence, KS 66045\\
 
 \maketitle              % typeset the title of the contribution
 
-\begin{abstract}
-The abstract should summarize the contents of the paper
-using at least 70 and at most 150 words. It will be set in 9-point
-font size and be inset 1.0 cm from the right and left margins.
-There will be two blank lines before and after the Abstract. \dots
-\keywords{computational geometry, graph theory, Hamilton cycles}
+\begin{abstract}        
+        
+Sunroof is a Domain Specific Language (DSL) for generating JavaScript.
+Sunroof is build on top of the JS-monad, which, like the Haskell IO-monad, allows 
+read and write access to external resources, but specifically JavaScript
+resources. As such, Sunroof is primarily a feature-rich foreign
+function API to the browser's JavaScript engine, and all the browser-specific
+functionality, like HTML-based rendering, event handling, and 
+drawing to the HTML5 canvas. 
+
+In this paper, we give the design and implementation of Sunroof, a 
+deeply embedded Haskell-hosted DSL.
+This makes it easy to use Haskell abstractions for larger Javascript
+applications without obscuring the produced Javascript on the Haskell
+level. 
+Furthermore, Sunroof offers two threading models for 
+building on top Javascript, atomic and blocking threads.
+This allows full access to Javascript APIs, but
+using Haskell concurrency patterns, like MVars and Channels.
+In combination with a small web services package, like Scotty,
+Sunroof offers a great platform to build interactive web applications,
+giving the ability to interleave Haskell and Javascript computations
+with each other as needed.
+\keywords{Haskell DSL, JavaScript, Web Technologies, Cloud Computing}
 \end{abstract}
 %
 \section{Introduction}
@@ -51,7 +75,7 @@ Example: hp2ps?
 \section{Background}
 
 Choices when compiling to Javascript
- * Port a compiler to JavaScript - issues, mismatching API
+ * Port a compiler to JavaScript - issues, mismatching API, other efforts.
  * Provide an FFI - back and forward cost.
  * Compile a custom, cut down FP language. - example
  * DSL, restrictive, syntactically, how do we handle binding?
@@ -61,15 +85,21 @@ We use monad reification.
  * Feels like a native monad, cf STM.
  * Can build abstractions on top of this.
 
-PUSH: how like a native Haskell monad can we make the JS monad feel?
+Design objectives and contributions.
+\begin{itemize}
+\item 
+Specifically, we want to explore how similar to a native Haskell monad,
+like the IO or STM monads, can we make the JS monad feel to Sunroof users.
+\item We want to reflect objects. (easy)
 
-PUSH: isomorphism between 
- 
-   a -> JS b  
+\item We want also investigate the relationship between Haskell functions
+and JavaScript functions. In particular, there is an isomorphism
+between monadic functions in Haskell, with the type \verb|a -> JS b|,
+and JavaScript functions, which we will notate using \verb|JSFunction|.
+This relationship is more interesting than a Haskell synonym;
+it reflects the reification options for capturing functions.
+\end{itemize}
 
-and
-
-   JSFunction a b
  
 Compiling
  * If we transliterate, we have straight line code, can not pause.
@@ -86,6 +116,99 @@ Choice:
  * We support both!
  * Phantom argument to JS
  * A = Atomic, B = Blockable.
+
+Highlights
+
+ * function / continuation
+ * implementing wait \& fork
+
+\begin{table}
+\caption{Major instances of the Sunroof class}
+\begin{center}
+\begin{tabular}{r@{\quad}l@{\quad}l@{\quad}c}
+\hline\rule{0pt}{12pt}%
+Constraint      & Sunroof   & Haskell  & js \\
+                & Type t             & Analog \HaskellAnalog{t}\\
+\hline\rule{0pt}{12pt}%
+                & ()            & ()              & $\checkmark$ \\
+                & JSBool        & Bool            & $\checkmark$ \\
+                & JSNumber      & Double          & $\checkmark$ \\
+                & JSString      & String          & $\checkmark$ \\
+ (Sunroof $\alpha$) $\Rightarrow$      & JSArray $\alpha$     & IntMap $\HaskellAnalog{\alpha}$
+                                                  & $\checkmark$ \\
+                    & JSMap $\alpha$ $\beta$ 
+                                & Map $\HaskellAnalog{\alpha}$ $\HaskellAnalog{\beta}$ & \\
+ (JSArgument a, Sunroof b) $\Rightarrow$
+                & JSFunction $\alpha$ $\beta$ 
+                                & $\HaskellAnalog{\alpha}$ $\rightarrow$ IO $\HaskellAnalog{\beta}$
+                                                  & \\
+ (JSArgument a) $\Rightarrow$& JSMVar a& MVar 'a           \\
+ (JSArgument a) $\Rightarrow$& JSChan a& Chan 'a           \\[2pt]
+\hline
+\end{tabular}
+\end{center}
+\end{table} 
+
+\begin{table}
+\caption{Reifying and calling JavaScript functions}
+\begin{center}
+\begin{tabular}{r@{\quad}c@{\quad}c@{\quad}c@{\quad}c}
+\hline\rule{0pt}{12pt}%
+
+                & Monadic Function      & Reification   & Object in     & Invocation\\
+                & in Haskell            & Function      & JavaScript    & Function\\
+\hline\rule{0pt}{12pt}%
+Functions       & $\alpha\rightarrow${\tt JS}$_{\tt A}~\beta$
+                                        & \verb|function|
+                                                        & \verb|JSFunction|~$\alpha~\beta$
+                                                                        & \verb|apply|\\
+Continuations   & $\alpha\rightarrow${\tt JS}$_{\tt B}~()$
+                                        & \verb|continuation|
+                                                        & \verb|JSContinuation|~$\alpha$
+                                                                        & \verb|goto|\\
+\hline
+\end{tabular}
+\end{center}
+\end{table} 
+
+Up to this point, Sunroof is academically interesting, but in a real sense
+we are writing JavaScript using Haskell syntax, so why not just write
+JavaScript? There are three things we have bought by using our DSL.
+\begin{itemize}
+\item Typing --
+\item Haskell Abstractions --
+\item Dynamic Generation -- 
+\end{itemize}
+
+\section{Sunroof Server}
+
+
+
+
+
+\section{Case Study - hp2ps}
+
+hp2ps is a tools for graphically displaying GHC heap profiles.
+The tools history is that is was written by Malcolm Wallace while working
+for the York ??? group, in 1992. The tool works as a simple filter,
+reading hp files, and outputting postscript, with the postscript
+doing the heavy lifting of the graphical rendering.
+
+-----------
+
+
+Talk about Active, but not in any details.
+
+
+
+
+
+
+ It was written
+in C by 
+
+
+
 
 %
 % ---- Bibliography ----
