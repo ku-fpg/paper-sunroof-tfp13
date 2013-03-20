@@ -3,3 +3,6 @@
 *.aux
 *.log
 blog-tutorial/*.htm
+example-app/Main
+*.hi
+*.o
