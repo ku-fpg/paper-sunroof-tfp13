@@ -76,7 +76,8 @@ newtype JSTree = JSTree JSObject
 data JSTreeTuple = JSTreeTuple 
   { treeNode     :: JSString
   , treeChildren :: JSArray JSTree
-  , treeResult   :: JSMessage }
+  , treeResult   :: JSMessage
+  , treeSelected :: JSBool }
 
 instance Show JSTree where
   show (JSTree o) = show o
@@ -99,19 +100,22 @@ instance JSTuple JSTree where
   match o = JSTreeTuple 
     { treeNode = o ! "text"
     , treeChildren = o ! "children"
-    , treeResult = o ! "result" }
+    , treeResult = o ! "result"
+    , treeSelected = o ! "selected" }
   tuple t = do
     o <- new "Object" ()
     o # "text"  := treeNode t
     o # "children" := treeChildren t
     o # "result" := treeResult t
+    o # "selected" := treeSelected t
     return $ JSTree o
 
 jsTree :: JSString -> JSArray JSTree -> JSMessage -> JSA JSTree
 jsTree node children result = 
   tuple $ JSTreeTuple { treeNode = node
                       , treeChildren = children
-                      , treeResult = result }
+                      , treeResult = result
+                      , treeSelected = false }
 
 -- JSMessage ---------------------------------------------------
 
