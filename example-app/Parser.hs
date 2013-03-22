@@ -1,9 +1,6 @@
 
 module Parser
-  ( MathE(..)
-  , ErrorE
-  , parseMathE
-  , evalM
+  ( parseMathE
   ) where
 
 import Data.Attoparsec.Char8 
@@ -15,12 +12,7 @@ import qualified Data.ByteString.Char8 as BS
 
 import Control.Applicative hiding ( empty )
 
--- Type --------------------------------------------------------
-
-data MathE = NumE Double
-           | OpE MathE Char MathE
-           | FunE String MathE
-           deriving Show
+import Types
 
 -- Parser ------------------------------------------------------
 
@@ -70,44 +62,3 @@ parseFactor  =  parseFun
 parseMathE :: String -> ErrorE MathE
 parseMathE str | null str = errorE "No Input"
 parseMathE str = parseOnly (parseExp <* skipSpace) (BS.pack str)
-
--- Evaluation --------------------------------------------------
-
-type ErrorE a = Either String a
-
-errorE :: String -> ErrorE a
-errorE = Left
-
-opM :: Char -> ErrorE (Double -> Double -> ErrorE Double)
-opM o = case o of
-  '+' -> return $ \d1 d2 -> return $ d1 + d2
-  '-' -> return $ \d1 d2 -> return $ d1 - d2
-  '*' -> return $ \d1 d2 -> return $ d1 * d2
-  '/' -> return $ \d1 d2 -> if d2 == 0 
-                               then errorE "Division by zero!" 
-                               else return $ d1 / d2
-  op  -> errorE $ "Unknown operator: " ++ [op]
-
-funM :: String -> ErrorE (Double -> ErrorE Double)
-funM f = case f of
-  "log" -> return $ \d -> if d < 0 
-                             then errorE "Logarithm of a negative number!"
-                             else return $ log d
-  "cos" -> return $ return . cos
-  "sin" -> return $ return . sin
-  "tan" -> return $ \d -> if isNaN (tan d)
-                             then errorE $ "tan undefined for " ++ show d ++ "!"
-                             else return $ tan d
-  fun -> return $ \_ -> errorE $ "Undefined function '" ++ fun ++ "'!"
-
-evalM :: MathE -> ErrorE Double
-evalM (NumE d) = return d
-evalM (OpE e1 o e2) = do
-  d1 <- evalM e1
-  d2 <- evalM e2
-  op <- opM o
-  d1 `op` d2
-evalM (FunE f e) = do
-  d <- evalM e
-  fun <- funM f
-  fun d

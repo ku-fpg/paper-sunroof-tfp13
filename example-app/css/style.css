@@ -12,11 +12,12 @@ body {
 }
 
 #canvas-box {
-  overflow: scroll;
+  overflow: auto;
+  margin-bottom: 10px;
 }
 
 #plot-box {
-  overflow: scroll;
+  overflow: auto;
 }
 
 #formula-form {

@@ -2,52 +2,124 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module Types ( JSMathE, JSMessage ) where
+module Types 
+  ( MathE(..)
+  , evalM
+  , ErrorE
+  , errorE
+  , JSTree, JSTreeTuple(..)
+  , jsTree
+  , JSMessage, JSMessageTuple(..)
+  , jsMessage, jsResult
+  ) where
 
 import Data.Boolean
 
 import Language.Sunroof
 import Language.Sunroof.JS.Bool ( JSBool, jsIfB )
 import Language.Sunroof.JS.Canvas ( JSCanvas )
- 
+
+-- -------------------------------------------------------------
+
+type ErrorE a = Either String a
+
+errorE :: String -> ErrorE a
+errorE = Left
+
+-- MathE -------------------------------------------------------
+
+data MathE = NumE Double
+           | OpE MathE Char MathE
+           | FunE String MathE
+           deriving Show
+
+-- Evaluation --------------------------------------------------
+
+opM :: Char -> ErrorE (Double -> Double -> ErrorE Double)
+opM o = case o of
+  '+' -> return $ \d1 d2 -> return $ d1 + d2
+  '-' -> return $ \d1 d2 -> return $ d1 - d2
+  '*' -> return $ \d1 d2 -> return $ d1 * d2
+  '/' -> return $ \d1 d2 -> if d2 == 0 
+                               then errorE "Division by zero!" 
+                               else return $ d1 / d2
+  op  -> errorE $ "Unknown operator: " ++ [op]
+
+funM :: String -> ErrorE (Double -> ErrorE Double)
+funM f = case f of
+  "log" -> return $ \d -> if d < 0 
+                             then errorE "Logarithm of a negative number!"
+                             else return $ log d
+  "cos" -> return $ return . cos
+  "sin" -> return $ return . sin
+  "tan" -> return $ \d -> if isNaN (tan d)
+                             then errorE $ "tan undefined for " ++ show d ++ "!"
+                             else return $ tan d
+  fun -> return $ \_ -> errorE $ "Undefined function '" ++ fun ++ "'!"
+
+evalM :: MathE -> ErrorE Double
+evalM (NumE d) = return d
+evalM (OpE e1 o e2) = do
+  d1 <- evalM e1
+  d2 <- evalM e2
+  op <- opM o
+  d1 `op` d2
+evalM (FunE f e) = do
+  d <- evalM e
+  fun <- funM f
+  fun d
+
 -- JSMathE -----------------------------------------------------
 
-newtype JSMathE = JSMathE JSObject
+newtype JSTree = JSTree JSObject
 
-instance Show JSMathE where
-  show (JSMathE o) = show o
+data JSTreeTuple = JSTreeTuple 
+  { treeNode     :: JSString
+  , treeChildren :: JSArray JSTree
+  , treeResult   :: JSMessage }
 
-instance Sunroof JSMathE where
-  box = JSMathE . box
-  unbox (JSMathE o) = unbox o
+instance Show JSTree where
+  show (JSTree o) = show o
 
-type instance BooleanOf JSMathE = JSBool
+instance Sunroof JSTree where
+  box = JSTree . box
+  unbox (JSTree o) = unbox o
 
-instance IfB JSMathE where
+type instance BooleanOf JSTree = JSBool
+
+instance IfB JSTree where
   ifB = jsIfB
 
 -- | Reference equality, not value equality.
-instance EqB JSMathE where
-  (JSMathE a) ==* (JSMathE b) = a ==* b
+instance EqB JSTree where
+  (JSTree a) ==* (JSTree b) = a ==* b
 
-instance JSTuple JSMathE where
-  type Internals JSMathE = ( JSFunction JSCanvas JSNumber -- Calc Width
-                           , JSFunction JSCanvas JSNumber -- Calc Height
-                           , JSFunction JSCanvas ()       -- Render
-                           , JSMessage -- Result Message
-                           )
-  match o = ( o ! "width", o ! "height", o ! "render", o ! "result" )
-  tuple (w, h, render, res) = do
+instance JSTuple JSTree where
+  type Internals JSTree = JSTreeTuple
+  match o = JSTreeTuple 
+    { treeNode = o ! "text"
+    , treeChildren = o ! "children"
+    , treeResult = o ! "result" }
+  tuple t = do
     o <- new "Object" ()
-    o # "width"  := w
-    o # "height" := h
-    o # "render" := render
-    o # "result" := res
-    return $ JSMathE o
+    o # "text"  := treeNode t
+    o # "children" := treeChildren t
+    o # "result" := treeResult t
+    return $ JSTree o
+
+jsTree :: JSString -> JSArray JSTree -> JSMessage -> JSA JSTree
+jsTree node children result = 
+  tuple $ JSTreeTuple { treeNode = node
+                      , treeChildren = children
+                      , treeResult = result }
 
 -- JSMessage ---------------------------------------------------
 
 newtype JSMessage = JSMessage JSObject
+
+data JSMessageTuple = JSMessageTuple 
+  { msgType :: JSString
+  , msgContent :: JSObject }
 
 instance Show JSMessage where
   show (JSMessage o) = show o
@@ -66,12 +138,21 @@ instance EqB JSMessage where
   (JSMessage a) ==* (JSMessage b) = a ==* b
 
 instance JSTuple JSMessage where
-  type Internals JSMessage = ( JSString -- Message Type
-                             , JSObject -- Message Content
-                             )
-  match o = ( o ! "type", o ! "content" )
-  tuple (t, c) = do
+  type Internals JSMessage = JSMessageTuple
+  match o = JSMessageTuple 
+    { msgType = o ! "type"
+    , msgContent = o ! "content" }
+  tuple m = do
     o <- new "Object" ()
-    o # "type"    := t
-    o # "content" := c
+    o # "type"    := msgType m
+    o # "content" := msgContent m
     return $ JSMessage o
+
+jsMessage :: (Sunroof a) => JSString -> a -> JSA JSMessage
+jsMessage type' content = 
+  tuple $ JSMessageTuple { msgType = type'
+                         , msgContent = cast $ content }
+
+jsResult :: ErrorE Double -> JSA JSMessage
+jsResult (Left err) = jsMessage "error" (js err)
+jsResult (Right v)  = jsMessage "result" (js v)

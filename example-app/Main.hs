@@ -1,5 +1,6 @@
 
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 module Main where
 
@@ -25,69 +26,104 @@ main = do
     downstream <- rsyncJS doc $ newChan
     asyncJS doc $ initialize upstream
     
-    nodeWidth <- rsyncJS doc $ function nodeWidth
-    nodeHeight <- rsyncJS doc $ function nodeHeight
-    drawNode <- rsyncJS doc $ function drawNode
-    --renderMathE <- rsyncJS doc $ function renderMathE
+    nodeWidth <- rsyncJS doc $ nodeWidth
+    nodeHeight <- rsyncJS doc $ nodeHeight
+    drawNode <- rsyncJS doc $ drawNode
     
-    makeMathDouble <- rsyncJS doc $ function $ \(d, res) -> do
-      widthF  <- function $ \c -> nodeWidth $$ (c, cast d, empty)
-      heightF <- function $ \c -> nodeHeight $$ (c, cast d, empty)
-      renderF <- function $ \c -> drawNode $$ (c, cast d, empty)
-      tuple (widthF, heightF, renderF, res)
+    displayError <- rsyncJS doc $ function $ \s -> do
+      resultBox <- jq "#formula-result"
+      resultBox # removeClass "btn-success"
+      resultBox # removeClass "btn-warning"
+      resultBox # addClass "btn-danger"
+      resultBox # setText s
+      canvas <- jq "#canvas"
+      let wh = 100 :: JSNumber
+      canvas # setAttr "width" (cast $ wh)
+      canvas # setAttr "height" (cast $ wh)
+      c <- getTreeCanvas
+      c # clearRect (0,0) (wh, wh)
+      return ()
     
-    makeMathOp <- rsyncJS doc $ function $ \(el, op, er, res) -> do
-      children <- newArray (el, er)
-      widthF  <- function $ \c -> nodeWidth $$ (c, op, children)
-      heightF <- function $ \c -> nodeHeight $$ (c, op, children)
-      renderF <- function $ \c -> drawNode $$ (c, op, children)
-      tuple (widthF, heightF, renderF, res)
+    displayValue <- rsyncJS doc $ function $ \(res :: JSNumber) -> do
+      resultBox <- jq "#formula-result"
+      resultBox # removeClass "btn-danger"
+      resultBox # removeClass "btn-warning"
+      resultBox # addClass "btn-success"
+      resultBox # setText (cast res)
+      return ()
     
-    makeMathFun <- rsyncJS doc $ function $ \(f, e, res) -> do
-      children <- newArray (e)
-      widthF  <- function $ \c -> nodeWidth $$ (c, f, children)
-      heightF <- function $ \c -> nodeHeight $$ (c, f, children)
-      renderF <- function $ \c -> drawNode $$ (c, f, children)
-      tuple (widthF, heightF, renderF, res)
+    displayMathError <- rsyncJS doc $ function $ \err -> do
+      resultBox <- jq "#formula-result"
+      resultBox # removeClass "btn-danger"
+      resultBox # removeClass "btn-success"
+      resultBox # addClass "btn-warning"
+      resultBox # setText err
+      return ()
     
-    let makeMathE :: MathE -> JSA JSMathE
-        makeMathE (NumE d) = do
-          res <- jsErrorE $ Right d
-          makeMathDouble $$ (js d, res)
-        makeMathE m@(OpE e1 op e2) = do
-          me1 <- makeMathE e1
-          me2 <- makeMathE e2
-          res <- jsErrorE $ evalM m
-          makeMathOp $$ (me1, js op, me2, res)
-        makeMathE m@(FunE f e) = do
-          me <- makeMathE e
-          res <- jsErrorE $ evalM m
-          makeMathFun $$ (js f, me, res)
+    displayResult <- rsyncJS doc $ function $ \res -> do
+      let msg = match res
+      caseB (msgType msg) 
+        [ ((==* "error"), displayMathError $$ (cast $ msgContent msg))
+        , ((==* "result"), displayValue $$ (cast $ msgContent msg))
+        ] (return ())
+      return ()
     
-    asyncJS doc $ forkJS $ updateCanvasLoop downstream
+    drawTree <- rsyncJS doc $ function $ \t -> do
+      canvas <- jq "#canvas"
+      c <- getTreeCanvas
+      w <- nodeWidth $$ (c, t)
+      h <- nodeHeight $$ (c, t)
+      canvas # setAttr "width" (cast w)
+      canvas # setAttr "height" (cast h)
+      c # clearRect (0,0) (w, h)
+      c # setFont (cast fontSize <> "px monospace" )
+      drawNode $$ (c, t)
+      displayResult $$ (treeResult $ match t)
     
-    mainServerLoop doc upstream downstream makeMathE
+    asyncJS doc $ forkJS $ loop () $ \ () -> do
+      jsMsg <- readChan downstream
+      c <- getTreeCanvas
+      let msg = match jsMsg
+      liftJS $ caseB (msgType msg) 
+        [ ((==* "math"), drawTree $$ (cast $ msgContent msg))
+        , ((==* "error"), displayError $$ (cast $ msgContent msg))
+        ] (return ())
+      return ()
+    
+    mainServerLoop doc upstream downstream fromMathE
 
 mainServerLoop :: SunroofEngine 
                -> Uplink JSString 
                -> JSChan JSMessage
-               -> (MathE -> JSA JSMathE)
+               -> (MathE -> JSA JSTree)
                -> IO ()
 mainServerLoop doc upstream downstream convertMathE = do
   formula <- getUplink upstream
   case parseMathE formula of
     Left err -> asyncJS doc $ do
-      msg <- tuple ("error", cast $ js err)
+      msg <- jsMessage "error" (js err)
       writeChan msg downstream :: JSA ()
     Right e  -> asyncJS doc $ do
       jsE <- convertMathE e
-      msg <- tuple ("math", cast $ jsE)
+      msg <- jsMessage "math" jsE
       writeChan msg downstream :: JSA ()
   mainServerLoop doc upstream downstream convertMathE
-  
-jsErrorE :: ErrorE Double -> JSA JSMessage
-jsErrorE (Left err) = tuple ("error", cast $ js err)
-jsErrorE (Right v)  = tuple ("result", cast $ js v)
+
+fromMathE :: MathE -> JSA JSTree
+fromMathE m@(NumE d) = do
+  res <- jsResult $ evalM m
+  jsTree (string $ show d) empty res
+fromMathE m@(OpE e1 op e2) = do
+  res <- jsResult $ evalM m
+  tl <- fromMathE e1
+  tr <- fromMathE e2
+  cs <- newArray (tl, tr)
+  jsTree (js op) cs res
+fromMathE m@(FunE f e) = do
+  res <- jsResult $ evalM m
+  t <- fromMathE e
+  cs <- newArray (t)
+  jsTree (string f) cs res
 
 -- General Event Handling --------------------------------------
 
@@ -99,32 +135,15 @@ onFormulaKeyUp upstream _ = do
   formula <- jq "#formula" >>= attr' "value" 
   putUplink formula upstream
 
-updateCanvasLoop :: JSChan JSMessage -> JSB ()
-updateCanvasLoop downstream = loop () $ \ () -> do
-  msg <- readChan downstream
-  liftJS $ caseB (fst $ match msg) 
-    [ ((==* "math"), renderMathE (cast $ snd $ match msg))
-    , ((==* "error"), displayError (cast $ snd $ match msg))
-    ] (return ())
-  return ()
-
-updateCanvasSize :: JSMathE -> JSA ()
-updateCanvasSize e = do
-  let (widthF, heightF, _, _) = match e
-  canvas <- jq "#canvas"
-  c <- (document # getElementById "canvas") >>= getContext "2d"
-  w <- widthF $$ c
-  h <- heightF $$ c
-  canvas # setAttr "width" (cast w)
-  canvas # setAttr "height" (cast h)
-  return ()
-
 onWindowResize :: JSObject -> JSA ()
 onWindowResize _ = do
   bodyW <- jq "body" >>= innerWidth
   canvas <- jq "#canvas"
   --canvas # setAttr "width" (cast bodyW)
   return ()
+
+getTreeCanvas :: JS t JSCanvas
+getTreeCanvas = (document # getElementById "canvas") >>= getContext "2d"
 
 initialize :: Uplink JSString -> JSA ()
 initialize upstream = do
@@ -134,53 +153,6 @@ initialize upstream = do
   formulaInput <- jq "#formula"
   formulaInput # on' "keyup" (onFormulaKeyUp upstream)
     --canvas # setAttr "height" "h"
-
-renderMathE :: JSMathE -> JSA ()
-renderMathE e = do
-  updateCanvasSize e
-  c <- (document # getElementById "canvas") >>= getContext "2d"
-  w <- jq "#canvas" >>= attr' "width"
-  h <- jq "#canvas" >>= attr' "height"
-  c # clearRect (0,0) (cast w, cast h)
-  c # setFont (cast fontSize <> "px monospace" )
-  let (_, _, renderF, res) = match e
-  renderF $$ c
-  displayResult res
-
-displayError :: JSString -> JSA ()
-displayError s = do
-  resultBox <- jq "#formula-result"
-  resultBox # removeClass "btn-success"
-  resultBox # removeClass "btn-warning"
-  resultBox # addClass "btn-danger"
-  resultBox # setText s
-  return ()
-
-displayValue :: JSNumber -> JSA ()
-displayValue res = do
-  resultBox <- jq "#formula-result"
-  resultBox # removeClass "btn-danger"
-  resultBox # removeClass "btn-warning"
-  resultBox # addClass "btn-success"
-  resultBox # setText (cast res)
-  return ()
-
-displayMathError :: JSString -> JSA ()
-displayMathError err = do
-  resultBox <- jq "#formula-result"
-  resultBox # removeClass "btn-danger"
-  resultBox # removeClass "btn-success"
-  resultBox # addClass "btn-warning"
-  resultBox # setText err
-  return ()
-
-displayResult :: JSMessage -> JSA ()
-displayResult res = do
-  caseB (fst $ match res) 
-    [ ((==* "error"), displayMathError (cast $ snd $ match res))
-    , ((==* "result"), displayValue (cast $ snd $ match res))
-    ] (return ())
-  return ()
 
 -- Render ------------------------------------------------------
 
@@ -206,18 +178,6 @@ drawLink (x1, y1) (x2, y2) c = do
   c # moveTo (x1, y1)
   c # lineTo (x2, y2)
   c # closePath
-  c # stroke
-  c # restore
-
--- Draw a box around the given JSMathE.
-renderOutline :: JSMathE -> JSCanvas -> JSA ()
-renderOutline e c = do
-  c # save
-  let (wF, hF, rF, _) = match e
-  w <- wF $$ c
-  h <- hF $$ c
-  c # setStrokeStyle "#ff0000"
-  c # rect (0,0) (w,h)
   c # stroke
   c # restore
 
@@ -248,7 +208,7 @@ drawNodeBox (c, text) = do
   c # lineTo (r, 2 * r)
   c # closePath
   c # save
-  c # setFillStyle "#ff0000"
+  c # setFillStyle "#ffffff"
   c # fill
   c # restore
   c # stroke
@@ -258,63 +218,64 @@ drawNodeBox (c, text) = do
   c # fillText text (r + (metric ! width) / 2, r)
   c # restore
 
-childWidth :: (JSCanvas, JSArray JSMathE) -> JSA JSNumber
-childWidth (c, children) = do
+childWidth :: (JSFunction (JSCanvas, JSTree) JSNumber, JSCanvas, JSArray JSTree) -> JSA JSNumber
+childWidth (nodeWidth, c, children) = do
   -- Width of the children
   let foldFun e w = do
-        let (widthF, heightF, renderF, _) = match e
-        eWidth <- widthF $$ c
+        eWidth <- nodeWidth $$ (c, e)
         return $ eWidth + w
   foldArray foldFun 0 children
 
-nodeWidth :: (JSCanvas, JSString, JSArray JSMathE) -> JSA JSNumber
-nodeWidth (c, node, children) = do
+nodeWidth :: JSA (JSFunction (JSCanvas, JSTree) JSNumber)
+nodeWidth = fixJSA $ \nodeWidth (c, jsT) -> do
+  let t = match jsT
   -- Width of the node text
-  nodeW <- nodeBoxWidth (c, node)
+  nodeW <- nodeBoxWidth (c, treeNode t)
   -- Width of the children
-  childW <- childWidth (c, children)
+  childW <- childWidth (nodeWidth, c, treeChildren t)
   -- Overall width
   return $ maxB nodeW childW
 
-nodeHeight :: (JSCanvas, JSString, JSArray JSMathE) -> JSA JSNumber
-nodeHeight (c, node, children) = do
+nodeHeight :: JSA (JSFunction (JSCanvas, JSTree) JSNumber)
+nodeHeight = fixJSA $ \nodeHeight (c, jsT) -> do
+  let t = match jsT
   -- Height of the node text
-  nodeH <- nodeBoxHeight (c, node)
+  nodeH <- nodeBoxHeight (c, treeNode t)
   -- Height of the children
   let foldFun e h = do
-        let (widthF, heightF, renderF, _) = match e
-        eHeight <- heightF $$ c
+        eHeight <- nodeHeight $$ (c, e)
         return $ maxB eHeight h
-  childH <- foldArray foldFun 0 children
+  childH <- foldArray foldFun 0 (treeChildren t)
   -- Overall height
   return $ nodeH + childH
 
-drawNode :: (JSCanvas, JSString, JSArray JSMathE) -> JSA ()
-drawNode (c, node, children) = do
+drawNode :: JSA (JSFunction (JSCanvas, JSTree) ())
+drawNode = fixJSA $ \drawNode (c, jsT) -> do
+  let t = match jsT
+  -- Compile Functions:
+  nodeWidthF <- nodeWidth
   -- Render node text
-  nodeBoxW <- nodeBoxWidth (c, node)
-  nodeW    <- nodeWidth (c, node, children)
-  nodeBoxH <- nodeBoxHeight (c, node)
-  childW   <- childWidth (c, children)
+  nodeBoxW <- nodeBoxWidth (c, treeNode t)
+  nodeW    <- nodeWidthF $$ (c, jsT)
+  nodeBoxH <- nodeBoxHeight (c, treeNode t)
+  childW   <- childWidth (nodeWidthF, c, treeChildren t)
   let nodeLocX = nodeW / 2 - nodeBoxW / 2
   c # save
   c # translate (nodeLocX, 0)
-  drawNodeBox (c, node)
+  drawNodeBox (c, treeNode t)
   c # restore
   -- Render children
   let offset = ifB (childW <* nodeW) (nodeW / 2 - childW / 2) (0)
-  let foldFun e offset = do
-        let (widthF, _, renderF, _) = match e
+  let foldFun node offset = do
         c # save
-        childW <- widthF $$ c
+        childW <- nodeWidthF $$ (c, node)
         c # drawLink (nodeLocX + nodeBoxW / 2, nodeBoxH - margin) 
                      (offset + childW / 2, nodeBoxH + margin)
         c # translate (offset, nodeBoxH)
-        renderF $$ c
-        --c # renderOutline e -- DEBUG
+        drawNode $$ (c, node)
         c # restore
         return $ childW + offset
-  _ <- foldArray foldFun offset children
+  _ <- foldArray foldFun offset (treeChildren t)
   return ()
 
 foldArray :: (SunroofArgument a, Sunroof a, Sunroof b) 
