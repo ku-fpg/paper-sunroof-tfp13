@@ -4,5 +4,6 @@
 *.log
 blog-tutorial/*.htm
 example-app/Main
+example-app/dist
 *.hi
 *.o

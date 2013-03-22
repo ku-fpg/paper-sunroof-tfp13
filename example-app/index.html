@@ -1,18 +1,31 @@
-<html>
+<!DOCTYPE html>
+
+<html lang="en">
   <head>
-    <title>Sunroof - Static Clock Example</title>
+    <meta charset="utf-8">
+    <title>Sunroof - Formula</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script type="text/javascript" src="js/jquery.js"></script>
+    <script type="text/javascript" src="js/jquery-json.js"></script>
     <script type="text/javascript" src="js/kansas-comet.js"></script>
+    <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css" media="screen">
+    <link href="assets/css/bootstrap-responsive.css" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="css/style.css">
   </head>
   <body>
-    <div style="padding: 0px; margin: 20px; margin-left: auto; margin-right: auto; width: 502px;">
-    <canvas 
-      id="canvas" 
-      style="padding: 0px; margin: 0px; border: solid 1px black" 
-      width="500" 
-      height="500"
-      class="click">
-    </canvas>
+    <form class="form-inline" id="formula-form">
+        <input type="text" 
+               id="formula" 
+               class="input-block-level" 
+               placeholder="log(42) * 3">
+        </input>
+        <span class="btn btn-block disabled" id="formula-result">No Input</span>
+    </form>
+    <div id="canvas-box" class="img-polaroid">
+      <canvas id="canvas" width="100" height="100"></canvas>
+    </div>
+    <div id="plot-box" class="img-polaroid">
+      <canvas id="plot" width="100" height="100"></canvas>
     </div>
     <div id="no-debug-log"></div>
     <script type="text/javascript">
