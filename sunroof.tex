@@ -13,6 +13,7 @@
 
 \begin{document}
 \newcommand{\NOTE}[1]{{\Large\textbf{NOTE:}\ #1}}
+\newcommand{\Src}[1]{{\sf #1}}
 %
 \title{Sunroof}
 %
@@ -171,23 +172,40 @@ Highlights
 \begin{center}
 \begin{tabular}{r@{\quad}l@{\quad}l@{\quad}c}
 \hline\rule{0pt}{12pt}%
-Constraint      & Sunroof   & Haskell  & js \\
-                & Type t             & Analog \HaskellAnalog{t}\\
-\hline\rule{0pt}{12pt}%
-                & ()            & ()              & $\checkmark$ \\
-                & JSBool        & Bool            & $\checkmark$ \\
-                & JSNumber      & Double          & $\checkmark$ \\
-                & JSString      & String          & $\checkmark$ \\
- (Sunroof $\alpha$) $\Rightarrow$      & JSArray $\alpha$     & IntMap $\HaskellAnalog{\alpha}$
-                                                  & $\checkmark$ \\
-                    & JSMap $\alpha$ $\beta$ 
-                                & Map $\HaskellAnalog{\alpha}$ $\HaskellAnalog{\beta}$ & \\
- (JSArgument a, Sunroof b) $\Rightarrow$
-                & JSFunction $\alpha$ $\beta$ 
-                                & $\HaskellAnalog{\alpha}$ $\rightarrow$ IO $\HaskellAnalog{\beta}$
-                                                  & \\
- (JSArgument a) $\Rightarrow$& JSMVar a& MVar 'a           \\
- (JSArgument a) $\Rightarrow$& JSChan a& Chan 'a           \\[2pt]
+  Constraint
+  & Sunroof Type $\tau$
+  & Haskell Analog \HaskellAnalog{$\tau$}
+  & \Src{js} \\ \hline\rule{0pt}{12pt}%
+  
+  & \Src{()}       & \Src{()}     & $\checkmark$ \\
+  & \Src{JSBool}   & \Src{Bool}   & $\checkmark$ \\
+  & \Src{JSNumber} & \Src{Double} & $\checkmark$ \\
+  & \Src{JSString} & \Src{String} & $\checkmark$ \\
+  
+  \Src{Sunroof $\alpha$}
+  & \Src{JSArray $\alpha$} 
+  & \Src{[$\HaskellAnalog{\alpha}$]}
+  & $\checkmark$ \\
+  
+  & \Src{JSMap JSString $\beta$}
+  & \Src{Map String $\HaskellAnalog{\beta}$}
+  & \\
+  
+  \Src{SunroofArgument $\alpha$}
+  & \Src{JSFunction $\alpha$ $\beta$ }
+  & \Src{$\HaskellAnalog{\alpha}$ $\rightarrow$ JS$_\Src{A}$ $\HaskellAnalog{\beta}$} 
+  & $\checkmark$ \\
+  \Src{Sunroof $\beta$} \\
+  
+  \Src{SunroofArgument $\alpha$}
+  & \Src{JSMVar $\alpha$}
+  & \Src{MVar $\HaskellAnalog{\alpha}$}
+  & \\
+  
+  \Src{SunroofArgument $\alpha$}
+  & \Src{JSChan $\alpha$}
+  & \Src{Chan $\HaskellAnalog{\alpha}$}
+  & \\[2pt]
 \hline
 \end{tabular}
 \end{center}
@@ -202,14 +220,16 @@ Constraint      & Sunroof   & Haskell  & js \\
                 & Monadic Function      & Reification   & Object in     & Invocation\\
                 & in Haskell            & Function      & JavaScript    & Function\\
 \hline\rule{0pt}{12pt}%
-Functions       & $\alpha\rightarrow${\tt JS}$_{\tt A}~\beta$
-                                        & \verb|function|
-                                                        & \verb|JSFunction|~$\alpha~\beta$
-                                                                        & \verb|apply|\\
-Continuations   & $\alpha\rightarrow${\tt JS}$_{\tt B}~()$
-                                        & \verb|continuation|
-                                                        & \verb|JSContinuation|~$\alpha$
-                                                                        & \verb|goto|\\
+  Functions
+  & $\alpha\rightarrow\ $\Src{JS}$_\Src{A}~\beta$
+  & \Src{function}
+  & \Src{JSFunction}~$\alpha~\beta$
+  & \Src{apply} \\
+  Continuations
+  & $\alpha\rightarrow\ $\Src{JS}$_\Src{B}~\Src{()}$
+  & \Src{continuation}
+  & \Src{JSContinuation}~$\alpha$
+  & \Src{goto}\\
 \hline
 \end{tabular}
 \end{center}
