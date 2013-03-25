@@ -31,6 +31,8 @@ main = do
     nodeHeight <- rsyncJS doc $ nodeHeight
     drawNode <- rsyncJS doc $ drawNode
     
+    plotJS <- rsyncJS doc $ function $ plotJS
+    
     nodeBoxX <- rsyncJS doc $ function $ \(c, jsT) -> do
       let t = match jsT
       nodeBoxW <- nodeBoxWidth (c, treeNode t)
@@ -99,14 +101,16 @@ main = do
                     &&* y <* nodeH - margin
                    )
       jsT # "selected" := onNode
-      -- Children
       
+      ifB (onNode &&* treeData t /=* nullJS)
+          (forkJS (plotJS $$ (cast $ treeData t, 0, -100, 100, -10, 10) :: JSA ()))
+          (return ())
+      -- Children
       let foldFun e w = do
             eWidth <- nodeWidth $$ (c, e)
             selectNode $$ (c, e, x - w, y - nodeH)
             return $ eWidth + w
       foldArray foldFun 0 (treeChildren t)
-            
       return ()
     
     asyncJS doc $ do
@@ -138,40 +142,104 @@ main = do
         ] (return ())
       return ()
     
-    mainServerLoop doc upstream downstream fromMathE
+    mainServerLoop doc upstream downstream
 
 mainServerLoop :: SunroofEngine 
                -> Uplink JSString 
                -> JSChan JSMessage
-               -> (MathE -> JSA JSTree)
                -> IO ()
-mainServerLoop doc upstream downstream convertMathE = do
+mainServerLoop doc upstream downstream = do
   formula <- getUplink upstream
   case parseMathE formula of
     Left err -> asyncJS doc $ do
       msg <- jsMessage "error" (js err)
       writeChan msg downstream :: JSA ()
     Right e  -> asyncJS doc $ do
-      jsE <- convertMathE e
+      jsE <- fromMathE e [] e
       msg <- jsMessage "math" jsE
       writeChan msg downstream :: JSA ()
-  mainServerLoop doc upstream downstream convertMathE
+  mainServerLoop doc upstream downstream
 
-fromMathE :: MathE -> JSA JSTree
-fromMathE m@(NumE d) = do
+fromMathE :: MathE -> [Int] -> MathE -> JSA JSTree
+fromMathE m@(NumE d) path orig = do
   res <- jsResult $ evalM m
-  jsTree (string $ show d) empty res
-fromMathE m@(OpE e1 op e2) = do
+  f <- function $ return . (createMathJS orig (reverse path))
+  jsTreeData (string $ show d) empty res f
+fromMathE m@(OpE e1 op e2) path orig = do
   res <- jsResult $ evalM m
-  tl <- fromMathE e1
-  tr <- fromMathE e2
+  tl <- fromMathE e1 (0 : path) orig
+  tr <- fromMathE e2 (1 : path) orig
   cs <- newArray (tl, tr)
   jsTree (js op) cs res
-fromMathE m@(FunE f e) = do
+fromMathE m@(FunE f e) path orig = do
   res <- jsResult $ evalM m
-  t <- fromMathE e
+  t <- fromMathE e (0 : path) orig
   cs <- newArray (t)
   jsTree (string f) cs res
+
+createMathJS :: MathE -> [Int] -> (JSNumber -> JSNumber)
+createMathJS _ [] = id
+createMathJS (NumE d) _ = const $ js d
+createMathJS m@(FunE f e) (n:ns) 
+  | n == 0    = \k -> funJS f (createMathJS e ns k)
+  | otherwise = const $ evalMathJS m
+createMathJS m@(OpE e1 o e2) (n:ns)
+  | n == 0    = \k -> opJS o (createMathJS e1 ns k) (evalMathJS e2)
+  | n == 1    = \k -> opJS o (evalMathJS e1) (createMathJS e2 ns k)
+  | otherwise = const $ evalMathJS m
+
+evalMathJS :: MathE -> JSNumber
+evalMathJS m = case evalM m of
+  Left err -> cast $ object "NaN"
+  Right d -> js $ d
+
+opJS :: Char -> (JSNumber -> JSNumber -> JSNumber)
+opJS o = case o of
+  '+' -> (+)
+  '-' -> (-)
+  '*' -> (*)
+  '/' -> (/)
+  --op  -> errorE $ "Unknown operator: " ++ [op]
+
+funJS :: String -> (JSNumber -> JSNumber)
+funJS f = case f of
+  "log" -> log
+  "cos" -> cos
+  "sin" -> sin
+  "tan" -> tan
+  -- fun -> return $ \_ -> errorE $ "Undefined function '" ++ fun ++ "'!"
+
+plotJS :: (JSFunction JSNumber JSNumber, JSNumber, JSNumber, JSNumber, JSNumber, JSNumber) -> JSA ()
+plotJS (f, x, xmin, xmax, ymin, ymax) = do
+  plot <- document # getElementById "plot"
+  c <- plot # getContext "2d"
+  c # save
+  c # setStrokeStyle "#000000"
+  c # setFillStyle "#ff0000"
+  w <- return (plot ! width)
+  h <- return (plot ! height)
+  c # clearRect (0,0) (w, h)
+  xoffset <- return $ xmin
+  xrange <- return $ abs $ xmax - xmin
+  yoffset <- return $ ymin
+  yrange <- return $ abs $ ymax - ymin
+  c # beginPath
+  plotLine <- fixJSA $ \plotLine n -> do
+    let x = xoffset + n * (xrange / w)
+    fx <- f $$ x
+    let y = ((fx + yoffset) * (h / yrange))
+    ifB (n ==* 0)
+      (c # moveTo (n, y))
+      (c # lineTo (n, y))
+    ifB (n <* w)
+      (plotLine $$ (n + 1))
+      (return ())
+  plotLine $$ 0
+  c # stroke
+  c # closePath
+  c # restore
+  return ()
+
 
 -- General Event Handling --------------------------------------
 
@@ -186,8 +254,8 @@ onFormulaKeyUp upstream _ = do
 onWindowResize :: JSObject -> JSA ()
 onWindowResize _ = do
   bodyW <- jq "body" >>= innerWidth
-  canvas <- jq "#canvas"
-  --canvas # setAttr "width" (cast bodyW)
+  plot <- jq "#plot"
+  plot # setAttr "width" (cast bodyW)
   return ()
 
 getTreeCanvas :: JS t JSCanvas
