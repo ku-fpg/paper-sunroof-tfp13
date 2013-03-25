@@ -5,5 +5,8 @@
 blog-tutorial/*.htm
 example-app/Main
 example-app/dist
+simple-app/Main
+simple-app/dist
+simple-app/main.js
 *.hi
 *.o
