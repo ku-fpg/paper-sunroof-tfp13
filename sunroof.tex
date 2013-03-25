@@ -13,6 +13,7 @@
 
 \begin{document}
 \newcommand{\NOTE}[1]{{\Large\textbf{NOTE:}\ #1}}
+\newcommand{\TODO}[1]{{\textbf{TODO:}\ #1}}
 \newcommand{\Src}[1]{{\sf #1}}
 %
 \title{Sunroof}
@@ -41,11 +42,11 @@ Lawrence, KS 66045\\
 
 \begin{abstract}        
         
-Sunroof is a Domain Specific Language (DSL) for generating JavaScript.
+Sunroof is a Domain Specific Language (DSL) for generating Javascript.
 Sunroof is build on top of the JS-monad, which, like the Haskell IO-monad, allows 
-read and write access to external resources, but specifically JavaScript
+read and write access to external resources, but specifically Javascript
 resources. As such, Sunroof is primarily a feature-rich foreign
-function API to the browser's JavaScript engine, and all the browser-specific
+function API to the browser's Javascript engine, and all the browser-specific
 functionality, like HTML-based rendering, event handling, and 
 drawing to the HTML5 canvas. 
 
@@ -62,7 +63,7 @@ In combination with a small web services package, like Scotty,
 Sunroof offers a great platform to build interactive web applications,
 giving the ability to interleave Haskell and Javascript computations
 with each other as needed.
-\keywords{Haskell DSL, JavaScript, Web Technologies, Cloud Computing}
+\keywords{Haskell DSL, Javascript, Web Technologies, Cloud Computing}
 \end{abstract}
 %
 \section{Introduction}
@@ -77,8 +78,8 @@ the advantage of being independent from the underlying hard- and
 software platform. The problem is shifted from the actual machine
 to the browser. Also modern web technologies like HTML5 and CSS
 give easy to use tools for developing user interfaces for the
-mentioned application. They are standardized and improved over year 
-now. 
+mentioned application. They are standardized and improved over years
+up to now. 
 
 Yet, writing actual code in Javascript can be tedious and error prone 
 due to its not-statically typed nature. Also the object-oriented
@@ -106,7 +107,7 @@ to apply optimizations like expression sharing when compiling to Javascript.
 
 \NOTE{This might be a bit to enthusiastic.}
 
-We want to use the JavaScript API. Fast interpreters,
+We want to use the Javascript API. Fast interpreters,
 running in a browser advantage, 
 
 We do not want to program in Javascript.
@@ -119,16 +120,41 @@ Perhaps drawing line.
 
 \section{Background}
 
+We chose to implement Sunroof as deep embedded DSL for different
+reasons. Porting a compiler, like GHC, to Javascript would have
+cost a lot of effort. There is no clear way to port the existing
+API and there are many language features that would be difficult to
+translate. Providing a foreign function interface would 
+introduce the cost of translating back- and forward. 
+\TODO{Not even sure how this would work or where cost comes in.}
+Another possibility would be to develop a custom language. 
+Besides that people would need to learn a third language for this 
+approach, it would involve effort similar to porting a compiler.
+As a deep embedded DSL people only have to know Haskell to learn
+the new language. The cost of developing the DSL remains light, 
+because we can build upon a mature language and its features.
+
 Choices when compiling to Javascript
- * Port a compiler to JavaScript - issues, mismatching API, other efforts.
- * Provide an FFI - back and forward cost.
- * Compile a custom, cut down FP language. - example
- * DSL, restrictive, syntactically, how do we handle binding?
+\begin{itemize}
+\item Port a compiler to Javascript - issues, mismatching API, other efforts.
+\item Provide an FFI - back and forward cost.
+\item Compile a custom, cut down FP language. - example
+\item DSL, restrictive, syntactically, how do we handle binding?
+\end{itemize}
+
+\subsection{Basic Idea}
+
+As we have seen in the previous example application Sunroof uses a 
+monad to model computations that can be translated to Javascript.
+A binding operation is thought to be an assignment to 
+a fresh variable in the reified language.
 
 We use monad reification.
- * binding in Haskell becomes binding in reified language.
- * Feels like a native monad, cf STM.
- * Can build abstractions on top of this.
+\begin{itemize}
+\item binding in Haskell becomes binding in reified language.
+\item Feels like a native monad, cf STM.
+\item Can build abstractions on top of this.
+\end{itemize}
 
 Design objectives and contributions.
 \begin{itemize}
@@ -138,34 +164,41 @@ like the IO or STM monads, can we make the JS monad feel to Sunroof users.
 \item We want to reflect objects. (easy)
 
 \item We want also investigate the relationship between Haskell functions
-and JavaScript functions. In particular, there is an isomorphism
+and Javascript functions. In particular, there is an isomorphism
 between monadic functions in Haskell, with the type \verb|a -> JS b|,
-and JavaScript functions, which we will notate using \verb|JSFunction|.
+and Javascript functions, which we will notate using \verb|JSFunction|.
 This relationship is more interesting than a Haskell synonym;
 it reflects the reification options for capturing functions.
 \end{itemize}
 
  
 Compiling
- * If we transliterate, we have straight line code, can not pause.
+\begin{itemize}
+\item If we transliterate, we have straight line code, can not pause.
     (Wait for Mvar, for example)
- * If we CPS translate, we can use continuations to capture the
+\item If we CPS translate, we can use continuations to capture the
    notion of a paused thread. Works well.
    Problems:
-     * Can not translate functions, how do they get there return value
-     * (Assumes straight line code.)
-     * Also, the code becomes unreadable to anyone except a die-hard 
+  \begin{itemize}
+   \item Can not translate functions, how do they get there return value
+   \item (Assumes straight line code.)
+   \item Also, the code becomes unreadable to anyone except a die-hard 
        compiler freak.
+  \end{itemize}
+\end{itemize}
  
 Choice:
- * We support both!
- * Phantom argument to JS
- * A = Atomic, B = Blockable.
+\begin{itemize}
+\item We support both!
+\item Phantom argument to JS
+\item A = Atomic, B = Blockable.
+\end{itemize}
 
 Highlights
-
- * function / continuation
- * implementing wait \& fork
+\begin{itemize}
+\item function / continuation
+\item implementing wait \& fork
+\end{itemize}
 
 \begin{table}
 \caption{Major instances of the Sunroof class}
@@ -212,13 +245,13 @@ Highlights
 \end{table} 
 
 \begin{table}
-\caption{Reifying and calling JavaScript functions}
+\caption{Reifying and calling Javascript functions}
 \begin{center}
 \begin{tabular}{r@{\quad}c@{\quad}c@{\quad}c@{\quad}c}
 \hline\rule{0pt}{12pt}%
 
                 & Monadic Function      & Reification   & Object in     & Invocation\\
-                & in Haskell            & Function      & JavaScript    & Function\\
+                & in Haskell            & Function      & Javascript    & Function\\
 \hline\rule{0pt}{12pt}%
   Functions
   & $\alpha\rightarrow\ $\Src{JS}$_\Src{A}~\beta$
@@ -236,8 +269,8 @@ Highlights
 \end{table} 
 
 Up to this point, Sunroof is academically interesting, but in a real sense
-we are writing JavaScript using Haskell syntax, so why not just write
-JavaScript? There are three things we have bought by using our DSL.
+we are writing Javascript using Haskell syntax, so why not just write
+Javascript? There are three things we have bought by using our DSL.
 \begin{itemize}
 \item Typing -- We have a simple monomorphic type system that helps development of Sunroof code.
 \item Haskell Abstractions --
@@ -270,9 +303,9 @@ in C by
 
 \section{Related Work}
 
-To JavaScript in JavaScript (CoffeeScript).
+To Javascript in Javascript (CoffeeScript).
 
-Haskell to JavaScript
+Haskell to Javascript
 
 Other Deep embeddings.
 
