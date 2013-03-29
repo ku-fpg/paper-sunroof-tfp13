@@ -1,0 +1,84 @@
+ 
+Decision: Inspection/Reading is not an effect. Writing is an effect.
+            - Reason for: Tuple inconvenience: tuple :: Internals o -> JS t o 
+                          instead of tuple :: Internals o -> o
+                          BUT: match :: o -> Internals o
+
+LAYERS IMAGE!
+
+Top-Down-Approach
+
+- Introduction
+
+- Small Example Program
+  - Haus vom Nicolaus
+
+- Values in Sunroof
+  - Sunroof Type Class
+  - JavaScript values
+  - Example JSObject and ()
+  - Explain expression type (Ref Expression-Sharing)
+  - Introduce table of types with their Haskell version
+  - Mention Boolean/Numeric embedding using Data.Boolean
+
+- Effects in Sunroof
+  - JS Monad
+  - General Idea/Concept/Goal:
+    - Sunroof clas describes values that do not have side-effects (functional)
+    - JS monad models side-effects in JavaScript
+    - Binding in Haskell is binding in JavaScript
+    - Enables to write sequencial code
+  - Functions / Continuations:
+    - Relation between (a -> JS b) ==> (JSFunction a b)
+    - Reification
+  - Implementation:
+    - Using Operational to model sequence of operations (Ref Unimo/Operationl)
+    - Introduce JSI data type, describe it (Ref Constrained-Monads)
+
+- Concurrency in Sunroof
+  - Main concepts & goals:
+    - Impose a threading model like in IO
+    - A: Atomic linear uninterruptable JavaScript code
+      - Comparable to STM
+    - B: Blocking code
+      - Cooperative multithreading (yield)
+      - Continuation based
+      - Abstractions: JSMVar, JSChan (Compare by chart)
+  - Implementation:
+    - Phantom type to differentiate between threading models
+    - Continuations translated to JavaScript
+    - Depending on type translation to sequential/continuation JS
+    - Glance at implementation: delayThread / fork
+
+- Discussion
+  - Why not just write JS by hand
+    - More type safty
+    - Dynamic Generation
+    - Use Haskell Abstractions
+    - Macro vs. Sharing
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
