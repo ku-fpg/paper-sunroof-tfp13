@@ -1,0 +1,239 @@
+% This is LLNCS.DEM the demonstration file of
+% the LaTeX macro package from Springer-Verlag
+% for Lecture Notes in Computer Science,
+% version 2.4 for LaTeX2e as of 16. April 2010
+%
+\documentclass{llncs}
+%
+\usepackage{amsfonts}
+\usepackage{comment}
+\usepackage{natbib}
+\usepackage{graphicx}
+\usepackage{caption}
+\usepackage{subcaption}
+
+\newcommand{\SunroofAnalog}[1]{#1\ensuremath{_\downarrow}}
+\newcommand{\HaskellAnalog}[1]{#1\ensuremath{_\uparrow}}
+
+\newcommand{\NOTE}[1]{{\Large\textbf{NOTE:}\ #1}}
+\newcommand{\TODO}[1]{{\textbf{TODO:}\ #1}}
+\newcommand{\Src}[1]{{\sf #1}}
+
+\newcommand{\JSA}{\ensuremath{\Src{JS}_\Src{A}}}
+\newcommand{\JSB}{\ensuremath{\Src{JS}_\Src{B}}}
+
+\newcommand{\Figure}[3]{%
+\begin{figure}[h]%
+\vspace{-0.5cm}%
+\begin{center}%
+\includegraphics[scale=0.55,clip=true,trim=0.45cm 0.45cm 0.45cm 0.45cm]{#2}%
+\vspace{-0.5cm}%
+\end{center}%
+\caption{#3}%
+\label{#1}%
+\vspace{-0.5cm}%
+\end{figure}%
+}
+
+\begin{document}
+%
+\title{Sunroof}
+%
+\titlerunning{Sunroof}  % abbreviated title (for running head)
+%                                     also used for the TOC unless
+%                                     \toctitle is used
+%
+\author{Jan Bracker \and Andy Gill}
+%
+\authorrunning{Jan Bracker \and Andy Gill} % abbreviated author list (for running head)
+%
+%%%% list of authors for the TOC (use if author list has to be modified)
+\tocauthor{Jan Bracker, Andy Gill}
+%
+\institute{%
+Information Technology and Telecommunication Center\\
+Department of Electrical Engineering and Computer Science\\
+The University of Kansas\\
+2335 Irving Hill Road\\
+Lawrence, KS 66045\\
+   {\{???\}@ku.edu}%
+}
+
+\maketitle              % typeset the title of the contribution
+
+Sunroof is a Domain Specific Language (DSL) for generating Javascript.
+Sunroof is build on top of the JS-monad, which, like the Haskell IO-monad, allows 
+read and write access to external resources, but specifically Javascript
+resources. As such, Sunroof is primarily a feature-rich foreign
+function API to the browser's Javascript engine, and all the browser-specific
+functionality, like HTML-based rendering, event handling, and 
+drawing to the HTML5 canvas. 
+
+In this paper, we give the design and implementation of Sunroof, a 
+deeply embedded Haskell-hosted DSL.
+This makes it easy to use Haskell abstractions for larger Javascript
+applications without obscuring the produced Javascript on the Haskell
+level. 
+Furthermore, Sunroof offers two threading models for 
+building on top Javascript, atomic and blocking threads.
+This allows full access to Javascript APIs, but
+using Haskell concurrency patterns, like MVars and Channels.
+In combination with a small web services package, like Scotty,
+Sunroof offers a great platform to build interactive web applications,
+giving the ability to interleave Haskell and Javascript computations
+with each other as needed. 
+We leverage the work from \cite{Farmer:12:WebDSLs}.
+
+Figure \ref{fig:structure} shows how Sunroof is structured.
+On the lowest level we provide an untyped expression language \Src{Expr}
+that describes Javascript expressions. 
+To provide type safety when using Sunroof we create wrappers for each 
+type we want to represent. Examples for wrappers are \Src{JSNumber}
+or \Src{JSString}. Through a type class
+called \Src{Sunroof} we provide an interface to create wrapped and unwrapped
+instances of our expressions. Based on the wrappers we can provide 
+operations specific to a certain type, e.g. a \Src{Num} instance
+for \Src{JSNumber} or a \Src{Monoid} instance for \Src{JSString}.
+
+\Figure{fig:structure}{../figures/sunroof-structure.pdf}{The structure of Sunroof.}
+
+This technique enables us to utilize 
+Haskells type system when writing Javascript
+and offers an easy way to add new types when needed.
+It is known from 
+\citet{Svenningsson:12:CombiningEmbedding}.
+By using phantom types we can also provide more advanced types,
+like $\Src{JSArray\ \alpha}$ or $\Src{JSFunction\ \alpha\ \beta}$.
+
+The next layer provides Javascript instructions through the type \Src{JSI}.
+They represents abstract statements. While expressions and values
+represented with type wrappers are assumed to be free of side-effect,
+the instructions model side-effects in Javascript. Examples for Instructions
+are assignment of attributes or the application of a function.
+
+As Javascript is a imperative language it is important that the deep embedding
+of Sunroof provides a way to express sequences of instructions. 
+The \Src{JS} monad provides this ability.
+All types involved in a computation need to be constrained by the 
+\Src{Sunroof} type class to enable their translation into Javascript.
+To constrain the monad like this we normalize it using the operational package
+\citep{Hackage:10:Operational,Apfelmus:10:Operational} and
+we put constraints on the constructors of the instructions,
+as described in detail by \citep{Sculthorpe:13:ConstrainedMonads}.
+Using this approach we can use the do-notation to write Javascript 
+in a intuitive way. The bind operator is directly translated to a variable
+assignment and bound variables can be seen as references to previously 
+bound values. An example for this can be seen in figure \ref{fig:code-example}.
+
+\begin{figure}
+\vspace{-0.5cm}
+\centering
+\begin{subfigure}{0.45\textwidth}%
+\begin{verbatim}
+ jsCode :: JS A ()
+ jsCode = do
+   name <- prompt "Your name?"
+   alert ("Your name: " <> name)
+\end{verbatim}%
+\end{subfigure}%
+\hfill%
+\begin{subfigure}{0.45\textwidth}
+\vspace{0.25cm}%
+\begin{verbatim}
+  
+  
+var v0 = prompt("Your name?"); 
+alert("Your name: " + v0);
+\end{verbatim}%
+\end{subfigure}% 
+\vspace{-0.2cm}%
+\caption{Sunroof program and the generated Javascript on the left.}%
+\label{fig:code-example}%
+\vspace{-0.5cm}
+\end{figure}
+
+The \Src{JS} monad comes in two flavors. One for atomic
+($\JSA$) and one for possibly blocking 
+computations ($\JSB$). The motivation for this distinction
+lays in Javascripts threading model. It does not have multi-threading,
+but it allows to register callbacks which a invoked as soon as the 
+current computation is done. 
+When using this threading model one can use the $\JSA$ monad.
+But since we think that the multi-threading paradigms provided by
+Haskell (e.g. \Src{forkIO}, \Src{MVar} or \Src{Chan}) are valuable 
+to programmers and can ease the development of possible applications 
+we provide them within the $\JSB$ monad.
+Of course, every $\JSA$ instance can be lifted into a $\JSB$
+instance, but since suspending or blocking the execution is not 
+possible in $\JSA$ we can not allow lifting $\JSB$ into $\JSA$.
+Inside the $\JSA$ monad we provide operations like \Src{forkJS} 
+or the types \Src{JSMVar} and \Src{JSChan} to provide the same
+abstractions as in Haskell on the Javascript level. This allows us
+to write programs using Haskell threading idioms. Due to 
+the non-threaded nature of Javascript, we can only provide 
+cooperative multi-threading.
+
+Internally the \Src{JS} monad is implemented using a continuation. For atomic
+computations we just produce a list of statements with the continuation. 
+When translating possibly blocking code we directly translate that continuation
+into Javascript functions. This gives us the power to handle 
+computations as values in the Javascript and store them if needed.
+So blocking operations just store the rest of their computation in a queue.
+When the event to unblock occurs the pending computation is registered 
+as a callback that will be executed as soon as the current computation
+is done.
+
+\TODO{This stuff is not mentioned yet:}
+\begin{itemize}
+\item Conection: Function $\Leftrightarrow$ JSFunction, 
+                 Continuation $\Leftrightarrow$ JSContinuation;
+\item Direct mention of the contributions
+\item Foreign Function Interface
+\item Discussion: Why not just write JS by hand?
+\item Deep Embedding of Numbers and Booleans through Data.Boolean (minor)
+\item Design decision (minor)
+\item Provided API (minor)
+\end{itemize}
+
+
+\begin{comment}
+Table \ref{tab:SunroofTypes} shows how Sunroof provides 
+analog versions of basic Haskell types in the Javascript domain.
+
+\begin{table}
+\caption{Major Sunroof Types}
+\label{tab:SunroofTypes}
+\begin{center}
+\begin{tabular}{r@{\quad}l@{\quad}l@{\quad}c}
+\hline\rule{0pt}{12pt}%
+  Constraint
+  & Sunroof Type $\tau$
+  & Haskell Analog \HaskellAnalog{$\tau$} 
+  \\ \hline\rule{0pt}{12pt}%
+  
+  & \Src{()}       & \Src{()}     \\
+  & \Src{JSBool}   & \Src{Bool}   \\
+  & \Src{JSNumber} & \Src{Double} \\
+  & \Src{JSString} & \Src{String} \\
+  
+  \Src{Sunroof $\alpha$}
+  & \Src{JSArray $\alpha$} 
+  & \Src{[$\HaskellAnalog{\alpha}$]} \\
+  
+  \Src{SunroofArgument $\alpha$}
+  & \Src{JSFunction $\alpha$ $\beta$ }
+  & \Src{$\HaskellAnalog{\alpha}$ $\rightarrow$ JS$_\Src{A}$ $\HaskellAnalog{\beta}$} \\
+  \Src{Sunroof $\beta$} \\ \hline
+\end{tabular}
+\end{center}
+\end{table}
+\end{comment}
+
+%
+% ---- Bibliography ----
+%
+\bibliographystyle{abbrvnat}
+%\setlength{\bibsep}{0pt}
+\bibliography{ext-abstract}
+
+\end{document}
