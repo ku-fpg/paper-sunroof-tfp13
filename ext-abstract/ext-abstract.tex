@@ -198,8 +198,8 @@ we provide typed methods.
 
 \begin{verbatim}
  jsDrawBox :: JSObject -> JS t ()
- jsDrawBox window = do
-     c <- window # getElementById("foo");
+ jsDrawBox document = do
+     c <- document # getElementById("foo");
      cxt <- c # getContext("2d")
      cxt # drawRect (0,0,100,100)
 \end{verbatim}
@@ -222,58 +222,44 @@ way less than we expected.
 Given this threading models, we can realize both as 
 JavaScript objects. 
 \begin{verbatim}
-function     :: (...) => (a -> JS A b)  -> JS a (JSFunction a b)
-continuation :: (...) => (a -> JS B ()) -> JS a (JSContinuation a)
+function     :: (...) => (a -> JS A b)  -> JS t (JSFunction a b)
+continuation :: (...) => (a -> JS B ()) -> JS t (JSContinuation a)
 \end{verbatim}
 
 \verb|JSFunction a b| and \verb|JSContinuation a|,
 like \verb|JSObject| and others, are realized as objects
-in JavaScript, can be passed to 
+in JavaScript, can be passed as arguments, returned
+from functions and stored in mutable structures.
 
- As our closing example, we build one such application.
+functions and continuations can be called using \verb|apply|
+and \verb|goto| respectively. \verb|apply| calls the function,
+and returns, \verb|goto| calls the continuation, but never
+returns.
+\begin{verbatim}
+apply :: (...) => JSFunction args ret -> args -> JS t ret
+goto :: (...) => JSContinuation args -> args -> JS t a
+\end{verbatim}
 
-Furthermore,
-because we are {\em generating JavaScript}, we can two different
-threading models for JavaScript, atomic threaded code and blockable threads,
-and separate these threads in a principled way using phantom types.
-This enhanced threading model allows full access to Javascript APIs,
-but also allows for analogues of the traditional
-Haskell concurrency patterns, like MVars and Channels,
-as well as first-class continuations.
-We give examples of each of these features, explaining the
-design space, how Sunroof operates internally and externally.
+\section{The Sunroof Compiler}
+        
+\Figure{fig:structure}{../figures/sunroof-structure.pdf}{The structure of Sunroof.}
 
-
-Using monadic reification, we reify a deep embedding of the JS-monad,
-as well as an accompanying embedding of JavaScript expressions.
-This small language gives a solid based on which to build application
-in JavaScript.
-
-This makes it easy to use Haskell abstractions for larger Javascript
-applications without obscuring the produced Javascript on the Haskell
-level. 
-
-
+Given the language, and monadic-reification, how do we  compile this language? 
 Figure \ref{fig:structure} shows how Sunroof is structured.
 On the lowest level we provide an untyped expression language \Src{Expr}
 that describes Javascript expressions. 
-To provide type safety when using Sunroof we create wrappers for each 
-type we want to represent. Examples for wrappers are \Src{JSNumber}
-or \Src{JSString}. Through a type class
-called \Src{Sunroof} we provide an interface to create wrapped and unwrapped
+To provide type safety when using Sunroof we create our object
+wrappers for each type we want to represent, like \Src{JSNumber} or \Src{JSString}.
+Through a type class called \Src{Sunroof} we provide an interface to create wrapped and unwrapped
 instances of our expressions. Based on the wrappers we can provide 
 operations specific to a certain type, e.g. a \Src{Num} instance
 for \Src{JSNumber} or a \Src{Monoid} instance for \Src{JSString}.
 
-\Figure{fig:structure}{../figures/sunroof-structure.pdf}{The structure of Sunroof.}
-
-This technique enables us to utilize 
-Haskells type system when writing Javascript
-and offers an easy way to add new types when needed.
-It is known from 
-\citet{Svenningsson:12:CombiningEmbedding}.
+This technique enables us to utilize  Haskells type system when writing Javascript
+and offers an easy way to add new types when needed. It is known from 
+\citet{Svenningsson:12:CombiningEmbedding} 
 By using phantom types we can also provide more advanced types,
-like $\Src{JSArray\ \alpha}$ or $\Src{JSFunction\ \alpha\ \beta}$.
+like $\Src{JSArray\ \alpha}$.
 
 The next layer provides Javascript instructions through the type \Src{JSI}.
 They represents abstract statements. While expressions and values
@@ -286,37 +272,12 @@ of Sunroof provides a way to express sequences of instructions.
 The \Src{JS} monad provides this ability.
 All types involved in a computation need to be constrained by the 
 \Src{Sunroof} type class to enable their translation into Javascript.
-To constrain the monad like this we normalize it using the operational package
-\citep{Hackage:10:Operational,Apfelmus:10:Operational} and
+To constrain the monad like this we normalize it using the operational
+package~\cite{Hackage:10:Operational,Apfelmus:10:Operational} and
 we put constraints on the constructors of the instructions,
 as described in detail by \citep{Sculthorpe:13:ConstrainedMonads}.
-Using this approach we can use the do-notation to write Javascript 
-in a intuitive way. The bind operator is directly translated to a variable
-assignment and bound variables can be seen as references to previously 
-bound values. An example for this can be seen in figure \ref{fig:code-example}.
 
-
-The \Src{JS} monad comes in two flavors. One for atomic
-($\JSA$) and one for possibly blocking 
-computations ($\JSB$). The motivation for this distinction
-lays in Javascripts threading model. It does not have multi-threading,
-but it allows to register callbacks which a invoked as soon as the 
-current computation is done. 
-When using this threading model one can use the $\JSA$ monad.
-But since we think that the multi-threading paradigms provided by
-Haskell (e.g. \Src{forkIO}, \Src{MVar} or \Src{Chan}) are valuable 
-to programmers and can ease the development of possible applications 
-we provide them within the $\JSB$ monad.
-Of course, every $\JSA$ instance can be lifted into a $\JSB$
-instance, but since suspending or blocking the execution is not 
-possible in $\JSA$ we can not allow lifting $\JSB$ into $\JSA$.
-Inside the $\JSA$ monad we provide operations like \Src{forkJS} 
-or the types \Src{JSMVar} and \Src{JSChan} to provide the same
-abstractions as in Haskell on the Javascript level. This allows us
-to write programs using Haskell threading idioms. Due to 
-the non-threaded nature of Javascript, we can only provide 
-cooperative multi-threading.
-
+The \Src{JS} monad comes in two our threading flavors, parameterized using a phantom type.
 Internally the \Src{JS} monad is implemented using a continuation. For atomic
 computations we just produce a list of statements with the continuation. 
 When translating possibly blocking code we directly translate that continuation
@@ -327,51 +288,32 @@ When the event to unblock occurs the pending computation is registered
 as a callback that will be executed as soon as the current computation
 is done.
 
-\TODO{This stuff is not mentioned yet:}
-\begin{itemize}
-\item Conection: Function $\Leftrightarrow$ JSFunction, 
-                 Continuation $\Leftrightarrow$ JSContinuation;
-\item Direct mention of the contributions
-\item Foreign Function Interface
-\item Discussion: Why not just write JS by hand?
-\item Deep Embedding of Numbers and Booleans through Data.Boolean (minor)
-\item Design decision (minor)
-\item Provided API (minor)
-\end{itemize}
+On top of our JS monad, we provide ways of specifying (typed)
+interfaces to JavaScript capabilities.
 
+\section{The Sunroof Server}
 
-\begin{comment}
-Table \ref{tab:SunroofTypes} shows how Sunroof provides 
-analog versions of basic Haskell types in the Javascript domain.
+The Sunroof compiler can compile JavaScript than can be used
+stand-alone inside a web application. But Sunroof really comes
+into its own with used with the Sunroof server. There
+are three major functions in our server.
 
-\begin{table}
-\caption{Major Sunroof Types}
-\label{tab:SunroofTypes}
-\begin{center}
-\begin{tabular}{r@{\quad}l@{\quad}l@{\quad}c}
-\hline\rule{0pt}{12pt}%
-  Constraint
-  & Sunroof Type $\tau$
-  & Haskell Analog \HaskellAnalog{$\tau$} 
-  \\ \hline\rule{0pt}{12pt}%
-  
-  & \Src{()}       & \Src{()}     \\
-  & \Src{JSBool}   & \Src{Bool}   \\
-  & \Src{JSNumber} & \Src{Double} \\
-  & \Src{JSString} & \Src{String} \\
-  
-  \Src{Sunroof $\alpha$}
-  & \Src{JSArray $\alpha$} 
-  & \Src{[$\HaskellAnalog{\alpha}$]} \\
-  
-  \Src{SunroofArgument $\alpha$}
-  & \Src{JSFunction $\alpha$ $\beta$ }
-  & \Src{$\HaskellAnalog{\alpha}$ $\rightarrow$ JS$_\Src{A}$ $\HaskellAnalog{\beta}$} \\
-  \Src{Sunroof $\beta$} \\ \hline
-\end{tabular}
-\end{center}
-\end{table}
-\end{comment}
+\begin{verbatim}
+sunroofServer :: ... -> (SunroofEngine -> IO ()) -> IO ()
+sync          :: SunroofEngine -> JS t a  -> IO (ResultOf a)
+async         :: SunroofEngine -> JS t () -> IO ()
+\end{verbatim}        
+
+\verb|sunroofServer| starts a small web server,
+that call the callback function for each new webpage.
+\verb|sync| and \verb|async| allow the Sunroof programmer
+to execute JS-monadic code on the server.
+\verb|ResultOf| is a type-function, that maps the 
+Sunroof type in JavaScript, and serializes it
+back into a Haskell value.
+
+\section{Extended Example}
+
 
 %
 % ---- Bibliography ----
