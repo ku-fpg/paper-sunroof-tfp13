@@ -102,7 +102,7 @@ traditionally associated with functional languages, like first-class
 functions. We want to express JavaScript in Haskell, adding use
 of Haskell's static typing, and gaining access to JavaScript services.
 And we do so using the transitional functional programming 
-mechanism for being imperative, a monad~\cite{..}.
+mechanism for being imperative, a monad~\cite{Moggi:91:ComputationMonads}.
 
 \begin{figure}[t]
 \vspace{-0.5cm}
@@ -133,7 +133,7 @@ alert("Your name: " + v0);
 
 The JS-monad is the monad of JavaScript effect, as is an almost
 exact analog for the Haskell IO-monad, except there
-is an extra phantom argument~\cite{..} that we will return
+is an extra phantom argument~\cite{Leijen:99:Phantom} that we will return
 to use shortly.  Figure~\ref{fig:code-example} give a first example
 of the JS-monad in use, and the generated JavaScript.
 
@@ -152,7 +152,7 @@ arguments for which we can generate a JavaScript \verb|var|.
 Counterintuitively, 
 it turns out that a specific form of normalization allows 
 the ``\verb|a|'' type to be constrained and the bind to 
-be an instance of the standard monad class~\cite{..}.
+be an instance of the standard monad class~\cite{Sculthorpe:13:ConstrainedMonad}.
 Though this keyhole of {\em monadic reification\/},
 the entire Sunroof language is realized.
 
