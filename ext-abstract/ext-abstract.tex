@@ -67,11 +67,11 @@ Kiel, Germany}
 \maketitle              % typeset the title of the contribution
 
 \begin{abstract}
-Sunroof is a Haskell-hosted Domain Specific Language (DSL) for generating Javascript.
+Sunroof is a Haskell-hosted Domain Specific Language (DSL) for generating JavaScript.
 Sunroof is build on top of the \JS-monad, which, like the Haskell \IO-monad, allows 
-access to external resources, but specifically Javascript
+access to external resources, but specifically JavaScript
 resources. As such, Sunroof is primarily a feature-rich foreign
-function API to the browser's Javascript engine, and all the browser-specific
+function API to the browser's JavaScript engine, and all the browser-specific
 functionality, including HTML-based rendering, event handling, and 
 drawing to the HTML5 canvas. 
 
@@ -84,9 +84,9 @@ Furthermore, because we are generating code,
 we can offer Haskell-style concurrency patterns, like MVars and Channels.
 In combination with a web services package like Scotty,
 the Sunroof compiler offers a robust platform to build interactive web applications,
-giving the ability to interleave Haskell and Javascript computations
+giving the ability to interleave Haskell and JavaScript computations
 with each other as needed.
-\keywords{DSLs, Javascript, Web Technologies, Cloud Computing}
+\keywords{DSLs, JavaScript, Web Technologies, Cloud Computing}
 \end{abstract}
 
 \section{Introduction}
@@ -129,7 +129,7 @@ alert("Your name: " + v0);
 \end{verbatim}%
 \end{subfigure}% 
 %\vspace{-0.2cm}%
-\caption{Sunroof program and the generated Javascript on the left.}%
+\caption{Sunroof program and the generated JavaScript on the left.}%
 \label{fig:code-example}%
 %\vspace{-0.5cm}
 \end{figure}
@@ -250,7 +250,7 @@ goto  :: (...) => JSContinuation args -> args -> JS t a
 Given the language, and monadic-reification, how do we  compile this language? 
 Figure \ref{fig:structure} shows how Sunroof is structured.
 On the lowest level we provide an untyped expression language \Src{Expr}
-that describes Javascript expressions. 
+that describes JavaScript expressions. 
 To provide type safety when using Sunroof we create
 wrappers for each type we want to represent, e.g. \Src{JSNumber} or \Src{JSString}.
 Through the \Src{Sunroof} type class we provide an 
@@ -259,22 +259,22 @@ instances of our expressions. Based on the wrappers we can provide
 operations specific to a certain type, e.g. a \Src{Num} instance
 for \Src{JSNumber} or a \Src{Monoid} instance for \Src{JSString}.
 
-This technique enables us to utilize  Haskells type system when writing Javascript
+This technique enables us to utilize  Haskells type system when writing JavaScript
 and offers an easy way to add new types when needed~\cite{Svenningsson:12:CombiningEmbedding}.
 By using phantom types we can also provide more advanced types,
 like \Src{JSArray a}.
 
-The next layer provides Javascript instructions through the type \Src{JSI}.
+The next layer provides JavaScript instructions through the type \Src{JSI}.
 They represents abstract statements. While expressions and values
 represented with type wrappers are assumed to be free of side-effect,
-the instructions model side-effects in Javascript. Examples for Instructions
+the instructions model side-effects in JavaScript. Examples for Instructions
 are assignment of attributes or the application of a function.
 
-As Javascript is an imperative language it is important that the deep embedding
+As JavaScript is an imperative language it is important that the deep embedding
 of Sunroof provides a way to express sequences of instructions. 
 The \Src{JS} monad provides this ability.
 All types involved in a computation need to be constrained by the 
-\Src{Sunroof} type class to enable their translation into Javascript.
+\Src{Sunroof} type class to enable their translation into JavaScript.
 To constrain the monad like this we normalize it using the operational
 package~\cite{Hackage:10:Operational,Apfelmus:10:Operational} and
 we put constraints on the constructors of the instructions~\cite{Sculthorpe:13:ConstrainedMonads}.
@@ -283,8 +283,8 @@ The \Src{JS} monad comes in two threading flavors, parameterized using a phantom
 Internally the \Src{JS} monad is implemented using a continuation. For atomic
 computations we just produce a list of statements with the continuation. 
 When translating possibly blocking code we directly translate that continuation
-into Javascript functions. This gives us the power to handle 
-computations as values in the Javascript and store them if needed.
+into JavaScript functions. This gives us the power to handle 
+computations as values in the JavaScript and store them if needed.
 
 Blocking operations just store the rest of their computation in a queue.
 When the event to unblock occurs the pending computation is registered 
