@@ -25,10 +25,14 @@
 \newcommand{\JSB}{\ensuremath{\Src{JS}_\Src{B}}}
 
 \newcommand{\Figure}[3]{%
+\FigureS{#1}{#2}{#3}{scale=0.55,clip=true,trim=0.45cm 0.45cm 0.45cm 0.45cm}
+}
+
+\newcommand{\FigureS}[4]{%
 \begin{figure}[h]%
 \vspace{-0.5cm}%
 \begin{center}%
-\includegraphics[scale=0.55,clip=true,trim=0.45cm 0.45cm 0.45cm 0.45cm]{#2}%
+\includegraphics[#4]{#2}%
 \vspace{-0.5cm}%
 \end{center}%
 \caption{#3}%
@@ -89,8 +93,6 @@ with each other as needed.
 \keywords{DSLs, JavaScript, Web Technologies, Cloud Computing}
 \end{abstract}
 
-\section{Introduction}
-
 We start with an overview of the language, then discuss
 how the language is implemented, and discuss interesting
 techniques used inside Sunroof. We close with a more
@@ -107,7 +109,7 @@ of Haskell's static typing, and gaining access to JavaScript services.
 And we do so using the transitional functional programming 
 mechanism for being imperative, a monad~\cite{Moggi:91:ComputationMonads}.
 
-\begin{figure}[t]
+\begin{figure}[h]
 \vspace{-0.5cm}
 \centering
 \begin{subfigure}{0.45\textwidth}%
@@ -131,7 +133,7 @@ alert("Your name: " + v0);
 %\vspace{-0.2cm}%
 \caption{Sunroof program and the generated JavaScript on the left.}%
 \label{fig:code-example}%
-%\vspace{-0.5cm}
+\vspace{-0.5cm}
 \end{figure}
 
 The \JS-monad is the monad of JavaScript effects, as is an almost
@@ -146,11 +148,11 @@ unconstrained:
 \begin{verbatim}
 (>>=) :: JS t a -> (a -> JS t b) -> JS t b
 \end{verbatim}
-\noindent  What we want is:
+What we want is:
 \begin{verbatim}
 (>>=) :: (Sunroof a) => JS t a -> (a -> JS t b) -> JS t b
 \end{verbatim}
-\noindent where \Src{Sunroof} constrains the bind to
+Where \Src{Sunroof} constrains the bind to
 arguments for which we can generate a JavaScript variable.
 Counterintuitively, 
 it turns out that a specific form of normalization allows 
@@ -198,7 +200,6 @@ and others. A simple
 casting function is provided when the type-system
 needs to be overwritten. Along with each of these types,
 we provide typed methods.
-
 \begin{verbatim}
  jsDrawBox :: JSObject -> JS t ()
  jsDrawBox document = do
@@ -206,7 +207,6 @@ we provide typed methods.
      cxt <- c # getContext("2d")
      cxt # drawRect (0,0,100,100)
 \end{verbatim}
-
 Here, \Src{\#} is a reverse apply, so the types
 of the function in the above example are
 \begin{verbatim}
@@ -215,7 +215,6 @@ getElementById :: JSString -> JSObject -> JS t JSContext
 getContext :: JSString -> JSContext -> JS t JSCanvas
 drawRect :: (JSNumber,JSNumber,JSNumber,JSNumber) -> JSCanvas -> JS t ()
 \end{verbatim}        
-
 From experience, even though we are targeting
 an untyped language, the type system gets in the
 way less than we expected.
@@ -228,7 +227,6 @@ JavaScript objects.
 function     :: (...) => (a -> JS A b)  -> JS t (JSFunction a b)
 continuation :: (...) => (a -> JS B ()) -> JS t (JSContinuation a)
 \end{verbatim}
-
 \Src{JSFunction a b} and \Src{JSContinuation a},
 like \Src{JSObject} and others, are realized as objects
 in JavaScript. Thus they can be passed as arguments, returned
@@ -245,19 +243,22 @@ goto  :: (...) => JSContinuation args -> args -> JS t a
 
 \section{The Sunroof Compiler}
 
-\Figure{fig:structure}{../figures/sunroof-structure.pdf}{The structure of Sunroof.}
-
 Given the language, and monadic-reification, how do we  compile this language? 
 Figure \ref{fig:structure} shows how Sunroof is structured.
 On the lowest level we provide an untyped expression language \Src{Expr}
 that describes JavaScript expressions. 
 To provide type safety when using Sunroof we create
 wrappers for each type we want to represent, e.g. \Src{JSNumber} or \Src{JSString}.
-Through the \Src{Sunroof} type class we provide an 
+The \Src{Sunroof} type class provides an 
 interface to create wrapped and unwrapped
 instances of our expressions. Based on the wrappers we can provide 
 operations specific to a certain type, e.g. a \Src{Num} instance
 for \Src{JSNumber} or a \Src{Monoid} instance for \Src{JSString}.
+
+\Figure%
+{fig:structure}%
+{../figures/sunroof-structure.pdf}%
+{The structure of Sunroof.}%
 
 This technique enables us to utilize  Haskells type system when writing JavaScript
 and offers an easy way to add new types when needed~\cite{Svenningsson:12:CombiningEmbedding}.
@@ -268,20 +269,21 @@ The next layer provides JavaScript instructions through the type \Src{JSI}.
 They represents abstract statements. While expressions and values
 represented with type wrappers are assumed to be free of side-effect,
 the instructions model side-effects in JavaScript. Examples for Instructions
-are assignment of attributes or the application of a function.
-
-As JavaScript is an imperative language it is important that the deep embedding
-of Sunroof provides a way to express sequences of instructions. 
-The \Src{JS} monad provides this ability.
-All types involved in a computation need to be constrained by the 
-\Src{Sunroof} type class to enable their translation into JavaScript.
-To constrain the monad like this we normalize it using the operational
-package~\cite{Hackage:10:Operational,Apfelmus:10:Operational} and
-we put constraints on the constructors of the instructions~\cite{Sculthorpe:13:ConstrainedMonads}.
-
-The \Src{JS} monad comes in two threading flavors, parameterized using a phantom type.
-Internally the \Src{JS} monad is implemented using a continuation. For atomic
-computations we just produce a list of statements with the continuation. 
+are assignment of an attribute or the application of a function.
+\begin{verbatim}
+data JSI :: T -> * -> * where
+  JS_Assign :: (...) => JSSelector a -> a -> JSObject -> JSI t ()
+  JS_Invoke :: (...) => a -> JSFunction a r -> JSI t r
+  JS_Branch :: (...) => bool -> JS t a -> JS t a  -> JSI t a
+  ...
+\end{verbatim}
+The \Src{JS} monad with its combinators builds a sequence of 
+\Src{JSI}nstructions through the operational
+package~\cite{Hackage:10:Operational,Apfelmus:10:Operational}.
+As mentioned earlier the \Src{JS}-monad comes in two threading flavors, 
+parameterized using a phantom type.
+Internally the \Src{JS}-monad is implemented using CPS. For atomic
+computations we just produce a list of instructions from the continuation. 
 When translating possibly blocking code we directly translate that continuation
 into JavaScript functions. This gives us the power to handle 
 computations as values in the JavaScript and store them if needed.
@@ -291,8 +293,18 @@ When the event to unblock occurs the pending computation is registered
 as a callback that will be executed as soon as the current computation
 is done.
 
-On top of our JS monad we provide ways of specifying (typed)
+On top of our \Src{JS}-monad we provide ways of specifying (typed)
 interfaces to JavaScript capabilities, a Foreign Function Interface.
+\begin{verbatim}
+alert :: JSString -> JS t ()
+alert = fun "alert"
+
+getElementById :: JSString -> JSObject -> JS t JSCanvas
+getElementById = invoke "getElementById"
+\end{verbatim}
+Notice, that calling a JavaScript function or method is done by giving its
+name to one of the provided combinators. Types can be specialized using 
+a Haskell type annotation. A flexible and easy to use approach.
 
 \section{The Sunroof Server}
 
@@ -315,6 +327,19 @@ to remotely execute monadic JavaScript from the server.
 Sunroof type to a corresponding Haskell type.
 
 \section{Extended Example}
+
+\FigureS%
+{fig:example-application}%
+{../figures/example-application.png}%
+{The example application running on the Sunroof server.}%
+{scale=0.8}
+
+As an example we developed is a small calculator. It uses Sunroof to
+render its interface in the browser (Figure \ref{fig:example-application}). The 
+server processes the arithmetic expressions by parsing them
+into an AST and calculating the result of the expression.
+The result is then sent back to the interface and displayed 
+utilizing the browsers rendering capabilities.
 
 
 %
