@@ -166,7 +166,7 @@ the entire Sunroof language is realized.
 Sunroof was first documented in our previous 
 workshop paper~\cite{Farmer:12:WebDSLs},
 where the possibility of monadic reification was observed.
-In this paper, we raised an unresolved issue, do you
+In this paper, we raised an unresolved issue: do you
 generated atomic JavaScript code, and keep the callback
 centric model of computation, or generate JavaScript
 using CPS, and allow for blocking primitives,
@@ -203,9 +203,8 @@ we provide typed methods.
 \begin{verbatim}
  jsDrawBox :: JSObject -> JS t ()
  jsDrawBox document = do
-     c <- document # getElementById("foo");
-     cxt <- c # getContext("2d")
-     cxt # drawRect (0,0,100,100)
+     foo <- document # getElementById("foo")
+     cxt <- foo # getContext("2d")     cxt # drawRect (0,0,100,100)
 \end{verbatim}
 Here, \Src{\#} is a reverse apply, so the types
 of the function in the above example are
@@ -336,9 +335,10 @@ Sunroof type to a corresponding Haskell type.
 
 As an example we developed is a small calculator. It uses Sunroof to
 render its interface in the browser (Figure \ref{fig:example-application}). The 
-server processes the arithmetic expressions by parsing them
+Haskell server processes the arithmetic expressions by parsing them
 into an AST and calculating the result of the expression.
-The result is then sent back to the interface and displayed 
+The result is then sent back to the interface and displayed,
+using Sunroof-generated JavaScript, 
 utilizing the browsers rendering capabilities.
 
 
