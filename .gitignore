@@ -2,6 +2,8 @@
 *.dvi
 *.aux
 *.log
+*.bbl
+*.blg
 blog-tutorial/*.htm
 example-app/Main
 example-app/dist
