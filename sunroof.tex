@@ -10,19 +10,43 @@
 \newcommand{\SunroofAnalog}[1]{#1\ensuremath{_\downarrow}}
 \newcommand{\HaskellAnalog}[1]{#1\ensuremath{_\uparrow}}
 
-
-\begin{document}
 \newcommand{\NOTE}[1]{{\Large\textbf{NOTE:}\ #1}}
 \newcommand{\TODO}[1]{{\textbf{TODO:}\ #1}}
-\newcommand{\Src}[1]{{\sf #1}}
+\newcommand{\Src}[1]{{\tt{#1}}}
+
+\newcommand{\IO}{\Src{IO}}
+\newcommand{\JS}{\Src{JS}}
+\newcommand{\JSA}{\ensuremath{\Src{JS}_\Src{A}}}
+\newcommand{\JSB}{\ensuremath{\Src{JS}_\Src{B}}}
+
+\newcommand{\Figure}[3]{%
+\FigureS{#1}{#2}{#3}{scale=0.55,clip=true,trim=0.45cm 0.45cm 0.45cm 0.45cm}
+}
+
+\newcommand{\FigureS}[4]{%
+\begin{figure}[h]%
+\vspace{-0.5cm}%
+\begin{center}%
+\includegraphics[#4]{#2}%
+\vspace{-0.5cm}%
+\end{center}%
+\caption{#3}%
+\label{#1}%
+\vspace{-0.5cm}%
+\end{figure}%
+}
+
+
+\begin{document}
 %
-\title{Sunroof}
+\title{Sunroof: A JavaScript Monad Compiler}
+%\subtitle{}
 %
 \titlerunning{Sunroof}  % abbreviated title (for running head)
 %                                     also used for the TOC unless
 %                                     \toctitle is used
 %
-\author{Jan Bracker \and Andy Gill}
+\author{Jan Bracker\inst{1,2}  \and Andy Gill\inst{1}}
 %
 \authorrunning{Jan Bracker \and Andy Gill} % abbreviated author list (for running head)
 %
@@ -30,15 +54,17 @@
 \tocauthor{Jan Bracker, Andy Gill}
 %
 \institute{%
-Information Technology and Telecommunication Center\\
-Department of Electrical Engineering and Computer Science\\
+ITTC / EECS \\
 The University of Kansas\\
-2335 Irving Hill Road\\
 Lawrence, KS 66045\\
-   {\{???\}@ku.edu}%
-}
+~\\
+\and
+Institut f{\"u}r Informatik\\
+Christian-Albrechts-Universit{\"a}t\\
+Kiel, Germany}
 
-\maketitle              % typeset the title of the contribution
+
+\maketitle
 
 \begin{abstract}        
         
@@ -312,5 +338,9 @@ Other Deep embeddings.
 %
 % ---- Bibliography ----
 %
+
+
+\bibliographystyle{splncs03}
+\bibliography{sunroof}
 
 \end{document}
