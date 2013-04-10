@@ -32,8 +32,24 @@ expr6 arr = arr ! index 0
 expr7 :: (Sunroof a) => JSObject -> a
 expr7 obj = obj ! label "name"
 
-example :: JSA ()
-example = do
+testJS :: JSA () -> IO ()
+testJS o = sunroofCompileJS def "main" o >>= putStrLn
+
+askName :: JSA ()
+askName = do
+      name <- prompt "What is your name?" ""
+      alert $ "Your name is " <> cast name <> "!"
+
+drawBox :: JSA ()
+drawBox = do
       canvas <- document # getElementById "canvas"
       context <- canvas # getContext "2d"
       context # fillRect (10, 10) (100, 100) 
+
+
+
+
+
+
+
+
