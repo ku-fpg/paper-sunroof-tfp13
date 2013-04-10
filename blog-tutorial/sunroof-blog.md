@@ -56,7 +56,7 @@ Lets look how we can render one line of the clock face using Sunroof:
         ) (return ())
     c # restore
 
-As mentioned before the monadic `do`-notation is used for sequencing 
+The monadic `do`-notation is used for sequencing 
 JavaScript statements in a neat fashion.
 
 The first few lines probably look familiar to people how have written 
@@ -87,8 +87,6 @@ boolean expressions. For that reason we are using the
 [`Data.Boolean`][HackageBoolean] package. Instead of `if-then-else`
 you are required to use `ifB` when writing JavaScript.
 
-The thrid branch also shows how nested blocks of code can be used.
-
     ifB (n `mod` 5 ==* (0 :: JSNumber))
         (do
           c # translate (-u * 0.75, 0)
@@ -107,7 +105,7 @@ Getting back to the initial code block: How do we render the other
 59 lines of the clock face? We just wrap this code into a function.
 Of course, we do this at JavaScript level.
 
-    renderClockFaceLine <- function $ \(c, u, n) -> do
+    renderClockFaceLine <- function $ \(c :: JSCanvas, u :: JSNumber, n :: JSNumber) -> do
       ...
 
 We have just created the JavaScript function `renderClockFaceLine` with the 
@@ -133,27 +131,27 @@ As the usefulness of partial
 application is questionable in the context of deep embedded JavaScript, 
 we only allow tuples as parameters to functions.
 
-Using these techniques we can render the clock with about 50 
+Using these techniques we can render the clock with about 90 
 lines of Haskell.
 
     clockJS :: JS A (JSFunction () ())
     clockJS = function $ \() -> do
       -- Renders a single line (with number) of the clock face.
-      renderClockFaceLine <- function $ \(c, u, n) -> do
+      renderClockFaceLine <- function $ \(c :: JSCanvas, u :: JSNumber, n :: JSNumber) -> do
         c # save
         -- Draw one of the indicator lines
         c # beginPath
         c # moveTo (0, -u * 1.0)
-        ifB (n `mod` 5 ==* (0 :: JSNumber))
+        ifB (n `mod` 5 ==* 0)
             (c # lineTo (0, -u * 0.8)) -- Minute line
             (c # lineTo (0, -u * 0.9)) -- Hour line
-        ifB (n `mod` 15 ==* (0 :: JSNumber))
+        ifB (n `mod` 15 ==* 0)
             (c # setLineWidth 8) -- Quarter line
             (c # setLineWidth 3) -- Non-Quarter line
         c # stroke
         c # closePath
         -- Draw of the hour numbers
-        ifB (n `mod` 5 ==* (0 :: JSNumber))
+        ifB (n `mod` 5 ==* 0)
             (do
               c # translate (-u * 0.75, 0)
               c # rotate (-2 * pi / 4)
@@ -161,7 +159,7 @@ lines of Haskell.
             ) (return ())
         c # restore
       -- Renders a single clock pointer.
-      renderClockPointer <- function $ \(c, u, angle, width, len) -> do
+      renderClockPointer <- function $ \(c :: JSCanvas, u :: JSNumber, angle :: JSNumber, width :: JSNumber, len :: JSNumber) -> do
         c # save
         c # setLineCap "round"
         c # rotate angle
@@ -173,7 +171,7 @@ lines of Haskell.
         c # closePath
         c # restore
       -- Renders the clocks pointers for hours, minutes and seconds.
-      renderClockPointers <- function $ \(c, u) -> do
+      renderClockPointers <- function $ \(c :: JSCanvas, u :: JSNumber) -> do
         (h, m, s) <- currentTime
         c # save
         c # setLineCap "round"
@@ -181,7 +179,7 @@ lines of Haskell.
         renderClockPointer $$
           (c, u, (2 * pi / 12) * ((h `mod` 12) + (m `mod` 60) / 60), 15, 0.4)
         -- Minute pointer
-        renderClockPointer $$ 
+        renderClockPointer $$
           ( c, u, (2 * pi / 60) * ((m `mod` 60) + (s `mod` 60) / 60), 10, 0.7)
         -- Second pointer
         c # setStrokeStyle "red"
@@ -189,7 +187,7 @@ lines of Haskell.
         -- Restore everything
         c # restore
       -- Renders the complete face of the clock, without pointers.
-      renderClockFace <- function $ \(c, u) -> do
+      renderClockFace <- function $ \(c :: JSCanvas, u :: JSNumber) -> do
         c # save
         c # rotate (2 * pi / 4) -- 0 degrees is at the top
         -- Draw all hour lines.
@@ -200,7 +198,7 @@ lines of Haskell.
           c # restore
         c # restore -- Undo all the rotation.
       -- Renders the complete clock.
-      renderClock <- function $ \() -> do
+      renderClock <- continuation $ \() -> do
         u <- clockUnit
         (w,h) <- canvasSize
         c <- context
@@ -220,14 +218,16 @@ lines of Haskell.
         renderClockPointers $$ (c, u)
         c # restore
         return ()
-      renderClock $$ ()
-      window # setInterval renderClock 1000
+      window # setInterval (goto renderClock) 1000
+      -- and draw one now, rather than wait till later
+      goto renderClock ()
+
       return ()
 
-Using the `sunroofCompileJS` we can compile 
+Using the `sunroofCompileJSA` we can compile 
 the deep embedded JavaScript into a string of actual JavaScript.
 
-    main = sunroofCompileJS def "main" clockJS >>= writeFile "main.js"
+    sunroofCompileJSA def "main" clockJS >>= writeFile "main.js"
 
 The compiled string will contain a function `main` 
 that executes our JavaScript. This is then called 
