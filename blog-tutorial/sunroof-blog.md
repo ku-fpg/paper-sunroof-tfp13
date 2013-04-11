@@ -8,9 +8,27 @@ to implement a JavaScript compiler.
 The compiler made some progress and now 
 [we released it][HackageSunroofCompiler].
 
-As a small teaser of what you can do with Sunroof, we 
-present the clock example. It demonstrates how Sunroof 
-can produce self-contained 
+Lets look at a small example to start with.
+
+    askName :: JSA ()
+    askName = do
+          name <- prompt "What is your name?" ""
+          alert $ "Your name is " <> cast name <> "!"
+
+First the user gets asked for her name. Then that name is built into 
+a greeting and displayed.
+`prompt` and `alert` are JavaScript functions that are called through their
+Haskell binding in Sunroof. Note how literal strings can be used to 
+represent JavaScript strings,
+thanks to the language extension `OverloadedStrings`.
+Sunroof introduces types in the written JavaScript. Like
+this it tries to support the programmer through the benefits
+of strong typing. But as `prompt` return a `JSObject` (it
+might result in `null`), we have to `cast` the name to
+a string.
+
+After this small teaser lets look at the clock example. 
+It demonstrates how Sunroof can produce self-contained 
 JavaScript that renders a clock using the HTML5 canvas element.
 
 ![The Clock Example](clock.png)
@@ -59,7 +77,7 @@ Lets look how we can render one line of the clock face using Sunroof:
 The monadic `do`-notation is used for sequencing 
 JavaScript statements in a neat fashion.
 
-The first few lines probably look familiar to people how have written 
+The first few lines probably look familiar to people who have written 
 JavaScript before.
 
     c # save
@@ -83,7 +101,7 @@ The next few lines show a branch.
         (c # lineTo (0, -u * 0.9)) -- Hour line
 
 Haskell lacks the possibilities to deep embed branches and
-boolean expressions. For that reason we are using the 
+boolean expressions. For that reason we use the 
 [`Data.Boolean`][HackageBoolean] package. Instead of `if-then-else`
 you are required to use `ifB` when writing JavaScript.
 
@@ -94,9 +112,7 @@ you are required to use `ifB` when writing JavaScript.
           c # fillText (cast $ n `div` 5) (0, 0)
         ) (return ())
 
-Note the cast operation in the fifth line. As Haskells type
-system is more restrictive then the one used in JavaScript, we sometimes
-have to `cast` one JavaScript value to another. This may seem more
+Note there is another `cast` operation in the fifth line. This may seem more
 complicated then writing the JavaScript by hand, but when using 
 the API correctly (by not working around it) compile time
 errors can show mistakes in the JavaScript code early.
@@ -108,15 +124,16 @@ Of course, we do this at JavaScript level.
     renderClockFaceLine <- function $ \(c :: JSCanvas, u :: JSNumber, n :: JSNumber) -> do
       ...
 
-We have just created the JavaScript function `renderClockFaceLine` with the 
-three needed parameters (though it will not have that exact name). 
+We have just created the JavaScript function `renderClockFaceLine` with 
+three parameters. 
 So lets render the complete clock face using
 the `forEach`-method provided by arrays.
 
     c # save
     c # rotate (2 * pi / 4) -- 0 degrees is at the top
     -- Draw all hour lines.
-    array [1..60::Int] # forEach $ \n -> do
+    lines <- array [1..60::Int]
+    lines # forEach $ \n -> do
       c # save
       c # rotate ((2 * pi / 60) * n)
       renderClockFaceLine $$ (c, u, n)
@@ -129,7 +146,7 @@ In the loop body you can see how the `$$`-operator is used just as
 the `$`-operator in Haskell to apply a JavaScript function to arguments. 
 As the usefulness of partial 
 application is questionable in the context of deep embedded JavaScript, 
-we only allow tuples as parameters to functions.
+we only allow uncurried functions.
 
 Using these techniques we can render the clock with about 90 
 lines of Haskell.
@@ -191,7 +208,8 @@ lines of Haskell.
         c # save
         c # rotate (2 * pi / 4) -- 0 degrees is at the top
         -- Draw all hour lines.
-        array [1..60::Int] # forEach $ \n -> do
+        lines <- array [1..60::Int]
+        lines # forEach $ \n -> do
           c # save
           c # rotate ((2 * pi / 60) * n)
           renderClockFaceLine $$ (c, u, n)
