@@ -1,23 +1,11 @@
  
 # Sunroof: Clockwork Progress
 
-In this article, we are going to generate a JavaScript application.
-Last year, we [wrote a blog post][BlogSunroofIntro] 
-about using monad reification
-to implement a JavaScript compiler.
-The compiler, called Sunroof, is now in state
-that we can make the 
-[first public release][HackageSunroofCompiler].
-By way of a non-trivial example, this blog entry illustrates how
-to construct an analog clock as a self-contained 
-JavaScript application
-that renders the clock using the HTML5 canvas element.
+In this article, we are going to generate a JavaScript application. Last year, we [wrote a blog post][BlogSunroofIntro] about using monad reification to implement a JavaScript compiler. The compiler, called Sunroof, is now in state that we can make the [first public release][HackageSunroofCompiler]. By way of a non-trivial example, this blog entry illustrates how to construct an analog clock as a self-contained JavaScript application that renders the clock using the HTML5 canvas element.
 
 ![The Clock Example](clock-small.png)
 
-The JavaScript API for HTML5 canvas element is already provided by 
-Sunroof in the module `Language.Sunroof.JS.Canvas`. 
-Lets look how we can render one line of the clock face using Sunroof:
+The JavaScript API for HTML5 canvas element is already provided by Sunroof in the module `Language.Sunroof.JS.Canvas`. Lets look how we can render one line of the clock face using Sunroof:
 
     c # save
     -- Draw one of the indicator lines
@@ -40,25 +28,16 @@ Lets look how we can render one line of the clock face using Sunroof:
         ) (return ())
     c # restore
 
-The monadic `do`-notation is used for sequencing 
-JavaScript statements in a neat fashion.
+The monadic `do`-notation is used for sequencing JavaScript statements in a neat fashion.
 
-The first few lines probably look familiar to people who have written 
-JavaScript before.
+The first few lines probably look familiar to people who have written JavaScript before.
 
     c # save
     -- Draw one of the indicator lines
     c # beginPath
     c # moveTo (0, -u * 1.0)
 
-The `#`-operator is used instead of the `.`-operator in JavaScript.
-`u` represents the radius of the clock. Knowing this you can see 
-that we are calling methods on the JavaScript object `c` (Our canvas context).
-The methods without parameters do not require empty parenthesis, as
-a Haskell programmer would expect. The tuple used in the call of `moveTo`
-is only there to indicate that this parameter is a coordinate, not 
-two single numbers. You can also see that JavaScript numbers are neatly
-embedded using the `Num`-class and can be used naturally.
+The `#`-operator is used instead of the `.`-operator in JavaScript. `u` represents the radius of the clock. Knowing this you can see that we are calling methods on the JavaScript object `c` (Our canvas context). The methods without parameters do not require empty parenthesis, as a Haskell programmer would expect. The tuple used in the call of `moveTo` is only there to indicate that this parameter is a coordinate, not two single numbers. You can also see that JavaScript numbers are neatly embedded using the `Num`-class and can be used naturally.
 
 The next few lines show a branch.
 
@@ -66,10 +45,7 @@ The next few lines show a branch.
         (c # lineTo (0, -u * 0.8)) -- Minute line
         (c # lineTo (0, -u * 0.9)) -- Hour line
 
-Haskell lacks the possibilities to deep embed branches and
-boolean expressions. For that reason we use the 
-[`Data.Boolean`][HackageBoolean] package. Instead of `if-then-else`
-you are required to use `ifB` when writing JavaScript.
+Haskell lacks the possibilities to deep embed branches and boolean expressions. For that reason we use the [`Data.Boolean`][HackageBoolean] package. Instead of `if-then-else` you are required to use `ifB` when writing JavaScript.
 
     ifB (n `mod` 5 ==* 0)
         (do
@@ -78,26 +54,14 @@ you are required to use `ifB` when writing JavaScript.
           c # fillText (cast $ n `div` 5) (0, 0)
         ) (return ())
 
-Note the `cast` operation in line five. 
-As Haskell's type
-system is more restrictive then the one used in JavaScript, we sometimes
-have to `cast` one value to another.
-This may seem more
-complicated then writing JavaScript by hand, but when using 
-the API correctly (by not working around it) compile time
-errors can show mistakes in the code early.
+Note the `cast` operation in line five. As Haskell's type system is more restrictive then the one used in JavaScript, we sometimes have to `cast` one value to another. This may seem more complicated then writing JavaScript by hand, but when using the API correctly (by not working around it) compile time errors can show mistakes in the code early.
 
-Getting back to the initial code block: How do we render the other 
-59 lines of the clock face? We just wrap this code into a function.
-Of course, we do this at JavaScript level.
+Getting back to the initial code block: How do we render the other 59 lines of the clock face? We just wrap this code into a function. Of course, we do this at JavaScript level.
 
     renderClockFaceLine <- function $ \(c :: JSCanvas, u :: JSNumber, n :: JSNumber) -> do
       ...
 
-We have just created the JavaScript function `renderClockFaceLine` with 
-three parameters. 
-So lets render the complete clock face using
-the `forEach`-method provided by arrays.
+We have just created the JavaScript function `renderClockFaceLine` with three parameters. So lets render the complete clock face using the `forEach`-method provided by arrays.
 
     c # save
     c # rotate (2 * pi / 4) -- 0 degrees is at the top
@@ -110,16 +74,9 @@ the `forEach`-method provided by arrays.
       c # restore
     c # restore -- Undo all the rotation.
 
-The `array` combinator converts the list into a JavaScript array. The supplied 
-function for the loop body takes the current element as a parameter.
-In the loop body you can see how the `$$`-operator is used just as
-the `$`-operator in Haskell to apply a JavaScript function to arguments. 
-As the usefulness of partial 
-application is questionable in the context of deep embedded JavaScript, 
-we only allow uncurried functions.
+The `array` combinator converts the list into a JavaScript array. The supplied function for the loop body takes the current element as a parameter. In the loop body you can see how the `$$`-operator is used just as the `$`-operator in Haskell to apply a JavaScript function to arguments. As the usefulness of partial application is questionable in the context of deep embedded JavaScript, we only allow uncurried functions.
 
-Using these techniques we can render the clock with about 90 
-lines of Haskell.
+Using these techniques we can render the clock with about 90 lines of Haskell.
 
     clockJS :: JS A (JSFunction () ())
     clockJS = function $ \() -> do
@@ -212,18 +169,13 @@ lines of Haskell.
 
       return ()
 
-Using the `sunroofCompileJSA` function we can compile 
-the deep embedded JavaScript into a string of actual JavaScript.
+Using the `sunroofCompileJSA` function we can compile the deep embedded JavaScript into a string of actual JavaScript.
 
     sunroofCompileJSA def "main" clockJS >>= writeFile "main.js"
 
-The compiled string will contain a function `main` 
-that executes our JavaScript. This is then called 
-in the HTML file to execute.
+The compiled string will contain a function `main` that executes our JavaScript. This is then called in the HTML file to execute.
 
-There are a few small utilities used in the code. The current
-time is perceived by `currentTime` which uses the JavaScript 
-date API provided by the module `Language.Sunroof.JS.Date`.
+There are a few small utilities used in the code. The current time is perceived by `currentTime` which uses the JavaScript date API provided by the module `Language.Sunroof.JS.Date`.
 
     currentTime :: JS A (JSNumber, JSNumber, JSNumber)
     currentTime = do
@@ -233,10 +185,7 @@ date API provided by the module `Language.Sunroof.JS.Date`.
       s <- date # getSeconds
       return (h, m, s)
 
-Note that this will literally copy the JavaScript produced by `currentTime`
-to where it is used, because it is not abstracted to a function in JavaScript.
-Every time you write Sunroof code that is not wrapped in a function, the
-Haskell binding will work like a macro.
+Note that this will literally copy the JavaScript produced by `currentTime` to where it is used, because it is not abstracted to a function in JavaScript. Every time you write Sunroof code that is not wrapped in a function, the Haskell binding will work like a macro.
 
 The other helpers are just shortcuts to get certain values:
 
@@ -260,28 +209,15 @@ The other helpers are just shortcuts to get certain values:
 
 You can see [the clock in action here][ExampleRunning].
 
-As you can see Sunroof mirrors JavaScript closely, 
-and allows access to the capabilities a browser provides.
-But is this Haskell for Haskell's sake? We do not think so:
+As you can see Sunroof mirrors JavaScript closely, and allows access to the capabilities a browser provides. But is this Haskell for Haskell's sake? We do not think so:
 
- * Sunroof is a deeply embedded DSL, so it is easy to write
-   functions that generate custom code.
- * Sunroof provides some level of type safely on top of JavaScript,
-   including typed arrays, finite maps, functions and continuations.
- * Sunroof also offers an abstraction over the JavaScript threading model,
-   by providing two types of threads, atomic and (cooperatively) blocking.
-   On top of this, Sunroof provides some Haskell concurrency patterns
+ * Sunroof is a deeply embedded DSL, so it is easy to write functions that generate custom code.
+ * Sunroof provides some level of type safely on top of JavaScript, including typed arrays, finite maps, functions and continuations.
+ * Sunroof also offers an abstraction over the JavaScript threading model, by providing two types of threads, atomic and (cooperatively) blocking. On top of this, Sunroof provides some Haskell concurrency patterns
    like `MVar` or `Chan` (`JSMVar` and `JSChan`).
- * Furthermore, the [`sunroof-server` package][HackageSunroofServer] offers a ready to
-   use web-server to deploy generated JavaScript on the fly. It
-   enables you to interleave Haskell and JavaScript computations
-   as needed, through synchronous or asynchronous remote procedure calls.
+ * Furthermore, the [`sunroof-server` package][HackageSunroofServer] offers a ready to use web-server to deploy generated JavaScript on the fly. It enables you to interleave Haskell and JavaScript computations as needed, through synchronous or asynchronous remote procedure calls.
 
-[A number of examples][GitHubSunroofWikiExamples] and 
-[a tutorial][GitHubSunroofWikiTutorial] is provided on 
-[GitHub][GitHubSunroofExamples].
-Their [Haskell sources can be found on github][GitHubSunroofClock],
-they are part of the [`sunroof-examples` package][HackageSunroofExamples].
+[A number of examples][GitHubSunroofWikiExamples] and [a tutorial][GitHubSunroofWikiTutorial] is provided on [GitHub][GitHubSunroofExamples]. Their [Haskell sources can be found on github][GitHubSunroofClock], they are part of the [`sunroof-examples` package][HackageSunroofExamples].
 
 [BlogSunroofIntro]: http://www.ittc.ku.edu/csdlblog/?p=88 "Monad Reification in Haskell and the Sunroof JavaScript compiler"
 
