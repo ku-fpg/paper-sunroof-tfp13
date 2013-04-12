@@ -78,14 +78,14 @@ you are required to use `ifB` when writing JavaScript.
           c # fillText (cast $ n `div` 5) (0, 0)
         ) (return ())
 
-Note there is another `cast` operation in the fifth line. 
+Note the `cast` operation in line five. 
 As Haskell's type
 system is more restrictive then the one used in JavaScript, we sometimes
-have to `cast` one JavaScript value to another.
+have to `cast` one value to another.
 This may seem more
-complicated then writing the JavaScript by hand, but when using 
+complicated then writing JavaScript by hand, but when using 
 the API correctly (by not working around it) compile time
-errors can show mistakes in the JavaScript code early.
+errors can show mistakes in the code early.
 
 Getting back to the initial code block: How do we render the other 
 59 lines of the clock face? We just wrap this code into a function.
@@ -212,7 +212,7 @@ lines of Haskell.
 
       return ()
 
-Using the `sunroofCompileJSA` we can compile 
+Using the `sunroofCompileJSA` function we can compile 
 the deep embedded JavaScript into a string of actual JavaScript.
 
     sunroofCompileJSA def "main" clockJS >>= writeFile "main.js"
@@ -236,7 +236,7 @@ date API provided by the module `Language.Sunroof.JS.Date`.
 Note that this will literally copy the JavaScript produced by `currentTime`
 to where it is used, because it is not abstracted to a function in JavaScript.
 Every time you write Sunroof code that is not wrapped in a function, the
-Haskell binding will function like a macro.
+Haskell binding will work like a macro.
 
 The other helpers are just shortcuts to get certain values:
 
@@ -278,10 +278,9 @@ But is this Haskell for Haskell's sake? We do not think so:
 [A number of examples][GitHubSunroofWikiExamples] and 
 [a tutorial][GitHubSunroofWikiTutorial] is provided on 
 [GitHub][GitHubSunroofExamples].
-You can see [the example in action here][ExampleRunning], 
-the [produced JavaScript looks like this][ExampleJavaScript]
-and the [Haskell sources can be found on github][GitHubSunroofClock].
-They are part of the [`sunroof-examples` package][HackageSunroofExamples].
+You can see [the example in action here][ExampleRunning].
+The [Haskell sources can be found on github][GitHubSunroofClock],
+they are part of the [`sunroof-examples` package][HackageSunroofExamples].
 
 [BlogSunroofIntro]: http://www.ittc.ku.edu/csdlblog/?p=88 "Monad Reification in Haskell and the Sunroof JavaScript compiler"
 
