@@ -258,6 +258,8 @@ The other helpers are just shortcuts to get certain values:
       h <- c # invoke "innerHeight" ()
       return (w, h)
 
+You can see [the clock in action here][ExampleRunning].
+
 As you can see Sunroof mirrors JavaScript closely, 
 and allows access to the capabilities a browser provides.
 But is this Haskell for Haskell's sake? We do not think so:
@@ -278,14 +280,12 @@ But is this Haskell for Haskell's sake? We do not think so:
 [A number of examples][GitHubSunroofWikiExamples] and 
 [a tutorial][GitHubSunroofWikiTutorial] is provided on 
 [GitHub][GitHubSunroofExamples].
-You can see [the example in action here][ExampleRunning].
-The [Haskell sources can be found on github][GitHubSunroofClock],
+Their [Haskell sources can be found on github][GitHubSunroofClock],
 they are part of the [`sunroof-examples` package][HackageSunroofExamples].
 
 [BlogSunroofIntro]: http://www.ittc.ku.edu/csdlblog/?p=88 "Monad Reification in Haskell and the Sunroof JavaScript compiler"
 
-[ExampleRunning]: TODO "The clock example"
-[ExampleJavaScript]: TODO "Clock example JavaScript sources"
+[ExampleRunning]: http://www.ittc.ku.edu/csdl/fpg/software/sunroof/clock-example/clock.html "The clock example"
 
 [HackageBoolean]: http://hackage.haskell.org/package/Boolean-0.1.2 "Hackage: Boolean"
 [HackageSunroofCompiler]: http://hackage.haskell.org/package/sunroof-compiler "Hackage: sunroof-compiler"
