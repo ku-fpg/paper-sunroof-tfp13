@@ -1,12 +1,12 @@
  
 # Sunroof: Clockwork Progress
 
-About nine months ago we 
-[presented the idea][BlogSunroofIntro] 
-to use reification of a monad
+Last year, we [wrote a blog post][BlogSunroofIntro] 
+about using monad reification
 to implement a JavaScript compiler.
-The compiler made some progress and now 
-[we released it][HackageSunroofCompiler].
+The compiler, called Sunroof, is now in state
+that we can make the 
+[first public release][HackageSunroofCompiler].
 
 Lets look at a small example to start with.
 
@@ -21,11 +21,9 @@ a greeting and displayed.
 Haskell binding in Sunroof. Note how literal strings can be used to 
 represent JavaScript strings,
 thanks to the language extension `OverloadedStrings`.
-Sunroof introduces types in the written JavaScript. Like
-this it tries to support the programmer through the benefits
-of strong typing. But as `prompt` return a `JSObject` (it
-might result in `null`), we have to `cast` the name to
-a string.
+Sunroof introduces types in the written JavaScript. As Haskell's type
+system is more restrictive then the one used in JavaScript, we sometimes
+have to `cast` one JavaScript value to another.
 
 After this small teaser lets look at the clock example. 
 It demonstrates how Sunroof can produce self-contained 
@@ -57,16 +55,16 @@ Lets look how we can render one line of the clock face using Sunroof:
     -- Draw one of the indicator lines
     c # beginPath
     c # moveTo (0, -u * 1.0)
-    ifB (n `mod` 5 ==* (0 :: JSNumber))
+    ifB (n `mod` 5 ==* 0)
         (c # lineTo (0, -u * 0.8)) -- Minute line
         (c # lineTo (0, -u * 0.9)) -- Hour line
-    ifB (n `mod` 15 ==* (0 :: JSNumber))
+    ifB (n `mod` 15 ==* 0)
         (c # setLineWidth 8) -- Quarter line
         (c # setLineWidth 3) -- Non-Quarter line
     c # stroke
     c # closePath
     -- Draw of the hour numbers
-    ifB (n `mod` 5 ==* (0 :: JSNumber))
+    ifB (n `mod` 5 ==* 0)
         (do
           c # translate (-u * 0.75, 0)
           c # rotate (-2 * pi / 4)
@@ -85,18 +83,18 @@ JavaScript before.
     c # beginPath
     c # moveTo (0, -u * 1.0)
 
-The `#`-operator is used instread of the `.`-operator in JavaScript.
+The `#`-operator is used instead of the `.`-operator in JavaScript.
 `u` represents the radius of the clock. Knowing this you can see 
 that we are calling methods on the JavaScript object `c` (Our canvas context).
-The methods without parameters do not require empty paranthesis, as
-a Hasekell programmer would expect. The tuple used in the call of `moveTo`
+The methods without parameters do not require empty parenthesis, as
+a Haskell programmer would expect. The tuple used in the call of `moveTo`
 is only there to indicate that this parameter is a coordinate, not 
 two single numbers. You can also see that JavaScript numbers are neatly
 embedded using the `Num`-class and can be used naturally.
 
 The next few lines show a branch.
 
-    ifB (n `mod` 5 ==* (0 :: JSNumber))
+    ifB (n `mod` 5 ==* 0)
         (c # lineTo (0, -u * 0.8)) -- Minute line
         (c # lineTo (0, -u * 0.9)) -- Hour line
 
@@ -105,7 +103,7 @@ boolean expressions. For that reason we use the
 [`Data.Boolean`][HackageBoolean] package. Instead of `if-then-else`
 you are required to use `ifB` when writing JavaScript.
 
-    ifB (n `mod` 5 ==* (0 :: JSNumber))
+    ifB (n `mod` 5 ==* 0)
         (do
           c # translate (-u * 0.75, 0)
           c # rotate (-2 * pi / 4)
@@ -252,7 +250,7 @@ that executes our JavaScript. This is then called
 in the HTML file to execute.
 
 There are a few small utilities used in the code. The current
-time is percieved by `currentTime` which uses the JavaScript 
+time is perceived by `currentTime` which uses the JavaScript 
 date API provided by the module `Language.Sunroof.JS.Date`.
 
     currentTime :: JS A (JSNumber, JSNumber, JSNumber)
@@ -288,16 +286,22 @@ The other helpers are just shortcuts to get certain values:
       h <- c # invoke "innerHeight" ()
       return (w, h)
 
-As you can see Sunroof is easy to use and reflects the generated JavaScript
-closely. But there is much more to Sunroof then this small example shows.
-Sunroof also offers an abstraction over the JavaScript threading model.
-This enables you to use Haskell concurrency patterns like `MVar` or
-`Chan` in the Sunroof code (`JSMVar` and `JSChan`).
+As you can see Sunroof mirrors JavaScript closely, 
+and allows access to the capabilities a browser provides.
+But is this Haskell for Haskell's sake? We do not think so:
 
-The [`sunroof-server` package][HackageSunroofServer] offers a ready to
-use webserver to deploy generated JavaScript on the fly. It
-enables you to interleave Haskell and JavaScript computations
-as needed, through synchronous or asynchronous calls.
+ * Sunroof is a deeply embedded DSL, so it is easy to write
+   functions that generate custom code.
+ * Sunroof provides some level of type safely on top of JavaScript,
+   including typed arrays, finite maps, functions and continuations.
+ * Sunroof also offers an abstraction over the JavaScript threading model,
+   by proving to types of threads, atomic and (cooperatively) blocking.
+   On top of this, Sunroof provides some Haskell concurrency patterns
+   like `MVar` or `Chan` (`JSMVar` and `JSChan`).
+ * Furthermore, the [`sunroof-server` package][HackageSunroofServer] offers a ready to
+   use web-server to deploy generated JavaScript on the fly. It
+   enables you to interleave Haskell and JavaScript computations
+   as needed, through synchronous or asynchronous remote procedure calls.
 
 [A number of examples][GitHubSunroofWikiExamples] and 
 [a tutorial][GitHubSunroofWikiTutorial] is provided on 
@@ -306,7 +310,6 @@ You can see [the example in action here][ExampleRunning],
 the [produced JavaScript looks like this][ExampleJavaScript]
 and the [Haskell sources can be found on github][GitHubSunroofClock].
 They are part of the [`sunroof-examples` package][HackageSunroofExamples].
-
 
 [BlogSunroofIntro]: http://www.ittc.ku.edu/csdlblog/?p=88 "Monad Reification in Haskell and the Sunroof JavaScript compiler"
 
