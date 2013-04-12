@@ -1,33 +1,17 @@
  
 # Sunroof: Clockwork Progress
 
+In this article, we are going to generate a JavaScript application.
 Last year, we [wrote a blog post][BlogSunroofIntro] 
 about using monad reification
 to implement a JavaScript compiler.
 The compiler, called Sunroof, is now in state
 that we can make the 
 [first public release][HackageSunroofCompiler].
-
-Lets look at a small example to start with.
-
-    askName :: JSA ()
-    askName = do
-          name <- prompt "What is your name?" ""
-          alert $ "Your name is " <> cast name <> "!"
-
-First the user gets asked for her name. Then that name is built into 
-a greeting and displayed.
-`prompt` and `alert` are JavaScript functions that are called through their
-Haskell binding in Sunroof. Note how literal strings can be used to 
-represent JavaScript strings,
-thanks to the language extension `OverloadedStrings`.
-Sunroof introduces types in the written JavaScript. As Haskell's type
-system is more restrictive then the one used in JavaScript, we sometimes
-have to `cast` one JavaScript value to another.
-
-After this small teaser lets look at the clock example. 
-It demonstrates how Sunroof can produce self-contained 
-JavaScript that renders a clock using the HTML5 canvas element.
+By way of a non-trivial example, this blog entry illustrates how
+to construct an analog clock as a self-contained 
+JavaScript application
+that renders the clock using the HTML5 canvas element.
 
 ![The Clock Example](clock.png)
 
@@ -110,7 +94,11 @@ you are required to use `ifB` when writing JavaScript.
           c # fillText (cast $ n `div` 5) (0, 0)
         ) (return ())
 
-Note there is another `cast` operation in the fifth line. This may seem more
+Note there is another `cast` operation in the fifth line. 
+As Haskell's type
+system is more restrictive then the one used in JavaScript, we sometimes
+have to `cast` one JavaScript value to another.
+This may seem more
 complicated then writing the JavaScript by hand, but when using 
 the API correctly (by not working around it) compile time
 errors can show mistakes in the JavaScript code early.
@@ -295,7 +283,7 @@ But is this Haskell for Haskell's sake? We do not think so:
  * Sunroof provides some level of type safely on top of JavaScript,
    including typed arrays, finite maps, functions and continuations.
  * Sunroof also offers an abstraction over the JavaScript threading model,
-   by proving to types of threads, atomic and (cooperatively) blocking.
+   by providing two types of threads, atomic and (cooperatively) blocking.
    On top of this, Sunroof provides some Haskell concurrency patterns
    like `MVar` or `Chan` (`JSMVar` and `JSChan`).
  * Furthermore, the [`sunroof-server` package][HackageSunroofServer] offers a ready to
