@@ -13,23 +13,7 @@ to construct an analog clock as a self-contained
 JavaScript application
 that renders the clock using the HTML5 canvas element.
 
-![The Clock Example](clock.png)
-
-**TODO:** Possible to insert the canvas element and JavaScript call in here?
-          Fancy clock running in the website?
-<script type="text/javascript" src="jquery.js"></script>
-<script type="text/javascript" src="main.js"></script>
-<canvas 
-      id="canvas" 
-      style="padding: 0px; margin: 0px; border: solid 1px black" 
-      width="500" 
-      height="500"
-      class="click">
-</canvas>
-<script type="text/javascript">
-$(document).ready(main);
-</script>
-**TODO:** Does this work on the blog?
+![The Clock Example](clock-small.png)
 
 The JavaScript API for HTML5 canvas element is already provided by 
 Sunroof in the module `Language.Sunroof.JS.Canvas`. 
