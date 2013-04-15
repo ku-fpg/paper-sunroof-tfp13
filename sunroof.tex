@@ -274,7 +274,7 @@ Sunroof was first documented in our previous
 workshop paper~\cite{Farmer:12:WebDSLs},
 where the possibility of monadic reification was observed.
 In this paper, we raised an unresolved issue: do you
-generated atomic JavaScript code, and keep the callback
+generate atomic JavaScript code, and keep the callback
 centric model of computation, or generate JavaScript
 using CPS, and allow for blocking primitives,
 like Haskell \Src{MVar}s. The latter, though more powerful, 
@@ -339,6 +339,11 @@ continuation :: (...) => (a -> JS B ()) -> JS t (JSContinuation a)
 like \Src{JSObject} and others, are realized as objects
 in JavaScript. Thus they can be passed as arguments, returned
 from functions and stored in mutable structures.
+
+\Figure%
+{fig:func-cont}%
+{figures/sunroof-func-cont.pdf}%
+{How functions and continuations relate between the Haskell- and JS-domain.}%
 
 Functions and continuations can be called using \Src{apply}
 and \Src{goto} respectively. \Src{apply} calls the function
