@@ -20,6 +20,7 @@
 
 \newcommand{\IO}{\Src{IO}}
 \newcommand{\JS}{\Src{JS}}
+\newcommand{\JSI}{\Src{JSI}}
 \newcommand{\JSA}{\ensuremath{\Src{JS}_\Src{A}}}
 \newcommand{\JSB}{\ensuremath{\Src{JS}_\Src{B}}}
 
@@ -264,8 +265,6 @@ the ``\Src{a}'' type to be constrained and the bind to
 be an instance of the standard monad class~\cite{Sculthorpe:13:ConstrainedMonads}.
 Through this keyhole of {\em monadic reification\/},
 the entire Sunroof language is realized.
-The operational package~\cite{Hackage:10:Operational,Apfelmus:10:Operational}
-is used to normalize the \JS-monad. 
 
 \section{JavaScript Threading Models}
 \label{sec:threading-models}
@@ -379,9 +378,9 @@ and offers an easy way to add new types when needed~\cite{Svenningsson:12:Combin
 By using phantom types we can also provide more advanced types,
 like \Src{JSArray a}.
 
-The next layer provides JavaScript instructions through the type \Src{JSI}.
+The next layer provides JavaScript instructions through the type \JSI.
 They represents abstract statements. While expressions and values
-represented with type wrappers are assumed to be free of side-effect,
+represented with type wrappers are assumed to be free of side-effects,
 the instructions model side-effects in JavaScript. Examples for Instructions
 are assignment of an attribute or the application of a function.
 \begin{verbatim}
@@ -391,23 +390,33 @@ data JSI :: T -> * -> * where
   JS_Branch :: (...) => bool -> JS t a -> JS t a  -> JSI t a
   ...
 \end{verbatim}
-The \Src{JS} monad with its combinators builds a sequence of 
-\Src{JSI}nstructions through the operational
+The \JS-monad with its combinators builds a sequence of 
+\JSI{}nstructions through the operational
 package~\cite{Hackage:10:Operational,Apfelmus:10:Operational}.
-As mentioned earlier the \Src{JS}-monad comes in two threading flavors, 
+All constraints required on instructions are introduced by their 
+constructors.
+As mentioned earlier the \JS-monad comes in two threading flavors, 
 parameterized using a phantom type.
-Internally the \Src{JS}-monad is implemented using CPS. For atomic
+Internally the \JS-monad is implemented using CPS on the 
+underlying \Src{Program} type from Operational. 
+\begin{verbatim}
+data JS :: T -> * -> * where
+  JS   :: ((a -> Program (JSI t) ()) -> Program (JSI t) ()) 
+       -> JS t a
+  ...
+\end{verbatim}
+For atomic
 computations we just produce a list of instructions from the continuation. 
 When translating possibly blocking code we directly translate that continuation
-into JavaScript functions. This gives us the power to handle 
-computations as values in the JavaScript and store them if needed.
+into JavaScript functions. This gives us the ability to handle 
+computations as values in JavaScript and store them if needed.
 
 Blocking operations just store the rest of their computation in a queue.
 When the event to unblock occurs the pending computation is registered 
 as a callback that will be executed as soon as the current computation
 is done.
 
-On top of our \Src{JS}-monad we provide ways of specifying (typed)
+On top of our \JS-monad we provide ways of specifying (typed)
 interfaces to JavaScript capabilities, a Foreign Function Interface.
 \begin{verbatim}
 alert :: JSString -> JS t ()
@@ -429,14 +438,15 @@ into its own when used with the Sunroof server. There
 are three major functions in our server.
 
 \begin{verbatim}
-sunroofServer :: ... -> (SunroofEngine -> IO ()) -> IO ()
-sync          :: SunroofEngine -> JS t a  -> IO (ResultOf a)
-async         :: SunroofEngine -> JS t () -> IO ()
+sunroofServer :: SunroofServerOptions -> SunroofApp -> IO ()
+syncJS  :: SunroofResult a => SunroofEngine 
+        -> JS t a -> IO (ResultOf a)
+asyncJS :: SunroofEngine -> JS t () -> IO ()
 \end{verbatim}        
 
 \Src{sunroofServer} starts a small web server,
 that calls the callback function for each request.
-\Src{sync} and \Src{async} allow the Sunroof programmer
+\Src{syncJS} and \Src{asyncJS} allow the Sunroof programmer
 to remotely execute monadic JavaScript from the server.
 \Src{ResultOf} is a type-function, that maps the 
 Sunroof type to a corresponding Haskell type.
