@@ -1,0 +1,33 @@
+ 
+\section{JavaScript Threading Models}
+\label{sec:threading-models}
+
+Sunroof was first documented in our previous 
+workshop paper~\cite{Farmer:12:WebDSLs},
+where the possibility of monadic reification was observed.
+In this paper, we raised an unresolved issue: do you
+generate atomic JavaScript code, and keep the callback
+centric model of computation, or generate JavaScript
+using CPS, and allow for blocking primitives,
+like Haskell \Src{MVar}s. The latter, though more powerful, 
+precluded using the compiler to generate
+code that can be cleanly called from native JavaScript.
+Both choices had poor consequences.
+
+So, rather than pick one, we decided to explicitly support both,
+and make both first class threading strategies in our compiler.
+In terms of user-interface, we parameter the \JS-monad
+with a phantom type that represents the threading model
+to compile with, with \Src{A} for \Src{A}tomic threads,
+and \Src{B} for \Src{B}locking (cooperative concurrency) threads. 
+Atomic threads are classical JavaScript threads, and
+are never interrupted; while blocking threads can
+support suspending operations. By using phantom
+types, we can express the necessary
+restrictions on specific combinators, as well
+as provide combinators to allow both types of
+threads to cooperate successfully.
+
+\subsubsection{RESOURCES - REMOVE WHEN FINISHED}
+
+

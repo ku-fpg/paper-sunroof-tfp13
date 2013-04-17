@@ -1,0 +1,135 @@
+ 
+\section{Introduction}
+
+Sunroofs was developed to support Haskell programmers 
+when generating JavaScript. Lets look at the small example
+in figure \ref{fig:code-example} to see how it achieves this goal.
+
+\begin{figure}[h]
+\vspace{-0.5cm}
+\centering
+\begin{subfigure}{0.45\textwidth}%
+\begin{verbatim}
+ jsCode :: JS t ()
+ jsCode = do
+   name <- prompt "Your name?"
+   alert ("Your name: " <> name)
+\end{verbatim}%
+\end{subfigure}%
+\hfill%
+\begin{subfigure}{0.45\textwidth}
+\vspace{0.25cm}%
+\begin{verbatim}
+  
+  
+var v0 = prompt("Your name?"); 
+alert("Your name: " + v0);
+\end{verbatim}%
+\end{subfigure}% 
+%\vspace{-0.2cm}%
+\caption{Sunroof program and the expected JavaScript on the left.}%
+\label{fig:code-example}%
+\vspace{-0.5cm}
+\end{figure}
+
+We can see what code we expect the program to produce when 
+translated to JavaScript on the right. But what makes 
+this useful? The JavaScript we want to produce with the given
+Haskell is shorter and can easily be written by hand.
+So lets look at the advantages of this approach:
+\begin{itemize}
+
+\item
+At the same time Sunroof offers an interface that is 
+close to actual JavaScript making it easy to learn.
+It utilizes the \Src{do}-notation (Section \ref{sec:js-monad}) and creates a 
+simple foreign function interface to achieve this goal (SECTION?).
+
+\item
+Sunroof also introduces a threading model (Section \ref{sec:threading-models}) similar
+to Haskell's. Like this programmers can reuse known abstractions
+and have a known set of powerful tools.
+
+\item 
+It also introduces types that support us when 
+writing code and reveal common mistakes. The functions
+in figure \ref{fig:code-example} have toe following signature:
+\begin{verbatim}
+prompt :: JSString -> JSString -> JS t JSObject
+alert  :: JSString -> JS t ()
+\end{verbatim}
+This can improve the quality of our code.
+Section \ref{sec:object-model} will look into this in more detail.
+
+\item 
+Using a deep embedding like this gives opportunity 
+for optimizations when producing the actual JavaScript,
+e.g. we can introduce expression sharing.
+The details of the translation into JavaScript and
+technical background is explained in Section \ref{sec:background}.
+
+
+
+
+
+\end{itemize}
+
+
+\begin{comment}
+
+An essential part of most modern web applications is Javascript.
+It opens various possibilities to create browser based applications.
+Examples for this development are Googlemail or Facebook.
+These applications rely on Javascript heavily. What makes this 
+development possible are the fast interpreters available in all
+major browsers. Developing applications inside the browser has
+the advantage of being independent from the underlying hard- and
+software platform. The problem is shifted from the actual machine
+to the browser. Also modern web technologies like HTML5 and CSS
+give easy to use tools for developing user interfaces for the
+mentioned application. They are standardized and improved over years
+up to now. 
+
+Yet, writing actual code in Javascript can be tedious and error prone 
+due to its not-statically typed nature. Also the object-oriented
+paradigm and the callback mechanism used instead of proper multi-threading 
+can be a stumbling block for veteran Haskell programmers. Especially when
+facing the lack of type safety.
+
+To make the power of Javascript available to Haskell programmers 
+we developed Sunroof. It enables Haskell programmers to write
+Javascript using Haskell through a deep embedding. This 
+approach has several advantages:
+
+\begin{description}
+\item[Type Safety:] Sunroof provides custom types for all major Javascript
+types. Thus it gives type safety similar to what we are used to from 
+normal Haskell programs when writing Javascript.
+\item[Paradigms \& Patterns:] As a Haskell EDSL Sunroof follows functional programming 
+paradigms and principals. It is possible to reuse common combinators and 
+patterns in Sunroof.
+\item[Similarity:] At the same time Sunroof offers a API for Javascript 
+that allows to translate Javascript into Sunroof code easily.
+\item[Optimization:] Due to Sunroofs deep embedded nature it is able
+to apply optimizations like expression sharing when compiling to Javascript.
+\end{description}
+
+\NOTE{This might be a bit to enthusiastic.}
+
+\end{comment}
+
+\subsubsection{RESOURCES - REMOVE WHEN FINISHED}
+
+We want to use the Javascript API. Fast interpreters,
+running in a browser advantage, 
+
+We do not want to program in Javascript.
+
+We start with an overview of the language, then discuss
+how the language is implemented, and discuss interesting
+techniques used inside Sunroof. We close with a more
+complete web application.
+
+
+
+

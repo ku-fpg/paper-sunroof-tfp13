@@ -1,0 +1,105 @@
+ 
+\section{The Sunroof Compiler}
+\label{sec:compiler}
+
+Given the language, and monadic-reification, how do we  compile this language? 
+Figure \ref{fig:structure} shows how Sunroof is structured.
+On the lowest level we provide an untyped expression language \Src{Expr}
+that describes JavaScript expressions. 
+To provide type safety when using Sunroof we create
+wrappers for each type we want to represent, e.g. \Src{JSNumber} or \Src{JSString}.
+The \Src{Sunroof} type class provides an 
+interface to create wrapped and unwrapped
+instances of our expressions. Based on the wrappers we can provide 
+operations specific to a certain type, e.g. a \Src{Num} instance
+for \Src{JSNumber} or a \Src{Monoid} instance for \Src{JSString}.
+
+\Figure%
+{fig:structure}%
+{figures/sunroof-structure.pdf}%
+{The structure of Sunroof.}%
+
+This technique enables us to utilize  Haskells type system when writing JavaScript
+and offers an easy way to add new types when needed~\cite{Svenningsson:12:CombiningEmbedding}.
+By using phantom types we can also provide more advanced types,
+like \Src{JSArray a}.
+
+The next layer provides JavaScript instructions through the type \JSI.
+They represents abstract statements. While expressions and values
+represented with type wrappers are assumed to be free of side-effects,
+the instructions model side-effects in JavaScript. Examples for Instructions
+are assignment of an attribute or the application of a function.
+\begin{verbatim}
+data JSI :: T -> * -> * where
+  JS_Assign :: (...) => JSSelector a -> a -> JSObject -> JSI t ()
+  JS_Invoke :: (...) => a -> JSFunction a r -> JSI t r
+  JS_Branch :: (...) => bool -> JS t a -> JS t a  -> JSI t a
+  ...
+\end{verbatim}
+The \JS-monad with its combinators builds a sequence of 
+\JSI{}nstructions through the operational
+package~\cite{Hackage:10:Operational,Apfelmus:10:Operational}.
+All constraints required on instructions are introduced by their 
+constructors.
+As mentioned earlier the \JS-monad comes in two threading flavors, 
+parameterized using a phantom type.
+Internally the \JS-monad is implemented using CPS on the 
+underlying \Src{Program} type from Operational. 
+\begin{verbatim}
+data JS :: T -> * -> * where
+  JS   :: ((a -> Program (JSI t) ()) -> Program (JSI t) ()) 
+       -> JS t a
+  ...
+\end{verbatim}
+For atomic
+computations we just produce a list of instructions from the continuation. 
+When translating possibly blocking code we directly translate that continuation
+into JavaScript functions. This gives us the ability to handle 
+computations as values in JavaScript and store them if needed.
+
+Blocking operations just store the rest of their computation in a queue.
+When the event to unblock occurs the pending computation is registered 
+as a callback that will be executed as soon as the current computation
+is done.
+
+On top of our \JS-monad we provide ways of specifying (typed)
+interfaces to JavaScript capabilities, a Foreign Function Interface.
+\begin{verbatim}
+alert :: JSString -> JS t ()
+alert = fun "alert"
+
+getElementById :: JSString -> JSObject -> JS t JSCanvas
+getElementById = invoke "getElementById"
+\end{verbatim}
+Notice, that calling a JavaScript function or method is done by giving its
+name to one of the provided combinators. Types can be specialized using 
+a Haskell type annotation. A flexible and easy to use approach.
+
+\subsubsection{RESOURCES - REMOVE WHEN FINISHED}
+
+Compiling
+\begin{itemize}
+\item If we transliterate, we have straight line code, can not pause.
+    (Wait for Mvar, for example)
+\item If we CPS translate, we can use continuations to capture the
+   notion of a paused thread. Works well.
+   Problems:
+  \begin{itemize}
+   \item Can not translate functions, how do they get there return value
+   \item (Assumes straight line code.)
+   \item Also, the code becomes unreadable to anyone except a die-hard 
+       compiler freak.
+  \end{itemize}
+\end{itemize}
+ 
+Choice:
+\begin{itemize}
+\item We support both!
+\item Phantom argument to JS
+\item A = Atomic, B = Blockable.
+\end{itemize}
+
+
+
+
+

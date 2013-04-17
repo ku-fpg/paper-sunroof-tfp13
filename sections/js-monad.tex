@@ -1,0 +1,50 @@
+ 
+\section{The JavaScript Monad}
+\label{sec:js-monad}
+
+JavaScript is an imperative language with access to a wide range
+of established and useful services, like graphical canvases and event
+handling. JavaScript as a language also provides features that are
+traditionally associated with functional languages, like first-class 
+functions. We want to express JavaScript in Haskell, adding use
+of Haskell's static typing, and gaining access to JavaScript services.
+And we do so using the transitional functional programming 
+mechanism for being imperative, a monad~\cite{Moggi:91:ComputationMonads}.
+
+The \JS-monad is the monad of JavaScript effects, as is an almost
+exact analog for the Haskell \IO-monad, except there
+is an extra phantom argument~\cite{Leijen:99:Phantom} that we will return
+to shortly.  Figure~\ref{fig:code-example} gives a first example
+of the \JS-monad in use with the generated JavaScript.
+
+Inside this simple example is a challenging problem -- where does
+\Src{v0} come from? The bind inside the monadic \Src{do} is
+unconstrained:
+\begin{verbatim}
+(>>=) :: JS t a -> (a -> JS t b) -> JS t b
+\end{verbatim}
+What we want is:
+\begin{verbatim}
+(>>=) :: (Sunroof a) => JS t a -> (a -> JS t b) -> JS t b
+\end{verbatim}
+Where \Src{Sunroof} constrains the bind to
+arguments for which we can generate a JavaScript variable.
+Counterintuitively, 
+it turns out that a specific form of normalization allows 
+the ``\Src{a}'' type to be constrained and the bind to 
+be an instance of the standard monad class~\cite{Sculthorpe:13:ConstrainedMonads}.
+Through this keyhole of {\em monadic reification\/},
+the entire Sunroof language is realized.
+
+\subsubsection{RESOURCES - REMOVE WHEN FINISHED}
+
+We use monad reification.
+\begin{itemize}
+\item binding in Haskell becomes binding in reified language.
+\item Feels like a native monad, cf STM.
+\item Can build abstractions on top of this.
+\end{itemize}
+
+
+
+

@@ -1,0 +1,20 @@
+ 
+\section{Extended Example}
+\label{sec:extended-example}
+
+\FigureS%
+{fig:example-application}%
+{figures/example-application.png}%
+{The example application running on the Sunroof server.}%
+{scale=0.8}
+
+As an example we developed is a small calculator. It uses Sunroof to
+render its interface in the browser (Figure \ref{fig:example-application}). The 
+Haskell server processes the arithmetic expressions by parsing them
+into an AST and calculating the result of the expression.
+The result is then sent back to the interface and displayed,
+using Sunroof-generated JavaScript, 
+utilizing the browsers rendering capabilities.
+
+
+

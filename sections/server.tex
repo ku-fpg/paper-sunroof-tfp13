@@ -1,0 +1,26 @@
+ 
+\section{The Sunroof Server}
+\label{sec:server}
+
+The Sunroof compiler can compile JavaScript than can be used
+stand-alone inside a web application. But Sunroof really comes
+into its own when used with the Sunroof server. There
+are three major functions in our server.
+
+\begin{verbatim}
+sunroofServer :: SunroofServerOptions -> SunroofApp -> IO ()
+syncJS  :: SunroofResult a => SunroofEngine 
+        -> JS t a -> IO (ResultOf a)
+asyncJS :: SunroofEngine -> JS t () -> IO ()
+\end{verbatim}        
+
+\Src{sunroofServer} starts a small web server,
+that calls the callback function for each request.
+\Src{syncJS} and \Src{asyncJS} allow the Sunroof programmer
+to remotely execute monadic JavaScript from the server.
+\Src{ResultOf} is a type-function, that maps the 
+Sunroof type to a corresponding Haskell type.
+
+
+
+

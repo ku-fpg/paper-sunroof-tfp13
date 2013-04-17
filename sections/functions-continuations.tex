@@ -1,0 +1,58 @@
+ 
+\section{JavaScript Functions and Continuations}
+\label{sec:functions-continuations}
+
+Given these threading models, we can realize both as 
+JavaScript objects. 
+\begin{verbatim}
+function     :: (...) => (a -> JS A b)  -> JS t (JSFunction a b)
+continuation :: (...) => (a -> JS B ()) -> JS t (JSContinuation a)
+\end{verbatim}
+\Src{JSFunction a b} and \Src{JSContinuation a},
+like \Src{JSObject} and others, are realized as objects
+in JavaScript. Thus they can be passed as arguments, returned
+from functions and stored in mutable structures.
+
+\Figure%
+{fig:func-cont}%
+{figures/sunroof-func-cont.pdf}%
+{How functions and continuations relate between the Haskell- and JS-domain.}%
+
+Functions and continuations can be called using \Src{apply}
+and \Src{goto} respectively. \Src{apply} calls the function
+and returns, \Src{goto} calls the continuation, but never
+returns.
+\begin{verbatim}
+apply :: (...) => JSFunction args ret -> args -> JS t ret
+goto  :: (...) => JSContinuation args -> args -> JS t a
+\end{verbatim}
+
+\subsubsection{RESOURCES - REMOVE WHEN FINISHED}
+
+\begin{table}
+\caption{Reifying and calling Javascript functions}
+\begin{center}
+\begin{tabular}{r@{\quad}c@{\quad}c@{\quad}c@{\quad}c}
+\hline\rule{0pt}{12pt}%
+
+                & Monadic Function      & Reification   & Object in     & Invocation\\
+                & in Haskell            & Function      & Javascript    & Function\\
+\hline\rule{0pt}{12pt}%
+  Functions
+  & $\alpha\rightarrow\ $\Src{JS}$_\Src{A}~\beta$
+  & \Src{function}
+  & \Src{JSFunction}~$\alpha~\beta$
+  & \Src{apply} \\
+  Continuations
+  & $\alpha\rightarrow\ $\Src{JS}$_\Src{B}~\Src{()}$
+  & \Src{continuation}
+  & \Src{JSContinuation}~$\alpha$
+  & \Src{goto}\\
+\hline
+\end{tabular}
+\end{center}
+\end{table} 
+
+
+
+

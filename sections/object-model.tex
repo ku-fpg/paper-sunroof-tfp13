@@ -1,0 +1,81 @@
+ 
+\section{JavaScript Object Model}
+\label{sec:object-model}
+
+JavaScript is object based. It provides various objects,
+including numbers, booleans, maps, and others. We
+provide in Sunroof about a dozen common object,
+including \Src{JSObject} (the generic object type), \Src{JSNumber}
+(floating point numbers), \Src{JSCanvas} (HTML5 canvas type) 
+and others. A simple
+casting function is provided when the type-system
+needs to be overwritten. Along with each of these types,
+we provide typed methods.
+\begin{verbatim}
+ jsDrawBox :: JSObject -> JS t ()
+ jsDrawBox document = do
+     foo <- document # getElementById("foo")
+     cxt <- foo # getContext("2d")     cxt # drawRect (0,0,100,100)
+\end{verbatim}
+Here, \Src{\#} is a reverse apply, so the types
+of the function in the above example are
+\begin{verbatim}
+(#) :: o -> (o -> JS t a) -> JS t a
+getElementById :: JSString -> JSObject -> JS t JSContext
+getContext :: JSString -> JSContext -> JS t JSCanvas
+drawRect :: (JSNumber,JSNumber,JSNumber,JSNumber) -> JSCanvas -> JS t ()
+\end{verbatim}        
+From experience, even though we are targeting
+an untyped language, the type system gets in the
+way less than we expected.
+
+\subsubsection{RESOURCES - REMOVE WHEN FINISHED}
+
+\begin{table}
+\caption{Major instances of the Sunroof class}
+\begin{center}
+\begin{tabular}{r@{\quad}l@{\quad}l@{\quad}c}
+\hline\rule{0pt}{12pt}%
+  Constraint
+  & Sunroof Type $\tau$
+  & Haskell Analog \HaskellAnalog{$\tau$}
+  & \Src{js} \\ \hline\rule{0pt}{12pt}%
+  
+  & \Src{()}       & \Src{()}     & $\checkmark$ \\
+  & \Src{JSBool}   & \Src{Bool}   & $\checkmark$ \\
+  & \Src{JSNumber} & \Src{Double} & $\checkmark$ \\
+  & \Src{JSString} & \Src{String} & $\checkmark$ \\
+  
+  \Src{Sunroof $\alpha$}
+  & \Src{JSArray $\alpha$} 
+  & \Src{[$\HaskellAnalog{\alpha}$]}
+  & $\checkmark$ \\
+  
+  & \Src{JSMap JSString $\beta$}
+  & \Src{Map String $\HaskellAnalog{\beta}$}
+  & \\
+  
+  \Src{SunroofArgument $\alpha$}
+  & \Src{JSFunction $\alpha$ $\beta$ }
+  & \Src{$\HaskellAnalog{\alpha}$ $\rightarrow$ JS$_\Src{A}$ $\HaskellAnalog{\beta}$} 
+  & $\checkmark$ \\
+  \Src{Sunroof $\beta$} \\
+  
+  \Src{SunroofArgument $\alpha$}
+  & \Src{JSMVar $\alpha$}
+  & \Src{MVar $\HaskellAnalog{\alpha}$}
+  & \\
+  
+  \Src{SunroofArgument $\alpha$}
+  & \Src{JSChan $\alpha$}
+  & \Src{Chan $\HaskellAnalog{\alpha}$}
+  & \\[2pt]
+\hline
+\end{tabular}
+\end{center}
+\end{table} 
+
+
+
+
+
