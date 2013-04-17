@@ -69,7 +69,14 @@ a record creation (\Src{JSTuple}). It represents observable
 allocation and we usually want one reference to a function 
 instead of coping its definition everywhere.
 \item Calling a function or method can have a side-effect
-\item That is why the operator \Src{\$\$} is monadic to.
+\item That is why the operator \Src{\$\$} for function application is monadic to.
+\item All these operations do is to produce \Src{JS\_Function} and \Src{JS\_Invoke}
+instructions.
+\item Continuations are basically the same as functions at this level.
+\item Created with \Src{continuation} and called with \Src{goto}.
+\item Implementation of \Src{goto} is interesting. Ignores 
+the current continuation in the \JS-monad and continues with the given one.
+\item TODO: Further detail on continuations; Here or somewhere else?
 \end{itemize}
 
 
