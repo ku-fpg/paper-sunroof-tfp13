@@ -27,10 +27,8 @@ apply :: (...) => JSFunction args ret -> args -> JS t ret
 goto  :: (...) => JSContinuation args -> args -> JS t a
 \end{verbatim}
 
-\subsubsection{RESOURCES - REMOVE WHEN FINISHED}
-
 \begin{table}
-\caption{Reifying and calling Javascript functions}
+\caption{Reifying and calling JavaScript functions}
 \begin{center}
 \begin{tabular}{r@{\quad}c@{\quad}c@{\quad}c@{\quad}c}
 \hline\rule{0pt}{12pt}%
@@ -52,6 +50,29 @@ goto  :: (...) => JSContinuation args -> args -> JS t a
 \end{tabular}
 \end{center}
 \end{table} 
+
+\subsubsection{RESOURCES - REMOVE WHEN FINISHED}
+
+\begin{itemize}
+\item Functions are first class members in Haskell and JavaScript
+\item But in JavaScript they are limited (no partial application)
+\item That leads to type for functions \Src{JSFunction a b}
+\item Functions can take more then one argument; \Src{Sunroof} insufficient: \Src{SunroofArgument}
+\item \Src{SunroofArgument} is prerequisite for \Src{Sunroof},
+because all JS objects are parameters but pairs of them are not 
+JS objects.
+\item Introduce \Src{SunroofArgument}.
+\item So function in JS are not curried (partial application is questionable in JS)
+\item Create a function with \Src{function} combinator.
+\item Function creation is a monadic effect for the same reason 
+a record creation (\Src{JSTuple}). It represents observable
+allocation and we usually want one reference to a function 
+instead of coping its definition everywhere.
+\item Calling a function or method can have a side-effect
+\item That is why the operator \Src{\$\$} is monadic to.
+\end{itemize}
+
+
 
 
 
