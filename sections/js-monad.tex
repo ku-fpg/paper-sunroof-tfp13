@@ -38,17 +38,30 @@ the entire Sunroof language is realized.
 
 \subsubsection{RESOURCES - REMOVE WHEN FINISHED}
 
+Basic Idea
 \begin{itemize}
 \item Put the current stuff into the introduction does not belong here
 \item \JS-monad is analog of \IO-monad
 \item Monad used to model sequences of statements with side-effect in 
 JavaScript \cite{Moggi:91:ComputationMonads}
+\item binding in Haskell becomes binding in JavaScript (more about this in section \ref{sec:compiler})
 \item There also is a expression level (discussed in section \ref{sec:object-model})
-\item Problems when using monad: Types need to be constrained to work
-\item We use monad reification \cite{Apfelmus:10:Operational,Hackage:10:Operational}
-\item binding in Haskell becomes binding in JavaScript.
 \item Feels like a native monad, cf STM.
 \item Can build abstractions on top of this.
+\end{itemize}
+Implementation
+\begin{itemize}
+\item Problems when using monad: Types need to be constrained to work
+\item We use monad reification \cite{Apfelmus:10:Operational,Hackage:10:Operational}
+\item But \JS-monad is a little bit more complicated
+\item Show \JS-constructor: \Src{JS :: ((a -> Program (JSI t) ()) -> Program (JSI t) ()) -> JS t a}
+\item Whats going on here?
+\item \JS-monad is a continuation monad on the \Src{Program} type from operational
+\item Monad instance is the standard implementation for a continuation 
+monad (TODO: cite for continuation monad)
+\item This is necessary, because we want to support different threading styles
+\item Look at the \JSI\ type and introduce it
+\item Explain how it is a high-level representation of JavaScript
 \end{itemize}
 
 
