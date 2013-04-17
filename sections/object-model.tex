@@ -29,8 +29,6 @@ From experience, even though we are targeting
 an untyped language, the type system gets in the
 way less than we expected.
 
-\subsubsection{RESOURCES - REMOVE WHEN FINISHED}
-
 \begin{table}
 \caption{Major instances of the Sunroof class}
 \begin{center}
@@ -74,6 +72,44 @@ way less than we expected.
 \end{tabular}
 \end{center}
 \end{table} 
+
+\subsubsection{RESOURCES - REMOVE WHEN FINISHED}
+
+\begin{itemize}
+\item We want to use Haskell's type system to give use type safety in JavaScript/Sunroof.
+\item JavaScript is untyped / dynamically typed (???)
+\item We can not represent all types in JavaScript
+\item We have to give a way to add types later on
+\item Use approach from \cite{Svenningsson:12:CombiningEmbedding}
+\item There is a core expression language that is used to describe how and expression is built
+\item We wrap that core type into wrappers
+\item Introduce \Src{Sunroof} to mark wrappers
+\item Wrappers have specific functionality for certain type
+\item Wrappers can have phantom type to give more type safety
+\item Example \Src{JSString} and \Src{JSArray a}
+\item Unavoidable need to cast types some times: \Src{cast}
+\item Adding a new type can be done mechanically: Template Haskell
+\item Design decision: We do not want to introduce internal
+structure for types. (Tuples aren't JS types)
+\item \Src{JSTuple} exists to introduce types with custom structure
+\item Introduce \Src{JSTuple}
+\item manages composition and decomposition of custom types.
+\item Meant to codify immutable records in JavaScript
+\item They can only be changed
+by decomposing them into Haskell and recreating a new structure
+with other values.
+\item Useful to manage more complex data structures in JavaScript.
+\item Decomposition is pure operation: \Src{match}
+\item Justification lies in the fact that they are meant to be 
+immutable. Although there are possibilities to break this.
+\item Composition is monadic effect: \Src{tuple}
+\item It captures observable allocation and ensures that a reference to the
+allocated value is created and used afterwards.
+\item If it was not monadic the let binding would be like a macro
+that reallocated the same object at each point. This 
+is not desired behavior in most use-cases
+\end{itemize}
+
 
 
 
