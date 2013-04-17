@@ -47,11 +47,13 @@ way less than we expected.
   \Src{Sunroof $\alpha$}
   & \Src{JSArray $\alpha$} 
   & \Src{[$\HaskellAnalog{\alpha}$]}
-  & $\checkmark$ \\
-  
-  & \Src{JSMap JSString $\beta$}
-  & \Src{Map String $\HaskellAnalog{\beta}$}
   & \\
+  
+  \Src{SunroofKey $\alpha$}
+  & \Src{JSMap $\alpha$ $\beta$}
+  & \Src{Map $\HaskellAnalog{\alpha}$ $\HaskellAnalog{\beta}$}
+  & \\
+  \Src{Sunroof $\beta$} \\
   
   \Src{SunroofArgument $\alpha$}
   & \Src{JSFunction $\alpha$ $\beta$ }
@@ -75,6 +77,7 @@ way less than we expected.
 
 \subsubsection{RESOURCES - REMOVE WHEN FINISHED}
 
+General Objects Types and Expressions
 \begin{itemize}
 \item We want to use Haskell's type system to give use type safety in JavaScript/Sunroof.
 \item JavaScript is untyped / dynamically typed (???)
@@ -87,8 +90,12 @@ way less than we expected.
 \item Wrappers have specific functionality for certain type
 \item Wrappers can have phantom type to give more type safety
 \item Example \Src{JSString} and \Src{JSArray a}
+\item Maybe go through example type like \Src{JSString} or \Src{()}.
 \item Unavoidable need to cast types some times: \Src{cast}
 \item Adding a new type can be done mechanically: Template Haskell
+\end{itemize}
+JSTuple and records in JS
+\begin{itemize}
 \item Design decision: We do not want to introduce internal
 structure for types. (Tuples aren't JS types)
 \item \Src{JSTuple} exists to introduce types with custom structure
@@ -109,6 +116,24 @@ allocated value is created and used afterwards.
 that reallocated the same object at each point. This 
 is not desired behavior in most use-cases
 \end{itemize}
+Haskell to Sunroof conversion
+\begin{itemize}
+\item Many haskell types have equivalent or similar types in JavaScript
+\item So we offer \Src{SunroofValue}; It connects a Haskell value with 
+its JavaScript companion through a type function (cite type functions)
+and gives a function to convert: \Src{js}
+\item Introduce \Src{SunroofValue}
+\item Conversion is pure for most types since atomic values 
+are created when converting.
+\item Exception \Src{JSFunction}, same reason as for \Src{JSTuple} and \Src{tuple}
+\item Show table with types as an overview. Small comment paragraph about table.
+\item \Src{JSArray} not possible because of conflicts with \Src{String}
+instance (minor point); also issue of mutability of arrays; observable 
+allocation issue like with \Src{JSTuple}.
+\item Forward reference to section \ref{sec:threading-models} for \Src{JSMVar}
+and \Src{JSChan}
+\end{itemize}
+
 
 
 
