@@ -22,5 +22,26 @@ to remotely execute monadic JavaScript from the server.
 Sunroof type to a corresponding Haskell type.
 
 
+\subsubsection{RESOURCES - REMOVE WHEN FINISHED}
+
+\begin{itemize}
+\item Introduce major idea of a server that can communicate
+with the calling website and send arbitrary pieces
+of JavaScript to execute on demand.
+\item TODO: Go into detail about the kansas-comet stuff 
+or just give a reference to the original paper?
+\item Introduce the major function for running and communicating:
+\Src{sunroofServer}, \Src{syncJS} and \Src{asyncJS}
+\item Describe what they do.
+\item Specifically look at \Src{syncJS} and \Src{SunroofResult}
+used to return actual Haskell values for the sent JavaScript return value.
+\item Introduce abstractions \Src{Downlink} and \Src{Uplink} that
+can be used to communicate in either direction.
+\item TODO: This is only a brief introduction?
+\end{itemize}
+
+
+
+
 
 
