@@ -30,4 +30,57 @@ threads to cooperate successfully.
 
 \subsubsection{RESOURCES - REMOVE WHEN FINISHED}
 
+\begin{itemize}
+\item JavaScript does not have a threading model.
+\item There is only one thread and callbacks can be registered to be
+called when events happen once thread of execution has ended.
+\item Using our CPS in the \JS-monad and translating it directly 
+to JavaScript we can simulate/emulate a threading model similar to
+Haskell's.
+\item Basic idea is to use callbacks as mechanism to continue
+suspended computations (in form of continuations).
+\item TODO: Is there a paper about this technique?
+\item We support both styles.
+\item Decision which one to use is made by the first 
+type parameter of the \JS-monad. A - atomic / B - blocking
+\item Compiler comes in these two flavors: \Src{sunroofCompileJSA} and \Src{sunroofCompileJSB}
+\end{itemize}
+Concurrency primitives
+\begin{itemize}
+\item A primitives for the blocking threading model we provide:
+\Src{forkJS}, \Src{threadDelay} and \Src{yield}
+\item Show type signatures for the three methods
+\item \Src{forkJS} can be thought of an equivalent to \Src{forkIO},
+it registers a callback for the given computation, so 
+it is done once the current computation is done.
+\item \Src{threadDelay} registers a callback to execute 
+the rest of this computation (the rest of this continuation)
+as soon as the given amount of time has passed. This thread 
+of computation ends here.
+\item \Src{yield} sets the timeout of \Src{threadDelay} to zero.
+\end{itemize}
+Concurrency abstractions
+\begin{itemize}
+\item As a further abstraction we also provide \Src{JSMVar} and \Src{JSChan}.
+\item These are equivalents of \Src{MVar} and \Src{Chan} in Sunroof.
+\item Both are expressed purely in terms of the above primitives 
+and continuations.
+\item Both utilize two lists to store the processes that 
+are waiting for data and those that are trying to write data.
+and register them to be run through \Src{forkIO} and \Src{goto}
+as needed.
+\item Show interface for both types
+\item Remark how they enforce \JSB\ to ensure that 
+CPS is translated down to JavaScript
+\item Spare the implementation as it is not interesting in the 
+scope of this paper.
+\item TODO: Reference MVar and Chan papers / 
+are there parallels to their implementation?
+\item TODO: Cite: Continuations to store computations?
+\end{itemize}
+
+
+
+
+
 
