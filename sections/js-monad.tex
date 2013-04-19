@@ -59,9 +59,30 @@ Implementation
 \item \JS-monad is a continuation monad on the \Src{Program} type from operational
 \item Monad instance is the standard implementation for a continuation 
 monad (TODO: cite for continuation monad)
-\item This is necessary, because we want to support different threading styles
+\item This is necessary, because we want to support different threading styles 
+(discussed in chapter \ref{sec:threading-models})
+\item For now think of it as producing a sequence/list of abstract instructions: \JSI
 \item Look at the \JSI\ type and introduce it
 \item Explain how it is a high-level representation of JavaScript
+\item TODO: Look at all constructors? Or only the interesting ones (marked with "!")?
+  \begin{itemize}
+  \item ! Function and continuation are technically the same, but different instructions
+  \item ! Reason for this is TODO?
+  \item ! Why are there two different assignments?
+  \item ! One is assignment to variable, other is assignment to the field of an object
+  \item ! Eval, this looks weird. Forces evaluation and binding to a variable.
+  \item ! Otherwise, we would use macro semantics in many places.
+  \item ! Fix is provided to be able to write recursive functions
+  \item ! Why isn't that possible without fix? problem boils down to 
+        not observable sharing between statements and bindings. This
+        leads compiler into infinite loops.
+  \item Select selects a field
+  \item Delete remove a field
+  \item Invoke call a function/method
+  \item Return for return of a function
+  \item Comment writes some comment, helps for debugging
+  \end{itemize}
+
 \end{itemize}
 
 
