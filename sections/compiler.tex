@@ -79,6 +79,29 @@ a Haskell type annotation. A flexible and easy to use approach.
 
 Compiling
 \begin{itemize}
+\item Short introduction to the compiler interface (signature).
+\item Core work done by translating \Src{Program (JSI t) ()}
+into a list of \Src{Stmt}s.
+\item Introduce statement type, give a short description of 
+each constructor (just in the comments)
+\item Basic idea: Each \JSI~nstruction is translated 
+into a sequence of statements and these are then
+concatenated together.
+\item Look at interesting parts
+\item TODO: Which parts are interesting? Most parts are too technical
+\item Show how a branch is compiled (TODO: \Src{extractProgramJS} lets things look messy)
+\item Talk about how \Src{JS\_Fix} is compiled.
+\item TODO: Understand why fix works.
+\item Difference between compilation of a function and a continuation
+\item Function \Src{\textbackslash a -> JS \$ \textbackslash k -> singleton (JS\_Return a) >>= k}
+\item TODO: Why \Src{>>= k}?
+\item Return the result of the current continuation
+\item Continuation \Src{\textbackslash \_ -> JS \$ \textbackslash k -> k ()}
+\item Just execute it instead of passing it on further. No return value!
+\item We use expression sharing through observable sharing (reference Andys paper).
+\end{itemize}
+
+\begin{itemize}
 \item If we transliterate, we have straight line code, can not pause.
     (Wait for Mvar, for example)
 \item If we CPS translate, we can use continuations to capture the
