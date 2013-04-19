@@ -75,7 +75,9 @@ instructions.
 \item Continuations are basically the same as functions at this level.
 \item Created with \Src{continuation} and called with \Src{goto}.
 \item Implementation of \Src{goto} is interesting. Ignores 
-the current continuation in the \JS-monad and continues with the given one.
+the current continuation in the \JS-monad and continues with the given one
+by actually invoking the JavaScript function representing it.
+\item Major difference in translation between both on compiler level (section \ref{sec:compiler})
 \item TODO: Further detail on continuations; Here or somewhere else?
 \end{itemize}
 
