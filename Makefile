@@ -13,7 +13,7 @@ all:	bib pdf
 
 bib:
 	pdflatex $(doc_tex)
-	# bibtex $(doc_name)
+	bibtex $(doc_name)
 	pdflatex $(doc_tex)
 
 lhs:
