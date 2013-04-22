@@ -138,6 +138,15 @@ to apply optimizations like expression sharing when compiling to Javascript.
 \item Extended example in section \ref{sec:extended-example}
 \end{itemize}
 
+JavaScript is an imperative language with access to a wide range
+of established and useful services, like graphical canvases and event
+handling. JavaScript as a language also provides features that are
+traditionally associated with functional languages, like first-class 
+functions. We want to express JavaScript in Haskell, adding use
+of Haskell's static typing, and gaining access to JavaScript services.
+And we do so using the transitional functional programming 
+mechanism for being imperative, a monad~\cite{Moggi:91:ComputationMonads}.
+
 
 We want to use the Javascript API. Fast interpreters,
 running in a browser advantage, 
