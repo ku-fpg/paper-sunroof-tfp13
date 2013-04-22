@@ -2,6 +2,7 @@
 \section{JavaScript Object Model}
 \label{sec:object-model}
 
+\begin{comment}
 JavaScript is object based. It provides various objects,
 including numbers, booleans, maps, and others. We
 provide in Sunroof about a dozen common object,
@@ -28,9 +29,75 @@ drawRect :: (JSNumber,JSNumber,JSNumber,JSNumber) -> JSCanvas -> JS t ()
 From experience, even though we are targeting
 an untyped language, the type system gets in the
 way less than we expected.
+\end{comment}
+
+As JavaScript is not statically typed, one goal
+of Sunroof is to use Haskell's type system to
+increase the correctness of the written JavaScript.
+At the same time we have the problem that we can not characterize 
+all different types of objects in JavaScript, since 
+users can write their one objects. This means our 
+system to type JavaScript needs to be extensible.
+
+The approach from \cite{Svenningsson:12:CombiningEmbedding}
+gives us this ability. We provide a basic \Src{Expr}ession 
+language that has no associated type information to construct 
+JavaScript expressions.
+\begin{verbatim}
+data E expr 
+  = Lit String -- Precompiled (atomic) JavaScript literal
+  | Var Id     -- Variable
+  | Apply expr [expr]    -- Function application
+  ...
+data ExprE = ExprE (E ExprE)
+type Expr  = E ExprE
+\end{verbatim}
+This core expression type is then wrapped to represent a more specific 
+type. Each of these wrappers implements the \Src{Sunroof} type 
+class.
+\begin{verbatim}
+class SunroofArgument a => Sunroof a where
+  box :: Expr -> a
+  unbox :: a -> Expr
+  ...
+\end{verbatim}
+It marks that these types represent possible values in JavaScript.
+Table \ref{tab:sunroof-types} shows some of the most important 
+types in Sunroof. Some types like \Src{JSFunction} also involve 
+phantom types to give more specific types (TODO: cite phantom types).
+
+The table also shows that most of basic Haskell types have counterparts in
+Sunroof. To convert these core Haskell values into their Sunroof 
+counterparts we provide the \Src{SunroofValue} type class.
+\begin{verbatim}
+class SunroofValue a where
+  type ValueOf a :: *
+  js :: a -> ValueOf a
+\end{verbatim}
+It provides the corresponding Sunroof value through the type function
+\Src{ValueOf} and offers the function \Src{js} to convert to that type.
+
+For most types this conversion can be done without side-effects
+in JavaScript, since many of basic types are represented as 
+immutable objects. An exceptions to this rule is \Src{JSFunction},
+because creating a function captures an observable allocation,
+e.g. two syntactically equal function are different according to reference
+equality. So we have to ensure that a function is not inlined, but 
+bound to a new variable when created so that Haskell semantics are 
+not violated (TODO: This sentence is crap).
+Since values in Sunroof are supposed to be immutable, as in Haskell, 
+we can not create arrays through \Src{SunroofValue} 
+(TODO: Better semantics for SunroofValue).
+
+We also want to work with record like data structures in JavaScript.
+For this purpose Sunroof offers the \Src{JSTuple} type class.
+
+
+
 
 \begin{table}
-\caption{Major instances of the Sunroof class}
+\caption{Sunroof types and their Haskell pendant.}
+\label{tab:sunroof-types}
 \begin{center}
 \begin{tabular}{r@{\quad}l@{\quad}l@{\quad}c}
 \hline\rule{0pt}{12pt}%
@@ -94,6 +161,23 @@ General Objects Types and Expressions
 \item Unavoidable need to cast types some times: \Src{cast}
 \item Adding a new type can be done mechanically: Template Haskell
 \end{itemize}
+Haskell to Sunroof conversion
+\begin{itemize}
+\item Many haskell types have equivalent or similar types in JavaScript
+\item So we offer \Src{SunroofValue}; It connects a Haskell value with 
+its JavaScript companion through a type function (cite type functions)
+and gives a function to convert: \Src{js}
+\item Introduce \Src{SunroofValue}
+\item Conversion is pure for most types since atomic values 
+are created when converting.
+\item Exception \Src{JSFunction}, same reason as for \Src{JSTuple} and \Src{tuple}
+\item Show table with types as an overview. Small comment paragraph about table.
+\item \Src{JSArray} not possible because of conflicts with \Src{String}
+instance (minor point); also issue of mutability of arrays; observable 
+allocation issue like with \Src{JSTuple}.
+\item Forward reference to section \ref{sec:threading-models} for \Src{JSMVar}
+and \Src{JSChan}
+\end{itemize}
 JSTuple and records in JS
 \begin{itemize}
 \item Design decision: We do not want to introduce internal
@@ -115,23 +199,6 @@ allocated value is created and used afterwards.
 \item If it was not monadic the let binding would be like a macro
 that reallocated the same object at each point. This 
 is not desired behavior in most use-cases
-\end{itemize}
-Haskell to Sunroof conversion
-\begin{itemize}
-\item Many haskell types have equivalent or similar types in JavaScript
-\item So we offer \Src{SunroofValue}; It connects a Haskell value with 
-its JavaScript companion through a type function (cite type functions)
-and gives a function to convert: \Src{js}
-\item Introduce \Src{SunroofValue}
-\item Conversion is pure for most types since atomic values 
-are created when converting.
-\item Exception \Src{JSFunction}, same reason as for \Src{JSTuple} and \Src{tuple}
-\item Show table with types as an overview. Small comment paragraph about table.
-\item \Src{JSArray} not possible because of conflicts with \Src{String}
-instance (minor point); also issue of mutability of arrays; observable 
-allocation issue like with \Src{JSTuple}.
-\item Forward reference to section \ref{sec:threading-models} for \Src{JSMVar}
-and \Src{JSChan}
 \end{itemize}
 
 
