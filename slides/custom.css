@@ -1,0 +1,6 @@
+
+sup {
+  /*vertical-align: super !important;*/
+  position: relative; top: -0.5em; font-size: 80%;
+  font-size: 80% !important;
+} 
