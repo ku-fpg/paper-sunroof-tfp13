@@ -2,14 +2,17 @@
 \section{Threading Models}
 \label{sec:threading-models}
 
-Sunroof was first documented in our previous 
-workshop paper~\cite{Farmer:12:WebDSLs},
-where the possibility of monadic reification was observed.
-In this paper, we raised an unresolved issue: do you
-generate atomic JavaScript code, and keep the callback
-centric model of computation, or generate JavaScript
-using CPS, and allow for blocking primitives,
-like Haskell \Src{MVar}s. The latter, though more powerful, 
+JavaScript uses a callback centric model of computation. The 
+is no concurrency. Events are handled through callbacks,
+which are called as soon as the current computation is done.
+
+In contrast Haskell has real concurrency and wide-spread 
+abstractions for synchronization, e.g. \Src{MVar}s (TODO: Cite MVar/Chan paper).
+So the question arises: do we generate atomic JavaScript code, 
+and keep the callback centric model of computation, or generate JavaScript
+using CPS \cite{Claessen:99:PoorMansConcurrencyMonad}, 
+and allow for blocking primitives and
+cooperative concurrency. The latter, though more powerful, 
 precluded using the compiler to generate
 code that can be cleanly called from native JavaScript.
 Both choices had poor consequences.
@@ -27,6 +30,60 @@ types, we can express the necessary
 restrictions on specific combinators, as well
 as provide combinators to allow both types of
 threads to cooperate successfully.
+
+We use the callback mechanism to implement the blocking model.
+Each time a computation is suspended we register our current
+continuation as a callback to resume later. Like this other 
+threads (registered continuations) get a chance to run.
+Of course, this model depends on cooperation between the thread,
+because a thread that does terminate or suspend itself at some
+point, will keep others from running.
+
+The compiler offers two functions to choose in which
+model the \JS-monad shall be compiled.
+\begin{verbatim}
+sunroofCompileJSA :: (Sunroof a) 
+                  => CompilerOpts -> String -> JS A a -> IO String
+sunroofCompileJSB :: CompilerOpts -> String -> JS B () -> IO String
+\end{verbatim}
+
+There a three main primitives Sunroof offers to work with in
+the blocking model.
+\begin{verbatim}
+forkJS      :: (...) => JS t1 () -> JS t2 ()
+threadDelay :: JSNumber -> JSB ()
+yield       :: JSB ()
+\end{verbatim}
+\Src{forkJS} can be thought of as an equivalent to \Src{forkIO}.
+It creates a continuation from the given computation and registers 
+it as a callback. \Src{yield} suspends the current thread by 
+registering the current continuation as a callback. Like this 
+other threads have time to run and the concurrency becomes 
+cooperative. \Src{threadDelay} is a form of \Src{yield} that sets 
+the callback to be called after a certain amount of time,
+effectively forcing it to sleep that amount of time.
+We depend on the JavaScript function \Src{window.setTimeout} to be provided
+by the executing instance to register our callbacks. 
+
+Based on this primitive combinators we also offer a Sunroof 
+version of \Src{MVar} and \Src{Chan}: \Src{JSMVar} and \Src{JSChan}.
+\begin{verbatim}
+newMVar      :: (SunroofArgument a) => a -> JS t (JSMVar a)
+newEmptyMVar :: (SunroofArgument a) => JS t (JSMVar a)
+putMVar      :: (SunroofArgument a) => a -> JSMVar a -> JS B ()
+takeMVar     :: (SunroofArgument a) => JSMVar a -> JS B a
+
+newChan   :: (SunroofArgument a) => JS t (JSChan a)
+writeChan :: (SunroofArgument a) => a -> JSChan a -> JS t ()
+readChan  :: (SunroofArgument a) => JSChan a -> JS B a
+\end{verbatim}
+Both implementation use arrays to store the waiting readers and
+writers in form of continuations. Note that all functions
+are able to handle \Src{SunroofArgument}s, not just \Src{Sunroof}
+types. This is possible, because the computations themselves are
+stored in the lists. When a arguments is written either the waiting
+continuation is called with those arguments or a new continuation 
+that applies an incoming one with those arguments is created.
 
 \subsubsection{RESOURCES - REMOVE WHEN FINISHED}
 
