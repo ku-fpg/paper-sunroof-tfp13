@@ -2,30 +2,81 @@
 \section{JavaScript Functions and Continuations}
 \label{sec:functions-continuations}
 
-Given these threading models, we can realize both as 
-JavaScript objects. 
+Functions are first class values in Haskell and JavaScript.
+To represent a function in Sunroof, we introduce the type 
+\Src{JSFunction $\alpha$ $\beta$}. This represents a function
+$\alpha \rightarrow \beta$ in JavaScript. Functions should
+be able to take more then one argument, which means a 
+\Src{Sunroof $\alpha$} constraint would be to restrictive.
+Thus we introduced \Src{SunroofArgument} to constraint the 
+types that may be used as arguments for functions.
 \begin{verbatim}
-function     :: (...) => (a -> JS A b)  -> JS t (JSFunction a b)
-continuation :: (...) => (a -> JS B ()) -> JS t (JSContinuation a)
+class SunroofArgument args where
+  jsArgs   :: args -> [Expr]
+  jsValue  :: (UniqM m) => m args
+  ...
 \end{verbatim}
-\Src{JSFunction a b} and \Src{JSContinuation a},
-like \Src{JSObject} and others, are realized as objects
-in JavaScript. Thus they can be passed as arguments, returned
-from functions and stored in mutable structures.
+It enables use to convert each argument into its expression
+through \Src{jsArgs}. This used when calling a function to 
+provide the arguments to a call. \Src{jsValue} generates
+new unique names for each argument, which is needed when compiling
+the function itself to a value. 
 
+Since the usefulness of partial application is questionable in
+the context of JavaScript, we choose to only permit uncurried functions,
+by providing instances for tuples of sunroof values.
+\begin{verbatim}
+instance (Sunroof a, Sunroof b) => SunroofArgument (a,b) where
+  jsArgs ~(a,b) = [unbox a, unbox b]
+  jsValue = liftM2 (,) jsVar jsVar
+\end{verbatim}
+Remember that each \Src{Sunroof} value already has to be 
+a \Src{SunroofArgument}, which also enables us to pass a single argument
+to a function. 
+
+To create a JavaScript function we provide the \Src{function} combinator.
+\begin{verbatim}
+function :: (SunroofArgument a, Sunroof b) 
+         => (a -> JS A b)  -> JS t (JSFunction a b)
+\end{verbatim}
+As a function can have side-effects its computation and result has to be 
+expressed through the \JS-monad. Again, due to observable allocation,
+the creation of a function is considered a side-effect.
+
+A function can be applied to arguments through the \Src{apply} combinator
+or the \Src{\$\$} operator.
+Functions can only be applied in the \JS-monad since they can have side-effects.
+\begin{verbatim}
+apply, ($$) :: (SunroofArgument a, Sunroof b) 
+            => JSFunction args ret -> args -> JS t ret
+\end{verbatim}
+Creation and application are implemented using the \Src{JS\_Function}
+and \Src{JS\_Invoke} instructions introduced earlier.
+
+One of the threading models of Section \ref{sec:threading-models} 
+requires continuations on the JavaScript level. For this purpose we
+also model continuations in Sunroof. Technically they are only
+specializations of the general function type, that are 
+restricted to the second threading models.
+\begin{verbatim}
+continuation :: (SunroofArgument a) => (a -> JS B ()) -> JS t (JSContinuation a)
+goto :: (SunroofArgument a) => JSContinuation a -> a -> JS t b
+\end{verbatim}
+The major difference is that a call to \Src{goto} will never
+return. This is the reason why \Src{goto} is fully polymorphic
+on its result. Functions and continuations are similar and connected 
+to each other, as can be seen in Figure \ref{fig:func-cont}.
 \Figure%
 {fig:func-cont}%
 {figures/sunroof-func-cont.pdf}%
 {How functions and continuations relate between the Haskell- and JS-domain.}%
+We can go back and forth between the Haskell and the Sunroof
+representation of a function or continuation. But once a function
+was specialized to a continuation it is not possible to go back,
+because continuation can only exists in the \Src{B}locking threading model.
 
-Functions and continuations can be called using \Src{apply}
-and \Src{goto} respectively. \Src{apply} calls the function
-and returns, \Src{goto} calls the continuation, but never
-returns.
-\begin{verbatim}
-apply :: (...) => JSFunction args ret -> args -> JS t ret
-goto  :: (...) => JSContinuation args -> args -> JS t a
-\end{verbatim}
+
+\begin{comment}
 
 \begin{table}
 \caption{Reifying and calling JavaScript functions}
@@ -49,7 +100,9 @@ goto  :: (...) => JSContinuation args -> args -> JS t a
 \hline
 \end{tabular}
 \end{center}
-\end{table} 
+\end{table}
+
+\end{comment}
 
 \subsubsection{RESOURCES - REMOVE WHEN FINISHED}
 
