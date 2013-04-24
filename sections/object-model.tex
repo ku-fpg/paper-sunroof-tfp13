@@ -36,10 +36,10 @@ of Sunroof is to use Haskell's type system to
 increase the correctness of the written JavaScript.
 At the same time we have the problem that we can not characterize 
 all different types of objects in JavaScript, since 
-users can write their one objects. This means our 
+users can write their own objects. This means our 
 system to type JavaScript needs to be extensible.
 
-The approach from \cite{Svenningsson:12:CombiningEmbedding}
+The approach from Svenningsson \cite{Svenningsson:12:CombiningEmbedding}
 gives us this ability. We provide a basic \Src{Expr}ession 
 language that has no associated type information to construct 
 JavaScript expressions.
@@ -64,40 +64,8 @@ class SunroofArgument a => Sunroof a where
 It marks that these types represent possible values in JavaScript.
 Table \ref{tab:sunroof-types} shows some of the most important 
 types in Sunroof. Some types like \Src{JSFunction} also involve 
-phantom types to give more specific types (TODO: cite phantom types).
-
-The table also shows that most of basic Haskell types have counterparts in
-Sunroof. To convert these core Haskell values into their Sunroof 
-counterparts we provide the \Src{SunroofValue} type class.
-\begin{verbatim}
-class SunroofValue a where
-  type ValueOf a :: *
-  js :: a -> ValueOf a
-\end{verbatim}
-It provides the corresponding Sunroof value through the type function
-\Src{ValueOf} and offers the function \Src{js} to convert to that type.
-
-For most types this conversion can be done without side-effects
-in JavaScript, since many of basic types are represented as 
-immutable objects. An exceptions to this rule is \Src{JSFunction},
-because creating a function captures an observable allocation,
-e.g. two syntactically equal function are different according to reference
-equality. So we have to ensure that a function is not inlined, but 
-bound to a new variable when created so that Haskell semantics are 
-not violated (TODO: This sentence is crap).
-Since values in Sunroof are supposed to be immutable, as in Haskell, 
-we can not create arrays through \Src{SunroofValue} 
-(TODO: Better semantics for SunroofValue).
-
-We also want to work with record like data structures in JavaScript.
-For this purpose Sunroof offers the \Src{JSTuple} type class.
-
-
-
-
+phantom types to give more type safety (TODO: cite phantom types).
 \begin{table}
-\caption{Sunroof types and their Haskell pendant.}
-\label{tab:sunroof-types}
 \begin{center}
 \begin{tabular}{r@{\quad}l@{\quad}l@{\quad}c}
 \hline\rule{0pt}{12pt}%
@@ -140,7 +108,50 @@ For this purpose Sunroof offers the \Src{JSTuple} type class.
 \hline
 \end{tabular}
 \end{center}
+\caption{Sunroof types and their Haskell pendant.}
+\label{tab:sunroof-types}
 \end{table} 
+The table also shows that most of basic Haskell types have counterparts in
+Sunroof. To convert these core Haskell values into their Sunroof 
+counterparts we provide the \Src{SunroofValue} type class.
+\begin{verbatim}
+class SunroofValue a where
+  type ValueOf a :: *
+  js :: (Sunroof (ValueOf a)) => a -> ValueOf a
+\end{verbatim}
+It provides the corresponding Sunroof value through the type function
+\Src{ValueOf} (TODO: Cite type functions) and offers the function 
+\Src{js} to convert to that type. By design \Src{SunroofValue} does
+only provide instances for values that can be converted in a pure
+manner. Certain primitive values in JavaScript are referential 
+transparent according to \Src{==} while others, like general objects,
+are not. As an example, if you call \Src{new Object()} twice you get the 
+same empty object, but when compared by \Src{==} they are different. They
+are not identical, because in this case reference equality is checked
+instead of value equality. We call this observable allocation and handle 
+it as a side-effect which should only occur in the \JS-monad.
+
+Sunroof also offers the ability to work with record like data structures to 
+keep values that belong together in one place.
+For this purpose Sunroof offers the \Src{JSTuple} type class.
+\begin{verbatim}
+class Sunroof o => JSTuple o where
+  type Internals o
+  match :: (Sunroof o) => o -> Internals o
+  tuple :: Internals o -> JS t o
+\end{verbatim}
+If you have a record of Sunroof data that you want to
+encode as a JavaScript object you can provide this ability 
+by implementing \Src{JSTuple}. The \Src{Internals} type function
+delivers your record type. Encoding that record as a \Src{Sunroof}
+value is done through \Src{tuple}. As objects may be used to 
+encode records we have to be inside the \JS-monad to do this,
+because of the observable allocation discussed earlier.
+Decomposing the encoding is done with \Src{match}. Because the
+\Src{JSTuple} idiom is meant to represent immutable data structures, this 
+can be done in a pure manner although there are ways to mutate 
+values referenced by the decomposed record, since they are only 
+references to the actual data in JavaScript.
 
 \subsubsection{RESOURCES - REMOVE WHEN FINISHED}
 
