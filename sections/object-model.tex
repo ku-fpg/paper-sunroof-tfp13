@@ -65,6 +65,9 @@ It marks that these types represent possible values in JavaScript.
 Table \ref{tab:sunroof-types} shows some of the most important 
 types in Sunroof. Some types like \Src{JSFunction} also involve 
 phantom types to give more type safety (TODO: cite phantom types).
+The requisite \Src{SunroofArgument} is needed to permit values
+to be function arguments. A detailed explanation is given in 
+Section \ref{sec:functions-continuations}.
 \begin{table}
 \begin{center}
 \begin{tabular}{r@{\quad}l@{\quad}l@{\quad}c}
@@ -129,7 +132,12 @@ are not. As an example, if you call \Src{new Object()} twice you get the
 same empty object, but when compared by \Src{==} they are different. They
 are not identical, because in this case reference equality is checked
 instead of value equality. We call this observable allocation and handle 
-it as a side-effect which should only occur in the \JS-monad.
+it as a side-effect which should only occur in the \JS-monad. 
+
+An advantage of this approach is that we ensure to bind a variable to the 
+new value. Instead of creating copies of that value everywhere
+it is used, we refer to one value. This resolves 
+unwanted macro behavior of Sunroof these cases.
 
 Sunroof also offers the ability to work with record like data structures to 
 keep values that belong together in one place.
