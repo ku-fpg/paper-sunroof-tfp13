@@ -2,7 +2,41 @@
 \section{The Sunroof Compiler}
 \label{sec:compiler}
 
-Given the language, and monadic-reification, how do we  compile this language? 
+Given the language, and monadic-reification, how do we compile this language?
+Figure \ref{fig:structure} shows how Sunroof is structured.
+
+\Figure%
+{fig:structure}%
+{figures/sunroof-structure.pdf}%
+{The structure of Sunroof.}
+
+Through the \JS-monad we produce a \Src{Program (JSI t) ()} instance. We 
+translate such a program into a list of statements (\Src{Stmt}) by matching over 
+the \JSI constructors.
+\begin{verbatim}
+data Stmt 
+  = AssignStmt Rhs Expr       -- Assignment
+  | DeleteStmt Expr           -- Delete reference
+  | ExprStmt Expr             -- Expression as statement
+  | ReturnStmt Expr           -- Return statement
+  | IfStmt Expr [Stmt] [Stmt] -- If-Then-Else statement
+  | WhileStmt Expr [Stmt]     -- While loop
+  | CommentStmt String        -- Comment
+\end{verbatim}
+The constructors of \Src{Stmt} are straight forward and
+directly represent the different statements one can write
+in JavaScript.
+
+To get a feeling of what is happening here, we will have a closer
+look to how two of the \JSI instructions are compiled. First
+lets have a closer look how branches are compiled.
+\begin{verbatim}
+TODO: Putting this in here is problem because the code would take a page on its own.
+\end{verbatim}
+
+
+\begin{comment}
+Given the language, and monadic-reification, how do we compile this language?
 Figure \ref{fig:structure} shows how Sunroof is structured.
 On the lowest level we provide an untyped expression language \Src{Expr}
 that describes JavaScript expressions. 
@@ -14,10 +48,7 @@ instances of our expressions. Based on the wrappers we can provide
 operations specific to a certain type, e.g. a \Src{Num} instance
 for \Src{JSNumber} or a \Src{Monoid} instance for \Src{JSString}.
 
-\Figure%
-{fig:structure}%
-{figures/sunroof-structure.pdf}%
-{The structure of Sunroof.}%
+
 
 This technique enables us to utilize  Haskells type system when writing JavaScript
 and offers an easy way to add new types when needed~\cite{Svenningsson:12:CombiningEmbedding}.
@@ -74,7 +105,7 @@ getElementById = invoke "getElementById"
 Notice, that calling a JavaScript function or method is done by giving its
 name to one of the provided combinators. Types can be specialized using 
 a Haskell type annotation. A flexible and easy to use approach.
-
+\end{comment}
 \subsubsection{RESOURCES - REMOVE WHEN FINISHED}
 
 Compiling
