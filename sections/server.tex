@@ -2,26 +2,47 @@
 \section{The Sunroof Server}
 \label{sec:server}
 
-The Sunroof compiler can compile JavaScript than can be used
+The Sunroof compiler can compile JavaScript that can be used
 stand-alone inside a web application. But Sunroof really comes
-into its own when used with the Sunroof server. There
-are three major functions in our server.
+into its own when used with the Sunroof server.
 
+It provides infrastructure to send arbitrary pieces 
+of JavaScript to a calling website for execution. 
+Like this it is possible to interleave Haskell and JavaScript 
+computations with each other as needed. The three major functions
+provided are \Src{sunroofServer}, \Src{syncJS} and \Src{asyncJS}.
 \begin{verbatim}
+type SunroofApp = SunroofEngine -> IO ()
 sunroofServer :: SunroofServerOptions -> SunroofApp -> IO ()
-syncJS  :: SunroofResult a => SunroofEngine 
-        -> JS t a -> IO (ResultOf a)
+
+syncJS  :: SunroofResult a 
+        => SunroofEngine -> JS t a -> IO (ResultOf a)
 asyncJS :: SunroofEngine -> JS t () -> IO ()
-\end{verbatim}        
+\end{verbatim}
+\Src{sunroofServer} starts the server.
+It will the given callback function (\Src{SunroofApp}) 
+for each request to the server.
+\Src{syncJS} and \Src{asyncJS} allow the server
+to remotely execute monadic JavaScript from inside the 
+requesting website.
+\Src{asyncJS} executes JavaScript asynchronously without 
+waiting for a return value. In contract to that 
+\Src{syncJS} waits until the execution is complete and
+then sends the result back to the server and converts if 
+into a Haskell value that can be processed further. 
+Values that can be returned from a synchronous execution 
+have to implement the \Src{SunroofResult} class. It contains a type-function
+\Src{ResultOf} that maps the 
+Sunroof type to a corresponding Haskell type and also 
+implements a function to convert incoming data to that 
+type.
 
-\Src{sunroofServer} starts a small web server,
-that calls the callback function for each request.
-\Src{syncJS} and \Src{asyncJS} allow the Sunroof programmer
-to remotely execute monadic JavaScript from the server.
-\Src{ResultOf} is a type-function, that maps the 
-Sunroof type to a corresponding Haskell type.
+Besides these basic functions it also provides the abstract 
+concepts of \Src{Downlink}s and \Src{Uplink}s. They are 
+channels for sending data either from the server or to
+the server direction.
 
-
+\begin{comment}
 \subsubsection{RESOURCES - REMOVE WHEN FINISHED}
 
 \begin{itemize}
@@ -39,7 +60,7 @@ used to return actual Haskell values for the sent JavaScript return value.
 can be used to communicate in either direction.
 \item TODO: This is only a brief introduction?
 \end{itemize}
-
+\end{comment}
 
 
 
