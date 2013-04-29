@@ -31,8 +31,34 @@ To get a feeling of what is happening here, we will have a closer
 look to how two of the \JSI instructions are compiled. First
 lets have a closer look how branches are compiled.
 \begin{verbatim}
-TODO: Putting this in here is problem because the code would take a page on its own.
+compile :: Program (JSI t) () -> CompM [Stmt]
+compile = eval . view
+  where
+    eval :: ProgramView (JSI t) () -> CompM [Stmt]
+    eval (JS_Branch b c1 c2 :>>= k) = 
+      case evalStyle (ThreadProxy :: ThreadProxy t) of
+        A -> do
+          (src0, res0) <- compileExpr (unbox b)
+          res :: a <- jsValue
+          let bindResults :: a -> JS t ()
+              bindResults res' =
+                sequence_ [ single $ JS_Assign_ v (box $ e :: JSObject)
+                          | (Var v, e) <- jsArgs res `zip` jsArgs res'
+                          ]
+          src1 <- compile $ extractProgramJS bindResults c1
+          src2 <- compile $ extractProgramJS bindResults c2
+          rest <- compile (k res)
+          return (src0 ++ [ IfStmt res0 src1 src2 ] ++ rest)
+        B -> do
+          fn_e <- compileContinuation 
+            (\ a -> blockableJS $ JS $ \ k2 -> k a >>= k2)
+          fn           <- newVar
+          (src0, res0) <- compileExpr (unbox b)
+          src1 <- compile $ extractProgramJS (apply (var fn)) c1
+          src2 <- compile $ extractProgramJS (apply (var fn)) c2
+          return ( [mkVarStmt fn fn_e] ++ src0 ++ [ IfStmt res0 src1 src2 ])
 \end{verbatim}
+\TODO This brings up more questions then it answers.
 
 
 \begin{comment}
@@ -106,6 +132,8 @@ Notice, that calling a JavaScript function or method is done by giving its
 name to one of the provided combinators. Types can be specialized using 
 a Haskell type annotation. A flexible and easy to use approach.
 \end{comment}
+
+\begin{comment}
 \subsubsection{RESOURCES - REMOVE WHEN FINISHED}
 
 Compiling
@@ -152,7 +180,7 @@ Choice:
 \item Phantom argument to JS
 \item A = Atomic, B = Blockable.
 \end{itemize}
-
+\end{comment}
 
 
 
