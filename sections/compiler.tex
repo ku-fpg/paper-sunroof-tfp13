@@ -27,39 +27,209 @@ The constructors of \Src{Stmt} are straight forward and
 directly represent the different statements one can write
 in JavaScript.
 
-To get a feeling of what is happening here, we will have a closer
-look to how two of the \JSI instructions are compiled. First
-lets have a closer look how branches are compiled.
+To translate a \Src{Program (JSI t) ()} into statements we
+have to translate it into a \Src{ProgramView} since 
+Operational prohibits us from working on \Src{Program} directly.
+\Src{ProgramView} can then be taken apart to translate 
+the \JSI nstructions inside.
 \begin{verbatim}
 compile :: Program (JSI t) () -> CompM [Stmt]
-compile = eval . view
+compile p = eval (view p)
   where
     eval :: ProgramView (JSI t) () -> CompM [Stmt]
-    eval (JS_Branch b c1 c2 :>>= k) = 
-      case evalStyle (ThreadProxy :: ThreadProxy t) of
-        A -> do
-          (src0, res0) <- compileExpr (unbox b)
-          res :: a <- jsValue
-          let bindResults :: a -> JS t ()
-              bindResults res' =
-                sequence_ [ single $ JS_Assign_ v (box $ e :: JSObject)
-                          | (Var v, e) <- jsArgs res `zip` jsArgs res'
-                          ]
-          src1 <- compile $ extractProgramJS bindResults c1
-          src2 <- compile $ extractProgramJS bindResults c2
-          rest <- compile (k res)
-          return (src0 ++ [ IfStmt res0 src1 src2 ] ++ rest)
-        B -> do
-          fn_e <- compileContinuation 
-            (\ a -> blockableJS $ JS $ \ k2 -> k a >>= k2)
-          fn           <- newVar
-          (src0, res0) <- compileExpr (unbox b)
-          src1 <- compile $ extractProgramJS (apply (var fn)) c1
-          src2 <- compile $ extractProgramJS (apply (var fn)) c2
-          return ( [mkVarStmt fn fn_e] ++ src0 ++ [ IfStmt res0 src1 src2 ])
+    ...
 \end{verbatim}
-\TODO This brings up more questions then it answers.
+The compilation monad \Src{CompM} provides us with 
+the compiler options and a supply of fresh integer
+values to generate new variable when needed.
 
+To get a feel for how the compiler works, lets take a look at 
+the case for \Src{JS\_Assign}. Recall its signature from 
+Figure \ref{fig:jsi-definition}:
+\begin{verbatim}
+JS_Assign :: Sunroof a => JSSelector a -> a -> JSObject -> JSI t ()
+\end{verbatim}
+This instruction assigns a new value \Src{a} to the attribute
+selected by the \Src{JSSelector a} of the \Src{JSObject}.
+\begin{verbatim}
+eval (JS_Assign sel a obj :>>= k) = do
+  (stmts0,val) <- compileExpr (unbox a)
+  stmts1 <- compile (k ())
+  return (  stmts0 
+         ++ [ AssignStmt (DotRhs (unbox obj) 
+                                 (unboxSelector sel)) 
+                         val ] 
+         ++ stmts1 )
+\end{verbatim}
+First we compile the expression that will be assigned. That
+produces a series of statements to compute the expression and 
+the expressions value \Src{val}.
+Then we compile the rest of the Sunroof computation \Src{k}. Since 
+the assignment does not produce a interesting value (it has type \Src{JSI t ()}),
+we can pass unit to \Src{k}.
+We return the concatenation of the produced statements with a statement 
+for the assignment in between. The \Src{unbox} functions reveal the 
+\Src{Expr} inside of our Sunroof wrapper types.
+
+Lets now look at a more interesting part of the compiler: The translation of 
+branches.
+Recall the \JSI constructor for branches from Figure \ref{fig:jsi-definition}.
+\begin{verbatim}
+JS_Branch :: (SunroofThread t, SunroofArgument a, Sunroof bool) 
+          => bool -> JS t a -> JS t a  -> JSI t a
+\end{verbatim}
+Aside of the fact that branches may return \Src{SunroofArgument}s
+instead of just \Src{Sunroof} values the translation seems to 
+be straight forward (Figure \ref{fig:branch-translation}).
+\begin{figure}[h]
+\begin{verbatim}
+eval (JS_Branch b c1 c2 :>>= k) = do
+  (src0, res0) <- compileExpr (unbox b)
+  res :: a <- jsValue
+  let bindResults :: a -> JS t ()
+      bindResults res' =
+        sequence_ [ single $ JS_Assign_ v (box $ e :: JSObject)
+                  | (Var v, e) <- jsArgs res `zip` jsArgs res' ]
+  src1 <- compile $ extractProgramJS bindResults c1
+  src2 <- compile $ extractProgramJS bindResults c2
+  rest <- compile (k res)
+  return (src0 ++ [ IfStmt res0 src1 src2 ] ++ rest)
+\end{verbatim}
+\caption{Naive translation of branches in Sunroof.}
+\label{fig:branch-translation}
+\end{figure}
+First we generate the statements to compute the branching condition.
+Then we generate unique names for each of the values returned in 
+either branch. \Src{bindResults} generates the assignments of
+the returned values to the generated variables. When compiling 
+the branches we use the function \Src{extractProgramJS}.
+\begin{verbatim}
+extractProgramJS :: (a -> JS t ()) -> JS t a -> Program (JSI t) ()
+extractProgramJS k m = unJS (m >>= k) return
+\end{verbatim}
+It passes the result of a computation \Src{m} 
+into the given function \Src{f} and
+closes the continuation inside \JS~with \Src{return},
+such that the result is a \Src{Program} containing
+all instructions of \Src{m >>= k}.
+
+After we have compiled both branches we compile the rest and
+construct the list of statements in a canonical fashion.
+
+This works perfectly when we work in the atomic threading model,
+but it causes problems when inside the blocking model. To 
+see what can go wrong lets look at a small example.
+(TODO: Explain callcc in continuation section)
+\begin{verbatim}
+branchFail = do
+  b <- ifB (true :: JSBool)
+           (callcc $ \k -> do comment "True Case"
+                              goto k true :: JSB JSBool)
+           (callcc $ \k -> do comment "False Case"
+                              goto k false :: JSB JSBool)
+  fun "CallAfterIf" $$ b
+\end{verbatim}
+In either case of the initial branch we want to do something
+with our current continuation. We insert a comment for 
+our orientation and then call our current continuation to 
+proceed with a boolean value that depends on the branch.
+After our branch we call a function with the returned boolean value.
+(TODO: Is there a simpler example that demonstrates the problem?)
+What will this be translated to?
+\begin{verbatim}
+var v8 = function() {
+  if(true){
+    var v2 = function(v1) {
+      var v0 = v1;
+    };
+    /* True Case */
+    v2(true);
+  } else {
+    var v5 = function(v4) {
+      var v0 = v4;
+    };
+    /* False Case */
+    v5(false);
+  }
+  CallAfterIf(v0);
+};
+v8();
+\end{verbatim}
+We can see the branching statement and the function call afterwards.
+Inside each branch we can also see a function definition the inserted 
+comment and a call to the defined function. The function definitions 
+\Src{v2} and \Src{v5} correspond to the continuation \Src{k} in 
+our \Src{callcc} calls. So we can see that the current continuations 
+captured the assignment that has to be done at the end of each branch 
+to pass on the result value. But the assignments are hidden inside 
+the scope of the continuations and, because of that, \Src{v0} is 
+defined when \Src{CallAfterIf} is applied to it.
+
+So how can we fix this? If we are working within the blocking 
+threading model, we have to handle branches differently.
+\begin{verbatim}
+eval (JS_Branch b c1 c2 :>>= k) = 
+  case evalStyle (ThreadProxy :: ThreadProxy t) of
+    A -> compileBranch_A b c1 c2 k
+    B -> compileBranch_B b c1 c2 k
+\end{verbatim}
+\Src{evalStyle} is provided by the class \Src{SunroofThread} and
+provides the threading model currently used. The call to \Src{compileBranch\_A}
+executes our naive definition from Figure \ref{fig:branch-translation}.
+\begin{verbatim}
+compileBranch_B b c1 c2 k = do
+  fn_e <- compileContinuation $
+            \a -> blockableJS $ JS $ \k2 -> k a >>= k2
+  fn <- newVar
+  (src0, res0) <- compileExpr (unbox b)
+  src1 <- compile $ extractProgramJS (apply (var fn)) c1
+  src2 <- compile $ extractProgramJS (apply (var fn)) c2
+  return ( [mkVarStmt fn fn_e] ++ src0 ++ [ IfStmt res0 src1 src2 ])
+\end{verbatim}
+(TODO: Talk about \Src{blockableJS})
+We can see that the rest of our computation is captured in a
+continuation \Src{fn\_e} that takes the results of our branching
+as arguments. We assign that computation to the new variable \Src{fn}
+to avoid the duplication of the continuation in the produced sources.
+The key difference lays in the call to \Src{extractProgramJS}. Instead
+of creating bindings for each returned value we apply the produced
+continuation to the returned values and like that make them visible for
+the ongoing computation, even if we capture our current continuation. 
+Now the produced code looks like this:
+\begin{verbatim}
+var v11 = function() {
+  var v2 = function(v0) {
+    CallAfterIf(v0);
+  };
+  if(true){
+    var v5 = function(v3) {
+      v2(v3);
+    };
+    /* True Case */
+    v5(true);
+  } else {
+    var v9 = function(v7) {
+      v2(v7);
+    };
+    /* False Case */
+    v9(false);
+  }
+};
+v11();
+\end{verbatim}
+We can see that the function call after the branch is captured by the 
+continuation \Src{v2} and that continuation is called with the 
+return values as parameters inside each branch.
+
+\TODO{Look at another interesting part: Fix? Function?}
+
+The compiler can be called through two functions. 
+One for each threading model (TODO: Maybe remove the string argument from JSB).
+\begin{verbatim}
+sunroofCompileJSA :: Sunroof a 
+                  => CompilerOpts -> String -> JS A a  -> IO String
+sunroofCompileJSB :: CompilerOpts -> String -> JS B () -> IO String
+\end{verbatim}
 
 \begin{comment}
 Given the language, and monadic-reification, how do we compile this language?

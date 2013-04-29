@@ -64,12 +64,12 @@ data JSI :: T -> * -> * where
               => (a -> JS A b) -> JSI t (JSFunction a b)
   JS_Branch   :: (SunroofThread t, SunroofArgument a, Sunroof bool) 
               => bool -> JS t a -> JS t a  -> JSI t a
-  JS_Assign_  :: (Sunroof a) 
-              => Id -> a -> JSI t ()
+  JS_Assign   :: (Sunroof a) 
+              => JSSelector a -> a -> JSObject -> JSI t ()
   ...
 \end{verbatim}
+\caption{Parts of the \JSI nstruction data type.}
 \label{fig:jsi-definition}
-\caption{Parts of the \JSI nstruction definition.}
 \end{figure}
 The first type parameter again represents the threading model, while
 the second represents the type of the return value. 
