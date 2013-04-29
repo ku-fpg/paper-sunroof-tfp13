@@ -89,7 +89,7 @@ main = do
       drawNode $$ (c, t)
       displayResult $$ (treeResult $ match t)
     
-    selectNode <- rsyncJS doc $ fixJSA $ \selectNode (c,jsT,x,y :: JSNumber) -> do
+    selectNode <- rsyncJS doc $ fixJS $ \selectNode -> function $ \(c,jsT,x,y :: JSNumber) -> do
       let t = match jsT
       -- Inside current node?
       xPos <- nodeBoxX $$ (c, jsT)
@@ -164,7 +164,8 @@ fromMathE :: MathE -> [Int] -> MathE -> JSA JSTree
 fromMathE m@(NumE d) path orig = do
   res <- jsResult $ evalM m
   f <- function $ return . (createMathJS orig (reverse path))
-  jsTreeData (string $ show d) empty res f
+  emptyArr <- empty
+  jsTreeData (string $ show d) emptyArr res f
 fromMathE m@(OpE e1 op e2) path orig = do
   res <- jsResult $ evalM m
   tl <- fromMathE e1 (0 : path) orig
@@ -224,7 +225,7 @@ plotJS (f, x, xmin, xmax, ymin, ymax) = do
   yoffset <- return $ ymin
   yrange <- return $ abs $ ymax - ymin
   c # beginPath
-  plotLine <- fixJSA $ \plotLine n -> do
+  plotLine <- fixJS $ \plotLine -> function $ \n -> do
     let x = xoffset + n * (xrange / w)
     fx <- f $$ x
     let y = ((fx + yoffset) * (h / yrange))
@@ -243,15 +244,15 @@ plotJS (f, x, xmin, xmax, ymin, ymax) = do
 
 -- General Event Handling --------------------------------------
 
-on' :: (SunroofArgument a, Sunroof a) => JSString -> (a -> JSA ()) -> JSObject -> JS t ()
+on' :: (SunroofArgument a, Sunroof a) => JSString -> (a -> JSB ()) -> JSObject -> JS t ()
 on' evt handler o = on evt (cast nullJS) handler o
 
-onFormulaKeyUp :: Uplink JSString -> JSObject -> JSA ()
+onFormulaKeyUp :: Uplink JSString -> JSObject -> JS t ()
 onFormulaKeyUp upstream _ = do
   formula <- jq "#formula" >>= attr' "value" 
   putUplink formula upstream
 
-onWindowResize :: JSObject -> JSA ()
+onWindowResize :: JSObject -> JS t ()
 onWindowResize _ = do
   bodyW <- jq "body" >>= innerWidth
   plot <- jq "#plot"
@@ -345,7 +346,7 @@ childWidth (nodeWidth, c, children) = do
   foldArray foldFun 0 children
 
 nodeWidth :: JSA (JSFunction (JSCanvas, JSTree) JSNumber)
-nodeWidth = fixJSA $ \nodeWidth (c, jsT) -> do
+nodeWidth = fixJS $ \nodeWidth -> function $ \(c, jsT) -> do
   let t = match jsT
   -- Width of the node text
   nodeW <- nodeBoxWidth (c, treeNode t)
@@ -355,7 +356,7 @@ nodeWidth = fixJSA $ \nodeWidth (c, jsT) -> do
   return $ maxB nodeW childW
 
 nodeHeight :: JSA (JSFunction (JSCanvas, JSTree) JSNumber)
-nodeHeight = fixJSA $ \nodeHeight (c, jsT) -> do
+nodeHeight = fixJS $ \nodeHeight -> function $ \(c, jsT) -> do
   let t = match jsT
   -- Height of the node text
   nodeH <- nodeBoxHeight (c, treeNode t)
@@ -368,7 +369,7 @@ nodeHeight = fixJSA $ \nodeHeight (c, jsT) -> do
   return $ nodeH + childH
 
 drawNode :: JSA (JSFunction (JSCanvas, JSTree) ())
-drawNode = fixJSA $ \drawNode (c, jsT) -> do
+drawNode = fixJS $ \drawNode -> function $ \(c, jsT) -> do
   let t = match jsT
   -- Compile Functions:
   nodeWidthF <- nodeWidth

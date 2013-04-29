@@ -40,19 +40,21 @@ parseParen = scanParenL *> parseExp <* scanParenR
 parseFun :: Parser MathE
 parseFun = FunE <$> scanFunName <*> parseParen
 
-parseAddSub :: Parser MathE
-parseAddSub = OpE <$> parseTerm <*> scanOp "+-" <*> parseExp
+parseAddSub :: MathE -> Parser MathE
+parseAddSub term = OpE term <$> scanOp "+-" <*> parseExp
 
-parseMulDiv :: Parser MathE
-parseMulDiv = OpE <$> parseFactor <*> scanOp "*/" <*> parseTerm
+parseMulDiv :: MathE -> Parser MathE
+parseMulDiv factor = OpE factor <$> scanOp "*/" <*> parseTerm
 
 parseExp :: Parser MathE
-parseExp  =  parseAddSub
-         <|> parseTerm
+parseExp  = do
+  term <- parseTerm
+  parseAddSub term <|> return term
 
 parseTerm :: Parser MathE
-parseTerm  =  parseMulDiv
-          <|> parseFactor
+parseTerm  = do
+  factor <- parseFactor
+  parseMulDiv factor <|> return factor
 
 parseFactor :: Parser MathE
 parseFactor  =  parseFun
@@ -62,3 +64,7 @@ parseFactor  =  parseFun
 parseMathE :: String -> ErrorE MathE
 parseMathE str | null str = errorE "No Input"
 parseMathE str = parseOnly (parseExp <* skipSpace) (BS.pack str)
+
+
+
+
