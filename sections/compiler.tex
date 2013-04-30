@@ -158,12 +158,12 @@ v8();
 We can see the branching statement and the function call afterwards.
 Inside each branch we can also see a function definition the inserted 
 comment and a call to the defined function. The function definitions 
-\Src{v2} and \Src{v5} correspond to the continuation \Src{k} in 
+\Src{v2} and \Src{v5} correspond to the continuations \Src{k} in 
 our \Src{callcc} calls. So we can see that the current continuations 
-captured the assignment that has to be done at the end of each branch 
+captured the assignments that have to be done at the end of either branch 
 to pass on the result value. But the assignments are hidden inside 
 the scope of the continuations and, because of that, \Src{v0} is 
-defined when \Src{CallAfterIf} is applied to it.
+not defined when \Src{CallAfterIf} is applied to it.
 
 So how can we fix this? If we are working within the blocking 
 threading model, we have to handle branches differently.
