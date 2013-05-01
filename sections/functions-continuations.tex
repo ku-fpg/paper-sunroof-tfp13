@@ -17,8 +17,8 @@ class SunroofArgument args where
   ...
 \end{verbatim}
 It enables use to convert each argument into its expression
-through \Src{jsArgs}. This used when calling a function to 
-provide the arguments to a call. \Src{jsValue} generates
+through \Src{jsArgs}, which is used to supply the
+arguments to a function call. \Src{jsValue} generates
 new unique names for each argument, which is needed when compiling
 the function itself to a value. 
 
@@ -51,29 +51,62 @@ apply, ($$) :: (SunroofArgument a, Sunroof b)
             => JSFunction args ret -> args -> JS t ret
 \end{verbatim}
 Creation and application are implemented using the \Src{JS\_Function}
-and \Src{JS\_Invoke} instructions introduced earlier.
+and \Src{JS\_Invoke} instructions introduced in 
+Figure \ref{fig:jsi-definition}.
 
-One of the threading models of Section \ref{sec:threading-models} 
-requires continuations on the JavaScript level. For this purpose we
-also model continuations in Sunroof. Technically they are only
+\Src{JSContinuation} models continuations as they are used 
+inside the \JS-monad. They were introduced to work and actively manipulate 
+continuations on the Sunroof level. Technically they are only
 specializations of the general function type, that are 
-restricted to the second threading models.
+restricted to the second threading models. As the continuations
+are meant to be a representation of side-effects -- 
+ongoing computations inside the \JS-monad -- and might 
+not terminate, they do not return a value. As with functions 
+there is a combinator to create and apply a continuation.
 \begin{verbatim}
-continuation :: (SunroofArgument a) => (a -> JS B ()) -> JS t (JSContinuation a)
-goto :: (SunroofArgument a) => JSContinuation a -> a -> JS t b
+continuation :: (SunroofArgument a) 
+             => (a -> JS B ()) -> JS t (JSContinuation a)
+goto         :: (SunroofArgument a) 
+             => JSContinuation a -> a -> JS t b
 \end{verbatim}
 The major difference is that a call to \Src{goto} will never
-return. This is the reason why \Src{goto} is fully polymorphic
-on its result. Functions and continuations are similar and connected 
+return, as it execute the given continuation and abandons the 
+current one. This allows \Src{goto} to be fully polymorphic
+on its result. 
+
+To give access to the internal continuations of the \JS-monad
+Sunroof offers the powerful call-with-current-continuation 
+function \Src{callcc} \TODO{cite for \Src{callcc}}.
+\begin{verbatim}
+callcc :: SunroofArgument a 
+       => (JSContinuation a -> JS B a) -> JS B a
+\end{verbatim}
+It enables us to use the current continuation, which 
+models everything that would usually happen after the call
+to \Src{callcc}. 
+\begin{verbatim}
+callcc f = JS $ \ k -> unJS 
+    (continuation (\a -> JS $ \ _ -> k a) >>= f) k
+
+unJS :: JS t a -> (a -> Program (JSI t) ()) -> Program (JSI t) ()
+\end{verbatim}
+The implementation of \Src{callcc} is interesting,
+because it shows how the \Src{Program}-continuation is translated 
+into a \Src{JSContinuation} that is passed to the given function \Src{f}.
+Section \ref{sec:threading-models} will show why this function
+is important for Sunroof and what it is used for.
+
+Functions and continuations are similar and connected 
 to each other, as can be seen in Figure \ref{fig:func-cont}.
 \Figure%
 {fig:func-cont}%
 {figures/sunroof-func-cont.pdf}%
-{How functions and continuations relate between the Haskell- and JS-domain.}%
+{How functions and continuations relate between the Haskell- and Sunroof-domain.}%
 We can go back and forth between the Haskell and the Sunroof
 representation of a function or continuation. But once a function
 was specialized to a continuation it is not possible to go back,
-because continuation can only exists in the \Src{B}locking threading model.
+because continuations only model the side-effect, but do 
+not return anything.
 
 
 \begin{comment}
