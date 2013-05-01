@@ -1,10 +1,21 @@
  
 \section{Introduction}
 
-Sunroofs was developed to support Haskell programmers 
+% Simon: Describe the problem
+JavaScript is an imperative language with access to a wide range
+of established and useful services, like graphical canvases and event
+handling. JavaScript as a language also provides features that are
+traditionally associated with functional languages, like first-class 
+functions. We want to express JavaScript in Haskell, adding use
+of Haskell's static typing, and gaining access to JavaScript services
+in the Browser in Haskell.
+
+% Simon: State your contributions
+Sunroofs was developed to tackle this goal. 
 when generating JavaScript. Lets look at the small example
 in figure \ref{fig:code-example} to see how it achieves this goal.
 
+% Simon: An illustrative example
 \begin{figure}[h]
 \vspace{-0.5cm}
 \centering
@@ -32,128 +43,82 @@ alert("Your name: " + v0);
 \vspace{-0.5cm}
 \end{figure}
 
+% Simon: Why is this useful?
 We can see what code we expect the program to produce when 
 translated to JavaScript on the right. But what makes 
 this useful? The JavaScript we want to produce with the given
 Haskell is shorter and can easily be written by hand.
-So lets look at the advantages of this approach:
-\begin{itemize}
-
-\item
-Sunroof introduces a threading model (Section \ref{sec:threading-models}) similar
-to Haskell's. Like this programmers can reuse known abstractions
-and have a known set of powerful tools.
-
-\item 
-It also introduces types that support us when 
+% Simon: List of contributions
+Sunroof's approach has several advantages. It introduces a 
+threading model similar
+to Haskell's. Like this programmers can reuse abstractions
+well known from Haskell when writing JavaScript.
+We also introduces types that support us when 
 writing code and reveal common mistakes. The functions
-in figure \ref{fig:code-example} have toe following signature:
+in figure \ref{fig:code-example} have the following signatures:
 \begin{verbatim}
 prompt :: JSString -> JSString -> JS t JSObject
 alert  :: JSString -> JS t ()
 \end{verbatim}
-This can improve the quality of our code.
-Section \ref{sec:object-model} will look into this in more detail.
-
-\item 
+This improves the quality of written code.
 Using a deep embedding like this gives opportunity 
 for optimizations when producing the actual JavaScript.
-
-\item
 At the same time Sunroof offers an interface that is 
-close to actual JavaScript making it easy to learn.
-It utilizes the \Src{do}-notation (Section \ref{sec:js-monad}) and creates a 
-simple foreign function interface to achieve this goal (TODO: SECTION?).
-\end{itemize}
+close to actual JavaScript making it easy to use.
+We model the imperative nature of JavaScript
+using the transitional functional programming 
+mechanism for being imperative, a monad~\cite{Moggi:91:ComputationMonads}.
 
+TODO: Talk about foreign function interface
+
+% The scope of this paper is to show how Sunroof achieves these goals.
+% It will cover the most important parts of Sunroof and how they are 
+% implemented.
 \Figure%
 {fig:structure}%
 {figures/sunroof-structure.pdf}%
 {The structure of Sunroof.}
-The scope of this paper is to show how Sunroof achieves these goals.
-It will cover the most important parts of Sunroof and how they are 
-implemented. Sunroofs structure can be seen in Figure \ref{fig:structure}.
-In this paper we will:
+Figure \ref{fig:structure} displays Sunroof's structure. 
+We will go over each of these layers in detail:
 \begin{itemize}
-\item 
-Go over the \JS-monad in Section \ref{sec:js-monad}. There
-we will show how it is implemented and how we solved
+\item
+The \JS-monad together with the underlying \JSI~primitives 
+will be explained in Section \ref{sec:js-monad}. 
+We will show how it is implemented and how we solved
 the problem of restricting the types involved in the monadic 
 computations.
 \item
-We will also discuss how we annotate the JavaScript
-objects in Sunroof with types and also give the possibility 
-to add custom types later on (Section \ref{sec:object-model}).
+Section \ref{sec:object-model} will discuss how we annotate 
+the JavaScript objects in Sunroof with types using wrappers 
+and offer the possibility 
+to add custom types later on.
 \item
-Section \ref{sec:functions-continuations} will cover how
-we model function and continuations in Sunroof and handle
-them as first-class values in Sunroof and JavaScript.
+The special role of functions and continuations will
+be treated in Section \ref{sec:functions-continuations}. 
+It covers how we model and handle
+them as first-class values in Haskell and JavaScript.
 \item
-How we implemented the two threading models offered by Sunroof is explained 
+The implementation of the two threading models offered by Sunroof is explained 
 in Section \ref{sec:threading-models}.
 \item
-The actual translation of Sunroof to JavaScript is handled in 
+How the translation of Sunroof to JavaScript works is handled in 
 Section \ref{sec:compiler}. We will take a close look to the
 different layers of abstractions and in detail explain the 
 translation of selected language constructs. This is 
-especially interesting in the light of continuations, which
+especially interesting in the light of our use of continuations, which
 are directly translated into JavaScript.
 \item
-As Sunroof is quite useful in combination with a server,
+As Sunroof is quite useful in combination with a server \cite{Farmer:12:WebDSLs},
 Section \ref{sec:server} will explain how we can utilize it 
 to interleave Haskell and JavaScript computations as needed.
 \item
-TODO: Extended Example
+Section \ref{sec:extended-example} will covers a small application 
+written in Sunroof. It shows how Sunroof can be used to utilize the 
+display capabilities of a browser, while still using Haskell when needed
+and where it is strong.
 \end{itemize}
 
-
-
 \begin{comment}
-Figure \ref{fig:structure} shows how Sunroof is structured.
-
-
-
-An essential part of most modern web applications is Javascript.
-It opens various possibilities to create browser based applications.
-Examples for this development are Googlemail or Facebook.
-These applications rely on Javascript heavily. What makes this 
-development possible are the fast interpreters available in all
-major browsers. Developing applications inside the browser has
-the advantage of being independent from the underlying hard- and
-software platform. The problem is shifted from the actual machine
-to the browser. Also modern web technologies like HTML5 and CSS
-give easy to use tools for developing user interfaces for the
-mentioned application. They are standardized and improved over years
-up to now. 
-
-Yet, writing actual code in Javascript can be tedious and error prone 
-due to its not-statically typed nature. Also the object-oriented
-paradigm and the callback mechanism used instead of proper multi-threading 
-can be a stumbling block for veteran Haskell programmers. Especially when
-facing the lack of type safety.
-
-To make the power of Javascript available to Haskell programmers 
-we developed Sunroof. It enables Haskell programmers to write
-Javascript using Haskell through a deep embedding. This 
-approach has several advantages:
-
-\begin{description}
-\item[Type Safety:] Sunroof provides custom types for all major Javascript
-types. Thus it gives type safety similar to what we are used to from 
-normal Haskell programs when writing Javascript.
-\item[Paradigms \& Patterns:] As a Haskell EDSL Sunroof follows functional programming 
-paradigms and principals. It is possible to reuse common combinators and 
-patterns in Sunroof.
-\item[Similarity:] At the same time Sunroof offers a API for Javascript 
-that allows to translate Javascript into Sunroof code easily.
-\item[Optimization:] Due to Sunroofs deep embedded nature it is able
-to apply optimizations like expression sharing when compiling to Javascript.
-\end{description}
-
-\NOTE{This might be a bit to enthusiastic.}
-
-\end{comment}
-
 \subsubsection{RESOURCES - REMOVE WHEN FINISHED}
 
 \begin{itemize}
@@ -177,28 +142,14 @@ Threading Model: Built on top of \JS-monad (section \ref{sec:threading-models})
 \item Explain how the compiler works and what it does \ref{sec:compiler}
 \item In section \ref{sec:server} we will look at the sunroof server 
 \item Extended example in section \ref{sec:extended-example}
+
 \end{itemize}
-
-JavaScript is an imperative language with access to a wide range
-of established and useful services, like graphical canvases and event
-handling. JavaScript as a language also provides features that are
-traditionally associated with functional languages, like first-class 
-functions. We want to express JavaScript in Haskell, adding use
-of Haskell's static typing, and gaining access to JavaScript services.
-And we do so using the transitional functional programming 
-mechanism for being imperative, a monad~\cite{Moggi:91:ComputationMonads}.
-
 
 We want to use the Javascript API. Fast interpreters,
 running in a browser advantage, 
 
 We do not want to program in Javascript.
 
-We start with an overview of the language, then discuss
-how the language is implemented, and discuss interesting
-techniques used inside Sunroof. We close with a more
-complete web application.
-
-
+\end{comment}
 
 
