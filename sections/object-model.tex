@@ -39,18 +39,18 @@ all different types of objects in JavaScript, since
 users can write their own objects. This means our 
 system to type JavaScript needs to be extensible.
 
-The approach from Svenningsson \cite{Svenningsson:12:CombiningEmbedding}
-gives us this ability. We provide a basic \Src{Expr}ession 
+To solve this problem we provide a basic \Src{Expr}ession 
 language that has no associated type information to construct 
 JavaScript expressions.
+% We use a white lie instead of the actual fixpoint Expr type.
+% We only need that type for expression sharing, which 
+% is not essential for the scope of this paper.
 \begin{verbatim}
-data E expr 
+data Expr 
   = Lit String -- Precompiled (atomic) JavaScript literal
   | Var Id     -- Variable
   | Apply expr [expr]    -- Function application
   ...
-data ExprE = ExprE (E ExprE)
-type Expr  = E ExprE
 \end{verbatim}
 This core expression type is then wrapped to represent a more specific 
 type. Each of these wrappers implements the \Src{Sunroof} type 
@@ -61,13 +61,34 @@ class SunroofArgument a => Sunroof a where
   unbox :: a -> Expr
   ...
 \end{verbatim}
+\TODO{Maybe hide SunroofArgument at this point.}
 It marks that these types represent possible values in JavaScript.
-Table \ref{tab:sunroof-types} shows some of the most important 
-types in Sunroof. Some types like \Src{JSFunction} also involve 
-phantom types to give more type safety (TODO: cite phantom types).
+An example for this is the \Src{JSString} data type.
+\begin{verbatim}
+data JSString = JSString Expr
+instance Sunroof JSString where
+  box = JSString
+  unbox (JSString e) = e
+\end{verbatim}
+But what do we gain by adding a wrapper? We can
+provide specific functionality for each distinct type.
+Our example type \Src{JSString} has a \Src{Monoid} and a 
+\Src{IsString} instance that are not provided for other 
+wrappers, e.g. \Src{JSBool} or \Src{JSNumber}.
+This approach was first introduced by 
+Svenningsson \cite{Svenningsson:12:CombiningEmbedding}.
+
+Table \ref{tab:sunroof-types} gives a summary of the 
+most prominent types in Sunroof. Some types like \Src{JSFunction} also involve 
+phantom types to give more type safety \TODO{cite phantom types}.
 The requisite \Src{SunroofArgument} is needed to permit values
 to be function arguments. A detailed explanation is given in 
 Section \ref{sec:functions-continuations}.
+
+
+
+
+
 \begin{table}
 \begin{center}
 \begin{tabular}{r@{\quad}l@{\quad}l@{\quad}c}
@@ -123,7 +144,7 @@ class SunroofValue a where
   js :: (Sunroof (ValueOf a)) => a -> ValueOf a
 \end{verbatim}
 It provides the corresponding Sunroof value through the type function
-\Src{ValueOf} (TODO: Cite type functions) and offers the function 
+\Src{ValueOf} \TODO{cite type functions} and offers the function 
 \Src{js} to convert to that type. By design \Src{SunroofValue} does
 only provide instances for values that can be converted in a pure
 manner. Certain primitive values in JavaScript are referential 
@@ -137,7 +158,7 @@ it as a side-effect which should only occur in the \JS-monad.
 An advantage of this approach is that we ensure to bind a variable to the 
 new value. Instead of creating copies of that value everywhere
 it is used, we refer to one value. This resolves 
-unwanted macro behavior of Sunroof these cases.
+unwanted macro behavior of Sunroof in these cases.
 
 Sunroof also offers the ability to work with record like data structures to 
 keep values that belong together in one place.
@@ -152,9 +173,9 @@ If you have a record of Sunroof data that you want to
 encode as a JavaScript object you can provide this ability 
 by implementing \Src{JSTuple}. The \Src{Internals} type function
 delivers your record type. Encoding that record as a \Src{Sunroof}
-value is done through \Src{tuple}. As objects may be used to 
-encode records we have to be inside the \JS-monad to do this,
-because of the observable allocation discussed earlier.
+value is done through \Src{tuple}. 
+Because of the observable allocation issue, we have to be 
+inside the \JS-monad to do this.
 Decomposing the encoding is done with \Src{match}. Because the
 \Src{JSTuple} idiom is meant to represent immutable data structures, this 
 can be done in a pure manner although there are ways to mutate 
