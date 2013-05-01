@@ -221,6 +221,11 @@ We can see that the function call after the branch is captured by the
 continuation \Src{v2} and that continuation is called with the 
 return values as parameters inside each branch.
 
+Of course, we could compile every branch with the 
+continuation variant. But that would unnecessarily 
+obfuscate the produced code and lead to many superfluous 
+indirections.
+
 \TODO{Look at another interesting part: Fix? Function?}
 
 The compiler can be called through two functions. 
