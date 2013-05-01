@@ -112,7 +112,7 @@ construct the list of statements in a canonical fashion.
 This works perfectly when we work in the atomic threading model,
 but it causes problems when inside the blocking model. To 
 see what can go wrong lets look at a small example.
-(TODO: Explain callcc in continuation section)
+\TODO{Explain callcc in continuation section}
 \begin{verbatim}
 branchFail = do
   b <- ifB (true :: JSBool)
@@ -127,7 +127,7 @@ with our current continuation. We insert a comment for
 our orientation and then call our current continuation to 
 proceed with a boolean value that depends on the branch.
 After our branch we call a function with the returned boolean value.
-(TODO: Is there a simpler example that demonstrates the problem?)
+\TODO{Is there a simpler example that demonstrates the problem?}
 What will this be translated to?
 \begin{verbatim}
 var v8 = function() {
@@ -179,7 +179,7 @@ compileBranch_B b c1 c2 k = do
   src2 <- compile $ extractProgramJS (apply (var fn)) c2
   return ( [mkVarStmt fn fn_e] ++ src0 ++ [ IfStmt res0 src1 src2 ])
 \end{verbatim}
-(TODO: Talk about \Src{blockableJS})
+\TODO{Talk about \Src{blockableJS}}
 We can see that the rest of our computation is captured in a
 continuation \Src{fn\_e} that takes the results of our branching
 as arguments. We assign that computation to the new variable \Src{fn}
@@ -218,11 +218,10 @@ Of course, we could compile every branch with the
 continuation variant. But that would unnecessarily 
 obfuscate the produced code and lead to many superfluous 
 indirections.
-
 \TODO{Look at another interesting part: Fix? Function?}
 
 The compiler can be called through two functions. 
-One for each threading model (TODO: Maybe remove the string argument from JSB).
+One for each threading model. \TODO{Maybe remove the string argument from JSB}
 \begin{verbatim}
 sunroofCompileJSA :: Sunroof a 
                   => CompilerOpts -> String -> JS A a  -> IO String
@@ -315,13 +314,13 @@ each constructor (just in the comments)
 into a sequence of statements and these are then
 concatenated together.
 \item Look at interesting parts
-\item TODO: Which parts are interesting? Most parts are too technical
-\item Show how a branch is compiled (TODO: \Src{extractProgramJS} lets things look messy)
+\item \TODO{Which parts are interesting? Most parts are too technical}
+\item Show how a branch is compiled \TODO{\Src{extractProgramJS} lets things look messy}
 \item Talk about how \Src{JS\_Fix} is compiled.
-\item TODO: Understand why fix works.
+\item \TODO{Understand why fix works.}
 \item Difference between compilation of a function and a continuation
 \item Function \Src{\textbackslash a -> JS \$ \textbackslash k -> singleton (JS\_Return a) >>= k}
-\item TODO: Why \Src{>>= k}?
+\item \TODO{Why \Src{>>= k}?}
 \item Return the result of the current continuation
 \item Continuation \Src{\textbackslash \_ -> JS \$ \textbackslash k -> k ()}
 \item Just execute it instead of passing it on further. No return value!

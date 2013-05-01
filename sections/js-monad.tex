@@ -84,10 +84,10 @@ data JS :: T -> * -> * where
   ...
 \end{verbatim}
 The monad instance used is the standard implementation of 
-a continuation monad (TODO: cite).
+a continuation monad \TODO{cite}.
 
 
-TODO: Maybe put this section after the section about the object model.
+\TODO{Maybe put this section after the section about the object model.}
 
 \begin{comment}
 \subsubsection{RESOURCES - REMOVE WHEN FINISHED}
@@ -112,13 +112,13 @@ Implementation
 \item Whats going on here?
 \item \JS-monad is a continuation monad on the \Src{Program} type from operational
 \item Monad instance is the standard implementation for a continuation 
-monad (TODO: cite for continuation monad)
+monad \TODO{cite for continuation monad}
 \item This is necessary, because we want to support different threading styles 
 (discussed in chapter \ref{sec:threading-models})
 \item For now think of it as producing a sequence/list of abstract instructions: \JSI
 \item Look at the \JSI\ type and introduce it
 \item Explain how it is a high-level representation of JavaScript
-\item TODO: Look at all constructors? Or only the interesting ones (marked with "!")?
+\item \TODO{Look at all constructors? Or only the interesting ones (marked with "!")?}
   \begin{itemize}
   \item ! Function and continuation are technically the same, but different instructions
   \item ! Reason for this is TODO?

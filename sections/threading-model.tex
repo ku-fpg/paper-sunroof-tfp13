@@ -7,7 +7,7 @@ is no concurrency. Events are handled through callbacks,
 which are called as soon as the current computation is done.
 
 In contrast Haskell has real concurrency and wide-spread 
-abstractions for synchronization, e.g. \Src{MVar}s (TODO: Cite MVar/Chan paper).
+abstractions for synchronization, e.g. \Src{MVar}s \TODO{Cite MVar/Chan paper}.
 So the question arises: do we generate atomic JavaScript code, 
 and keep the callback centric model of computation, or generate JavaScript
 using CPS \cite{Claessen:99:PoorMansConcurrencyMonad}, 
@@ -97,7 +97,7 @@ to JavaScript we can simulate/emulate a threading model similar to
 Haskell's.
 \item Basic idea is to use callbacks as mechanism to continue
 suspended computations (in form of continuations).
-\item TODO: Is there a paper about this technique?
+\item \TODO{Is there a paper about this technique?}
 \item We support both styles.
 \item Decision which one to use is made by the first 
 type parameter of the \JS-monad. A - atomic / B - blocking
@@ -132,9 +132,9 @@ as needed.
 CPS is translated down to JavaScript
 \item Spare the implementation as it is not interesting in the 
 scope of this paper.
-\item TODO: Reference MVar and Chan papers / 
-are there parallels to their implementation?
-\item TODO: Cite: Continuations to store computations?
+\item \TODO{Reference MVar and Chan papers / 
+are there parallels to their implementation?}
+\item \TODO{Cite: Continuations to store computations?}
 \end{itemize}
 \end{comment}
 
