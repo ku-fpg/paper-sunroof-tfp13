@@ -40,13 +40,7 @@ So lets look at the advantages of this approach:
 \begin{itemize}
 
 \item
-At the same time Sunroof offers an interface that is 
-close to actual JavaScript making it easy to learn.
-It utilizes the \Src{do}-notation (Section \ref{sec:js-monad}) and creates a 
-simple foreign function interface to achieve this goal (SECTION?).
-
-\item
-Sunroof also introduces a threading model (Section \ref{sec:threading-models}) similar
+Sunroof introduces a threading model (Section \ref{sec:threading-models}) similar
 to Haskell's. Like this programmers can reuse known abstractions
 and have a known set of powerful tools.
 
@@ -63,25 +57,61 @@ Section \ref{sec:object-model} will look into this in more detail.
 
 \item 
 Using a deep embedding like this gives opportunity 
-for optimizations when producing the actual JavaScript,
-e.g. we can introduce expression sharing.
-The details of the translation into JavaScript and
-technical background is explained in Section \ref{sec:background}.
+for optimizations when producing the actual JavaScript.
 
-
-
-
-
+\item
+At the same time Sunroof offers an interface that is 
+close to actual JavaScript making it easy to learn.
+It utilizes the \Src{do}-notation (Section \ref{sec:js-monad}) and creates a 
+simple foreign function interface to achieve this goal (TODO: SECTION?).
 \end{itemize}
-
-
-\begin{comment}
-Figure \ref{fig:structure} shows how Sunroof is structured.
 
 \Figure%
 {fig:structure}%
 {figures/sunroof-structure.pdf}%
 {The structure of Sunroof.}
+The scope of this paper is to show how Sunroof achieves these goals.
+It will cover the most important parts of Sunroof and how they are 
+implemented. Sunroofs structure can be seen in Figure \ref{fig:structure}.
+In this paper we will:
+\begin{itemize}
+\item 
+Go over the \JS-monad in Section \ref{sec:js-monad}. There
+we will show how it is implemented and how we solved
+the problem of restricting the types involved in the monadic 
+computations.
+\item
+We will also discuss how we annotate the JavaScript
+objects in Sunroof with types and also give the possibility 
+to add custom types later on (Section \ref{sec:object-model}).
+\item
+Section \ref{sec:functions-continuations} will cover how
+we model function and continuations in Sunroof and handle
+them as first-class values in Sunroof and JavaScript.
+\item
+How we implemented the two threading models offered by Sunroof is explained 
+in Section \ref{sec:threading-models}.
+\item
+The actual translation of Sunroof to JavaScript is handled in 
+Section \ref{sec:compiler}. We will take a close look to the
+different layers of abstractions and in detail explain the 
+translation of selected language constructs. This is 
+especially interesting in the light of continuations, which
+are directly translated into JavaScript.
+\item
+As Sunroof is quite useful in combination with a server,
+Section \ref{sec:server} will explain how we can utilize it 
+to interleave Haskell and JavaScript computations as needed.
+\item
+TODO: Extended Example
+\end{itemize}
+
+
+
+\begin{comment}
+Figure \ref{fig:structure} shows how Sunroof is structured.
+
+
 
 An essential part of most modern web applications is Javascript.
 It opens various possibilities to create browser based applications.
