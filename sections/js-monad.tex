@@ -9,6 +9,7 @@ exact analog for the Haskell \IO-monad, except there
 is an extra phantom argument~\cite{Leijen:99:Phantom} 
 that decides which threading model to use, as
 discussed in Section \ref{sec:threading-models}.
+For now we can ignore this extra argument.
 
 The basic idea is that each binding becomes an
 assignment to a fresh variable in JavaScript. Like
@@ -35,26 +36,16 @@ it turns out that a specific form of normalization allows
 the ``\Src{a}'' type to be constrained and the bind to 
 be an instance of the standard monad class~\cite{Sculthorpe:13:ConstrainedMonads}.
 Through this keyhole of {\em monadic reification},
-the entire Sunroof language is realized. We 
-use the Operational package \cite{Apfelmus:10:Operational,Hackage:10:Operational}
-to normalize the monad internally
+the entire Sunroof language is realized. The 
+normalization is done through the Operational package 
+\cite{Apfelmus:10:Operational,Hackage:10:Operational}.
 
-But there is more then just normalization going on behind the scenes. 
-Actually the \JS-monad is a continuation monad.
-\begin{verbatim}
-data JS :: T -> * -> * where
-  JS :: ((a -> Program (JSI t) ()) -> Program (JSI t) ()) -> JS t a
-  ...
-\end{verbatim}
-The monad instance provided is the standard implementation of 
-a continuation monad (TODO: cite).
-\Src{Program} is the underlying type provided by Operational.
-It uses the \JSI~instruction (Figure \ref{fig:jsi-definition}) 
-to represents the abstract JavaScript instructions
-that are sequenced by the monad. The reason for using a
-continuation, again, lays in the decision to support different
-threading models (Section \ref{sec:threading-models}).
-For now we can assume that it just produces a sequence of \JSI~values.
+It provides the \Src{Program} data type as a monad that
+can be equipped with custom primitives or effects.
+We represent these primitives with the \JSI~instruction 
+(Figure \ref{fig:jsi-definition}) type. It represents the 
+abstract JavaScript instructions that are sequenced by the \Src{Program}
+monad.
 \begin{figure}
 \begin{verbatim}
 data JSI :: T -> * -> * where
@@ -71,12 +62,30 @@ data JSI :: T -> * -> * where
 \caption{Parts of the \JSI nstruction data type.}
 \label{fig:jsi-definition}
 \end{figure}
-The first type parameter again represents the threading model, while
-the second represents the type of the return value. 
-Figure \ref{fig:jsi-definition} shows some of the constructors.
+The type parameter \Src{t} in \Src{JSI t a} again represents 
+the threading model and can be ignored up to Section \ref{sec:threading-models}. 
+\Src{a} represents the type of the primitive's return value. 
+Figure \ref{fig:jsi-definition} shows some of the instructions
+in \JSI.
 \Src{JS\_Invoke} calls a function, that has been created with \Src{JS\_Function}.
 Branches are represented with \Src{JS\_Branch}. Assignments to variable
 are represented by \Src{JS\_Assign\_}.
+
+If it was not for our promise to provide an alternative 
+threading model, the normalization through the Operational package
+would be enough to offer a monad suitable for Sunroof.
+But, because of our threading plans, there is more then just 
+normalization going on behind the scenes. 
+Actually the \JS-monad is a continuation monad over the 
+\Src{Program}-monad.
+\begin{verbatim}
+data JS :: T -> * -> * where
+  JS :: ((a -> Program (JSI t) ()) -> Program (JSI t) ()) -> JS t a
+  ...
+\end{verbatim}
+The monad instance used is the standard implementation of 
+a continuation monad (TODO: cite).
+
 
 TODO: Maybe put this section after the section about the object model.
 
