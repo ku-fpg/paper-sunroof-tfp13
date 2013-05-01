@@ -2,12 +2,13 @@
 \section{Threading Models}
 \label{sec:threading-models}
 
-JavaScript uses a callback centric model of computation. The 
+JavaScript uses a callback centric model of computation. There
 is no concurrency. Events are handled through callbacks,
 which are called as soon as the current computation is done.
 
 In contrast Haskell has real concurrency and wide-spread 
-abstractions for synchronization, e.g. \Src{MVar}s \TODO{Cite MVar/Chan paper}.
+abstractions for synchronization, e.g. \Src{MVar}s and \Src{Chan}s
+\TODO{Cite MVar/Chan paper}.
 So the question arises: do we generate atomic JavaScript code, 
 and keep the callback centric model of computation, or generate JavaScript
 using CPS \cite{Claessen:99:PoorMansConcurrencyMonad}, 
@@ -18,20 +19,28 @@ code that can be cleanly called from native JavaScript.
 Both choices had poor consequences.
 
 So, rather than pick one, we decided to explicitly support both,
-and make both first class threading strategies in our compiler.
+and make both first class threading strategies in Sunroof.
 In terms of user-interface, we parameter the \JS-monad
 with a phantom type that represents the threading model
 to compile with, with \Src{A} for \Src{A}tomic threads,
 and \Src{B} for \Src{B}locking (cooperative concurrency) threads. 
-Atomic threads are classical JavaScript threads, and
-are never interrupted; while blocking threads can
-support suspending operations. By using phantom
+Atomic threads are classical JavaScript computations that
+can not be interrupted. They represent the JavaScript callback
+centric threading model. Blocking threads can
+support suspending operations and support (cooperative) concurrency
+abstractions as known from Haskell. By using phantom
 types, we can express the necessary
 restrictions on specific combinators, as well
 as provide combinators to allow both types of
 threads to cooperate successfully.
 
 We use the callback mechanism to implement the blocking model.
+This implies that every atomic computation can be converted into 
+a blocking computation. Such a conversion can be done with the
+\Src{liftJS} combinator.
+\begin{verbatim}
+liftJS :: Sunroof a => JS A a -> JS t a
+\end{verbatim}
 Each time a computation is suspended we register our current
 continuation as a callback to resume later. Like this other 
 threads (registered continuations) get a chance to run.
@@ -39,6 +48,7 @@ Of course, this model depends on cooperation between the thread,
 because a thread that does terminate or suspend itself at some
 point, will keep others from running.
 
+\begin{comment}
 The compiler offers two functions to choose in which
 model the \JS-monad shall be compiled.
 \begin{verbatim}
@@ -46,14 +56,16 @@ sunroofCompileJSA :: (Sunroof a)
                   => CompilerOpts -> String -> JS A a -> IO String
 sunroofCompileJSB :: CompilerOpts -> String -> JS B () -> IO String
 \end{verbatim}
+\end{comment}
 
-There a three main primitives Sunroof offers to work with in
+There are three main primitives Sunroof offers to work with in
 the blocking model.
 \begin{verbatim}
-forkJS      :: (...) => JS t1 () -> JS t2 ()
-threadDelay :: JSNumber -> JSB ()
-yield       :: JSB ()
+forkJS      :: SunroofThread t1 => JS t1 () -> JS t2 ()
+threadDelay :: JSNumber -> JS B ()
+yield       :: JS B ()
 \end{verbatim}
+They can all be seen as Sunroof versions of their \IO~counterparts.
 \Src{forkJS} can be thought of as an equivalent to \Src{forkIO}.
 It creates a continuation from the given computation and registers 
 it as a callback. \Src{yield} suspends the current thread by 
@@ -62,9 +74,23 @@ other threads have time to run and the concurrency becomes
 cooperative. \Src{threadDelay} is a form of \Src{yield} that sets 
 the callback to be called after a certain amount of time,
 effectively forcing it to sleep that amount of time.
-We depend on the JavaScript function \Src{window.setTimeout} to be provided
-by the executing instance to register our callbacks. 
+We depend on the JavaScript function \Src{window.setTimeout} 
+\TODO{Cite ECMA 262, W3C, DOM or WHATWG standard on this function 
+(does not seem to be part of ECMA) }
+% http://www.w3.org/TR/Window/#timers (Old Draft),
+% http://www.ecma-international.org/ecma-262/5.1/ (no mention),
+% http://www.whatwg.org/specs/web-apps/current-work/multipage/timers.html#timers
+to be provided
+by the executing instance to register our callbacks.
 
+The class \Src{SunroofThread} offers functions to retrieve the 
+current threading model (\Src{evalStyle}) and to create a possible
+blocking computation (\Src{blockableJS})
+\begin{verbatim}
+class SunroofThread (t :: T) where
+  evalStyle    :: ThreadProxy t -> T
+  blockableJS :: (Sunroof a) => JS t a -> JS B a
+\end{verbatim}
 Based on this primitive combinators we also offer a Sunroof 
 version of \Src{MVar} and \Src{Chan}: \Src{JSMVar} and \Src{JSChan}.
 \begin{verbatim}
@@ -80,8 +106,10 @@ readChan  :: (SunroofArgument a) => JSChan a -> JS B a
 Both implementation use arrays to store the waiting readers and
 writers in form of continuations. Note that all functions
 are able to handle \Src{SunroofArgument}s, not just \Src{Sunroof}
-types. This is possible, because the computations themselves are
-stored in the lists. When a arguments is written either the waiting
+types. This is possible, because the computations themselves
+(their current continuation) are
+stored in the lists through \Src{callcc}.
+When a arguments is written either the waiting
 continuation is called with those arguments or a new continuation 
 that applies an incoming one with those arguments is created.
 
