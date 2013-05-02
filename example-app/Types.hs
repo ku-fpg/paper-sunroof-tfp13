@@ -8,7 +8,7 @@ module Types
   , ErrorE
   , errorE
   , JSTree, JSTreeTuple(..)
-  , jsTree, jsTreeData
+  , jsTree
   , JSMessage, JSMessageTuple(..)
   , jsMessage, jsResult
   ) where
@@ -76,9 +76,7 @@ newtype JSTree = JSTree JSObject
 data JSTreeTuple = JSTreeTuple 
   { treeNode     :: JSString
   , treeChildren :: JSArray JSTree
-  , treeResult   :: JSMessage
-  , treeSelected :: JSBool
-  , treeData     :: JSObject }
+  , treeResult   :: JSMessage }
 
 instance Show JSTree where
   show (JSTree o) = show o
@@ -101,33 +99,19 @@ instance JSTuple JSTree where
   match o = JSTreeTuple 
     { treeNode = o ! "text"
     , treeChildren = o ! "children"
-    , treeResult = o ! "result"
-    , treeSelected = o ! "selected"
-    , treeData = o ! "data" }
+    , treeResult = o ! "result" }
   tuple t = do
     o <- new "Object" ()
     o # "text"  := treeNode t
     o # "children" := treeChildren t
     o # "result" := treeResult t
-    o # "selected" := treeSelected t
-    o # "data" := treeData t
     return $ JSTree o
 
 jsTree :: JSString -> JSArray JSTree -> JSMessage -> JSA JSTree
 jsTree node children result = 
   tuple $ JSTreeTuple { treeNode = node
                       , treeChildren = children
-                      , treeResult = result
-                      , treeSelected = false
-                      , treeData = nullJS }
-
-jsTreeData :: (Sunroof a) => JSString -> JSArray JSTree -> JSMessage -> a -> JSA JSTree
-jsTreeData node children result d = 
-  tuple $ JSTreeTuple { treeNode = node
-                      , treeChildren = children
-                      , treeResult = result
-                      , treeSelected = false
-                      , treeData = cast d }
+                      , treeResult = result }
 
 -- JSMessage ---------------------------------------------------
 

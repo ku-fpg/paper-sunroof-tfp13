@@ -6,7 +6,8 @@ module Parser
 import Data.Attoparsec.Char8 
   ( Parser, parseOnly
   , takeWhile1, satisfy
-  , skipSpace, double )
+  , skipSpace, double
+  , endOfInput )
 import Data.Char ( isLetter )
 import qualified Data.ByteString.Char8 as BS
 
@@ -63,7 +64,7 @@ parseFactor  =  parseFun
 
 parseMathE :: String -> ErrorE MathE
 parseMathE str | null str = errorE "No Input"
-parseMathE str = parseOnly (parseExp <* skipSpace) (BS.pack str)
+parseMathE str = parseOnly (parseExp <* skipSpace <* endOfInput) (BS.pack str)
 
 
 

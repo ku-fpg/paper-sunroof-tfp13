@@ -31,8 +31,6 @@ main = do
     nodeHeight <- rsyncJS doc $ nodeHeight
     drawNode <- rsyncJS doc $ drawNode
     
-    plotJS <- rsyncJS doc $ function $ plotJS
-    
     nodeBoxX <- rsyncJS doc $ function $ \(c, jsT) -> do
       let t = match jsT
       nodeBoxW <- nodeBoxWidth (c, treeNode t)
@@ -89,43 +87,6 @@ main = do
       drawNode $$ (c, t)
       displayResult $$ (treeResult $ match t)
     
-    selectNode <- rsyncJS doc $ fixJS $ \selectNode -> function $ \(c,jsT,x,y :: JSNumber) -> do
-      let t = match jsT
-      -- Inside current node?
-      xPos <- nodeBoxX $$ (c, jsT)
-      nodeW <- nodeBoxWidth (c, treeNode t)
-      nodeH <- nodeBoxHeight (c, treeNode t)
-      let onNode = (    x >=* xPos + margin
-                    &&* x <* xPos + nodeW - margin
-                    &&* y >=* 0 + margin
-                    &&* y <* nodeH - margin
-                   )
-      jsT # "selected" := onNode
-      
-      ifB (onNode &&* treeData t /=* nullJS)
-          (forkJS (plotJS $$ (cast $ treeData t, 0, -100, 100, -10, 10) :: JSA ()))
-          (return ())
-      -- Children
-      let foldFun e w = do
-            eWidth <- nodeWidth $$ (c, e)
-            selectNode $$ (c, e, x - w, y - nodeH)
-            return $ eWidth + w
-      foldArray foldFun 0 (treeChildren t)
-      return ()
-    
-    asyncJS doc $ do
-      canvas <- jq "#canvas"
-      canvas # on' "click" $ \(o :: JSObject) -> do
-        cDOM <- jq "#canvas"
-        offset :: JSObject <- cDOM # invoke "offset" ()
-        c <- getTreeCanvas
-        t <- readJSRef treeStore
-        let x = (o ! "pageX") - (offset ! "left")
-            y = (o ! "pageY") - (offset ! "top")
-        selectNode $$ (c, t, x, y)
-        drawTree $$ t
-        c # fillText (cast x <> "|" <> cast y) (20, 20)
-    
     asyncJS doc $ forkJS $ loop () $ \ () -> do
       jsMsg <- readChan downstream
       c <- getTreeCanvas
@@ -155,26 +116,25 @@ mainServerLoop doc upstream downstream = do
       msg <- jsMessage "error" (js err)
       writeChan msg downstream :: JSA ()
     Right e  -> asyncJS doc $ do
-      jsE <- fromMathE e [] e
+      jsE <- fromMathE e
       msg <- jsMessage "math" jsE
       writeChan msg downstream :: JSA ()
   mainServerLoop doc upstream downstream
 
-fromMathE :: MathE -> [Int] -> MathE -> JSA JSTree
-fromMathE m@(NumE d) path orig = do
+fromMathE :: MathE -> JSA JSTree
+fromMathE m@(NumE d) = do
   res <- jsResult $ evalM m
-  f <- function $ return . (createMathJS orig (reverse path))
   emptyArr <- empty
-  jsTreeData (string $ show d) emptyArr res f
-fromMathE m@(OpE e1 op e2) path orig = do
+  jsTree (string $ show d) emptyArr res
+fromMathE m@(OpE e1 op e2) = do
   res <- jsResult $ evalM m
-  tl <- fromMathE e1 (0 : path) orig
-  tr <- fromMathE e2 (1 : path) orig
+  tl <- fromMathE e1
+  tr <- fromMathE e2
   cs <- newArray (tl, tr)
   jsTree (js op) cs res
-fromMathE m@(FunE f e) path orig = do
+fromMathE m@(FunE f e) = do
   res <- jsResult $ evalM m
-  t <- fromMathE e (0 : path) orig
+  t <- fromMathE e
   cs <- newArray (t)
   jsTree (string f) cs res
 
@@ -208,39 +168,7 @@ funJS f = case f of
   "cos" -> cos
   "sin" -> sin
   "tan" -> tan
-  -- fun -> return $ \_ -> errorE $ "Undefined function '" ++ fun ++ "'!"
-
-plotJS :: (JSFunction JSNumber JSNumber, JSNumber, JSNumber, JSNumber, JSNumber, JSNumber) -> JSA ()
-plotJS (f, x, xmin, xmax, ymin, ymax) = do
-  plot <- document # getElementById "plot"
-  c <- plot # getContext "2d"
-  c # save
-  c # setStrokeStyle "#000000"
-  c # setFillStyle "#ff0000"
-  w <- return (plot ! width)
-  h <- return (plot ! height)
-  c # clearRect (0,0) (w, h)
-  xoffset <- return $ xmin
-  xrange <- return $ abs $ xmax - xmin
-  yoffset <- return $ ymin
-  yrange <- return $ abs $ ymax - ymin
-  c # beginPath
-  plotLine <- fixJS $ \plotLine -> function $ \n -> do
-    let x = xoffset + n * (xrange / w)
-    fx <- f $$ x
-    let y = ((fx + yoffset) * (h / yrange))
-    ifB (n ==* 0)
-      (c # moveTo (n, y))
-      (c # lineTo (n, y))
-    ifB (n <* w)
-      (plotLine $$ (n + 1))
-      (return ())
-  plotLine $$ 0
-  c # stroke
-  c # closePath
-  c # restore
-  return ()
-
+  --fun -> return $ \_ -> errorE $ "Undefined function '" ++ fun ++ "'!"
 
 -- General Event Handling --------------------------------------
 
@@ -252,24 +180,15 @@ onFormulaKeyUp upstream _ = do
   formula <- jq "#formula" >>= attr' "value" 
   putUplink formula upstream
 
-onWindowResize :: JSObject -> JS t ()
-onWindowResize _ = do
-  bodyW <- jq "body" >>= innerWidth
-  plot <- jq "#plot"
-  plot # setAttr "width" (cast bodyW)
-  return ()
-
 getTreeCanvas :: JS t JSCanvas
 getTreeCanvas = (document # getElementById "canvas") >>= getContext "2d"
 
 initialize :: Uplink JSString -> JSA ()
 initialize upstream = do
-  onWindowResize nullJS
-  jqWin <- jq $ cast window
-  jqWin # on' "resize" onWindowResize
+  --jqWin <- jq $ cast window
+  --jqWin # on' "resize" onWindowResize
   formulaInput <- jq "#formula"
   formulaInput # on' "keyup" (onFormulaKeyUp upstream)
-    --canvas # setAttr "height" "h"
 
 -- Render ------------------------------------------------------
 
@@ -311,8 +230,8 @@ nodeBoxHeight (c, text) = do
          + fontSize
          + 2 * margin
 
-drawNodeBox :: (JSCanvas, JSString, JSBool) -> JSA ()
-drawNodeBox (c, text, selected) = do
+drawNodeBox :: (JSCanvas, JSString) -> JSA ()
+drawNodeBox (c, text) = do
   c # save
   c # translate (margin, margin)
   let r = boxPadding + fontSize / 2
@@ -325,9 +244,7 @@ drawNodeBox (c, text, selected) = do
   c # lineTo (r, 2 * r)
   c # closePath
   c # save
-  ifB (selected)
-      (c # setFillStyle "#ff0000")
-      (c # setFillStyle "#ffffff")
+  c # setFillStyle "#ffffff"
   c # fill
   c # restore
   c # stroke
@@ -381,7 +298,7 @@ drawNode = fixJS $ \drawNode -> function $ \(c, jsT) -> do
   let nodeLocX = nodeW / 2 - nodeBoxW / 2
   c # save
   c # translate (nodeLocX, 0)
-  drawNodeBox (c, treeNode t, treeSelected t)
+  drawNodeBox (c, treeNode t)
   c # restore
   -- Render children
   let offset = ifB (childW <* nodeW) (nodeW / 2 - childW / 2) (0)
