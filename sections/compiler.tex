@@ -132,15 +132,11 @@ What will this be translated to?
 \begin{Code}
 var v8 = function() {
   if(true){
-    var v2 = function(v1) {
-      var v0 = v1;
-    };
+    var v2 = function(v1) { var v0 = v1; };
     /* True Case */
     v2(true);
   } else {
-    var v5 = function(v4) {
-      var v0 = v4;
-    };
+    var v5 = function(v4) { var v0 = v4; };
     /* False Case */
     v5(false);
   }
@@ -191,19 +187,13 @@ the ongoing computation, even if we capture our current continuation.
 Now the produced code looks like this:
 \begin{Code}
 var v11 = function() {
-  var v2 = function(v0) {
-    CallAfterIf(v0);
-  };
+  var v2 = function(v0) { CallAfterIf(v0); };
   if(true){
-    var v5 = function(v3) {
-      v2(v3);
-    };
+    var v5 = function(v3) { v2(v3); };
     /* True Case */
     v5(true);
   } else {
-    var v9 = function(v7) {
-      v2(v7);
-    };
+    var v9 = function(v7) { v2(v7); };
     /* False Case */
     v9(false);
   }
