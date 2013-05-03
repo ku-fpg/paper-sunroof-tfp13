@@ -138,38 +138,6 @@ fromMathE m@(FunE f e) = do
   cs <- newArray (t)
   jsTree (string f) cs res
 
-createMathJS :: MathE -> [Int] -> (JSNumber -> JSNumber)
-createMathJS _ [] = id
-createMathJS (NumE d) _ = const $ js d
-createMathJS m@(FunE f e) (n:ns) 
-  | n == 0    = \k -> funJS f (createMathJS e ns k)
-  | otherwise = const $ evalMathJS m
-createMathJS m@(OpE e1 o e2) (n:ns)
-  | n == 0    = \k -> opJS o (createMathJS e1 ns k) (evalMathJS e2)
-  | n == 1    = \k -> opJS o (evalMathJS e1) (createMathJS e2 ns k)
-  | otherwise = const $ evalMathJS m
-
-evalMathJS :: MathE -> JSNumber
-evalMathJS m = case evalM m of
-  Left err -> cast $ object "NaN"
-  Right d -> js $ d
-
-opJS :: Char -> (JSNumber -> JSNumber -> JSNumber)
-opJS o = case o of
-  '+' -> (+)
-  '-' -> (-)
-  '*' -> (*)
-  '/' -> (/)
-  --op  -> errorE $ "Unknown operator: " ++ [op]
-
-funJS :: String -> (JSNumber -> JSNumber)
-funJS f = case f of
-  "log" -> log
-  "cos" -> cos
-  "sin" -> sin
-  "tan" -> tan
-  --fun -> return $ \_ -> errorE $ "Undefined function '" ++ fun ++ "'!"
-
 -- General Event Handling --------------------------------------
 
 on' :: (SunroofArgument a, Sunroof a) => JSString -> (a -> JSB ()) -> JSObject -> JS t ()

@@ -1,9 +1,11 @@
  
-\section{Example Application}
+\section{Case Study - A small Calculator}
 \label{sec:extended-example}
 
-To see how Sunroof works in practice we will now look into a small calculator
-for arithmetic expressions. We use Sunroof to display our interface
+To see how Sunroof works in practice we will look into the 
+experience we gathered when writing a small calculator
+for arithmetic expressions (Figure \ref{fig:example-application}). 
+We use Sunroof to display our interface
 and the results of our computation. Haskell will be used to parse the 
 arithmetic expressions and calculate the result. The Sunroof server 
 will be used to implement this JavaScript/Haskell hybrid.
@@ -14,11 +16,68 @@ will be used to implement this JavaScript/Haskell hybrid.
 {The example application running on the Sunroof server.}%
 {scale=0.76}
 
-Figure \ref{fig:example-application} shows the interface of our 
-calculator. We not only display the result value, we also render 
-the tree parsed from the arithmetic expression in Haskell.
+The classical approach to develop an application like this would have 
+been to write a server that provides a RESTful interface and replies 
+through a JSON data structure. This can be seen in Figure 
+\ref{fig:example-structure}.
 
+\Figure%
+{fig:example-structure}%
+{figures/example-structure.pdf}%
+{Classical structure and Sunroof structure of a web application.}
 
+The client side of that application would have been written in JavaScript
+directly.
 
+How does Sunroof improve or change this classical structure?
+First of all, in Sunroof you write the client side code together with
+your server application within Haskell. In our example all code 
+for the server and client is in Haskell. The control logic 
+for the client side is provided through the server.
+This leads to a tight coupling between both sides. 
+It enforces both sides to work together
+correctly because they share types and interfaces. 
+This also shows how Sunroof blurs the border between the server 
+and client side. You are not restricted by an interface or language 
+barrier. If you need the client to do something you can just 
+send arbitrary Sunroof code to execute in the client.
+Setting up the client-server response loop, which shuffles 
+new input to the server and executes the response in the client
+took about 25 lines of Haskell.
 
+A problem that still arises is data conversion. Pure Haskell data types
+can not be handled in Sunroof and vice versa, because of the language
+boundary between JavaScript and Haskell. So code to convert between two 
+essentially equal data structures on each side has to be written,
+as wall as representation of Haskell structures in Sunroof. An
+essential part of our example deals with conversion and encoding of
+data in JavaScript. About 85 lines are devoted to this task.
+But there is a great potential in automatically generating this
+kind of Sunroof infrastructure using techniques like template Haskell,
+since most of the written code is systematic.
+
+The client code for displaying the results is basically a 
+transliteration of the JavaScript that one would write for this 
+purpose. It makes up main part of the application, about 190 lines.
+The transliteration going on here is not very appealing, but can 
+be automated through higher level libraries and interfaces, which
+Sunroof is intended to deliver a foundation for.
+
+The rest of our code to parse the arithmetic expression and calculate 
+result takes up about 85 lines. 
+
+What did we gain? First of all, in a sense we blurred the line between
+both languages. Code for client and server side can be written in one place
+instead of being separated. Like this we do not have to worry about 
+either of both sides getting out of sync with the other as much, since
+the type system helps us. We also noticed that we have to write
+an considerable amount of boilerplate code to communicate data that goes beyond 
+the basic data types Sunroof already support. But this process can automatized.
+The transliteration of actual JavaScript into Sunroof has a overhead and
+tends to be verbose. This problem can be hidden away through libraries building
+on Sunroof. So the main gain is a solid and robust foundation to build
+on more advanced systems that want to utilize the browser. Also basic
+communication between server and browser was simplified.
+
+\TODO{This section turned out in weird way. I am not satisfied.}
 
