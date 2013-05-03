@@ -64,6 +64,8 @@ We return the concatenation of the produced statements with a statement
 for the assignment in between. The \Src{unbox} functions reveal the 
 \Src{Expr} inside of our Sunroof wrapper types.
 
+\TODO{Talk about translation of function}
+
 Lets now look at a more interesting part of the compiler: The translation of 
 branches.
 Recall the \JSI constructor for branches from Figure \ref{fig:jsi-definition}.
@@ -112,7 +114,6 @@ construct the list of statements in a canonical fashion.
 This works perfectly when we work in the atomic threading model,
 but it causes problems when inside the blocking model. To 
 see what can go wrong lets look at a small example.
-\TODO{Explain callcc in continuation section}
 \begin{Code}
 branchFail = do
   b <- ifB (true :: JSBool)
@@ -175,7 +176,6 @@ compileBranch_B b c1 c2 k = do
   src2 <- compile $ extractProgramJS (apply (var fn)) c2
   return ( [mkVarStmt fn fn_e] ++ src0 ++ [ IfStmt res0 src1 src2 ])
 \end{Code}
-\TODO{Talk about \Src{blockableJS}}
 We can see that the rest of our computation is captured in a
 continuation \Src{fn\_e} that takes the results of our branching
 as arguments. We assign that computation to the new variable \Src{fn}
@@ -208,15 +208,17 @@ Of course, we could compile every branch with the
 continuation variant. But that would unnecessarily 
 obfuscate the produced code and lead to many superfluous 
 indirections.
-\TODO{Look at another interesting part: Fix? Function?}
 
 The compiler can be called through two functions. 
-One for each threading model. \TODO{Maybe remove the string argument from JSB}
+One for each threading model.
 \begin{Code}
 sunroofCompileJSA :: Sunroof a 
                   => CompilerOpts -> String -> JS A a  -> IO String
 sunroofCompileJSB :: CompilerOpts -> String -> JS B () -> IO String
 \end{Code}
+Not that the compiler of the blocking threading model only
+excepts computations that return unit. This is due to their 
+continuation based nature.
 
 \begin{comment}
 Given the language, and monadic-reification, how do we compile this language?
