@@ -2,19 +2,23 @@
 \section{Example Application}
 \label{sec:extended-example}
 
+To see how Sunroof works in practice we will now look into a small calculator
+for arithmetic expressions. We use Sunroof to display our interface
+and the results of our computation. Haskell will be used to parse the 
+arithmetic expressions and calculate the result. The Sunroof server 
+will be used to implement this JavaScript/Haskell hybrid.
+
 \FigureS%
 {fig:example-application}%
 {figures/example-application.png}%
 {The example application running on the Sunroof server.}%
-{scale=0.8}
+{scale=0.76}
 
-As an example we developed is a small calculator. It uses Sunroof to
-render its interface in the browser (Figure \ref{fig:example-application}). The 
-Haskell server processes the arithmetic expressions by parsing them
-into an AST and calculating the result of the expression.
-The result is then sent back to the interface and displayed,
-using Sunroof-generated JavaScript, 
-utilizing the browsers rendering capabilities.
+Figure \ref{fig:example-application} shows the interface of our 
+calculator. We not only display the result value, we also render 
+the tree parsed from the arithmetic expression in Haskell.
+
+
 
 
 
