@@ -6,7 +6,7 @@ Given the language, and monadic-reification, how do we compile this language?
 Through the \JS-monad we produce a \Src{Program (JSI t) ()} instance. We 
 translate such a program into a list of statements (\Src{Stmt}) by matching over 
 the \JSI constructors.
-\begin{verbatim}
+\begin{Code}
 data Stmt 
   = AssignStmt Rhs Expr       -- Assignment
   | DeleteStmt Expr           -- Delete reference
@@ -15,7 +15,7 @@ data Stmt
   | IfStmt Expr [Stmt] [Stmt] -- If-Then-Else statement
   | WhileStmt Expr [Stmt]     -- While loop
   | CommentStmt String        -- Comment
-\end{verbatim}
+\end{Code}
 The constructors of \Src{Stmt} are straight forward and
 directly represent the different statements one can write
 in JavaScript.
@@ -25,13 +25,13 @@ have to translate it into a \Src{ProgramView} since
 Operational prohibits us from working on \Src{Program} directly.
 \Src{ProgramView} can then be taken apart to translate 
 the \JSI nstructions inside.
-\begin{verbatim}
+\begin{Code}
 compile :: Program (JSI t) () -> CompM [Stmt]
 compile p = eval (view p)
   where
     eval :: ProgramView (JSI t) () -> CompM [Stmt]
     ...
-\end{verbatim}
+\end{Code}
 The compilation monad \Src{CompM} provides us with 
 the compiler options and a supply of fresh integer
 values to generate new variable when needed.
@@ -39,12 +39,12 @@ values to generate new variable when needed.
 To get a feel for how the compiler works, lets take a look at 
 the case for \Src{JS\_Assign}. Recall its signature from 
 Figure \ref{fig:jsi-definition}:
-\begin{verbatim}
+\begin{Code}
 JS_Assign :: Sunroof a => JSSelector a -> a -> JSObject -> JSI t ()
-\end{verbatim}
+\end{Code}
 This instruction assigns a new value \Src{a} to the attribute
 selected by the \Src{JSSelector a} of the \Src{JSObject}.
-\begin{verbatim}
+\begin{Code}
 eval (JS_Assign sel a obj :>>= k) = do
   (stmts0,val) <- compileExpr (unbox a)
   stmts1 <- compile (k ())
@@ -53,7 +53,7 @@ eval (JS_Assign sel a obj :>>= k) = do
                                  (unboxSelector sel)) 
                          val ] 
          ++ stmts1 )
-\end{verbatim}
+\end{Code}
 First we compile the expression that will be assigned. That
 produces a series of statements to compute the expression and 
 the expressions value \Src{val}.
@@ -67,15 +67,15 @@ for the assignment in between. The \Src{unbox} functions reveal the
 Lets now look at a more interesting part of the compiler: The translation of 
 branches.
 Recall the \JSI constructor for branches from Figure \ref{fig:jsi-definition}.
-\begin{verbatim}
+\begin{Code}
 JS_Branch :: (SunroofThread t, SunroofArgument a, Sunroof bool) 
           => bool -> JS t a -> JS t a  -> JSI t a
-\end{verbatim}
+\end{Code}
 Aside of the fact that branches may return \Src{SunroofArgument}s
 instead of just \Src{Sunroof} values the translation seems to 
 be straight forward (Figure \ref{fig:branch-translation}).
 \begin{figure}[h]
-\begin{verbatim}
+\begin{Code}
 eval (JS_Branch b c1 c2 :>>= k) = do
   (src0, res0) <- compileExpr (unbox b)
   res :: a <- jsValue
@@ -87,7 +87,7 @@ eval (JS_Branch b c1 c2 :>>= k) = do
   src2 <- compile $ extractProgramJS bindResults c2
   rest <- compile (k res)
   return (src0 ++ [ IfStmt res0 src1 src2 ] ++ rest)
-\end{verbatim}
+\end{Code}
 \caption{Naive translation of branches in Sunroof.}
 \label{fig:branch-translation}
 \end{figure}
@@ -96,10 +96,10 @@ Then we generate unique names for each of the values returned in
 either branch. \Src{bindResults} generates the assignments of
 the returned values to the generated variables. When compiling 
 the branches we use the function \Src{extractProgramJS}.
-\begin{verbatim}
+\begin{Code}
 extractProgramJS :: (a -> JS t ()) -> JS t a -> Program (JSI t) ()
 extractProgramJS k m = unJS (m >>= k) return
-\end{verbatim}
+\end{Code}
 It passes the result of a computation \Src{m} 
 into the given function \Src{f} and
 closes the continuation inside \JS~with \Src{return},
@@ -113,7 +113,7 @@ This works perfectly when we work in the atomic threading model,
 but it causes problems when inside the blocking model. To 
 see what can go wrong lets look at a small example.
 \TODO{Explain callcc in continuation section}
-\begin{verbatim}
+\begin{Code}
 branchFail = do
   b <- ifB (true :: JSBool)
            (callcc $ \k -> do comment "True Case"
@@ -121,7 +121,7 @@ branchFail = do
            (callcc $ \k -> do comment "False Case"
                               goto k false :: JSB JSBool)
   fun "CallAfterIf" $$ b
-\end{verbatim}
+\end{Code}
 In either case of the initial branch we want to do something
 with our current continuation. We insert a comment for 
 our orientation and then call our current continuation to 
@@ -129,7 +129,7 @@ proceed with a boolean value that depends on the branch.
 After our branch we call a function with the returned boolean value.
 \TODO{Is there a simpler example that demonstrates the problem?}
 What will this be translated to?
-\begin{verbatim}
+\begin{Code}
 var v8 = function() {
   if(true){
     var v2 = function(v1) {
@@ -147,7 +147,7 @@ var v8 = function() {
   CallAfterIf(v0);
 };
 v8();
-\end{verbatim}
+\end{Code}
 We can see the branching statement and the function call afterwards.
 Inside each branch we can also see a function definition the inserted 
 comment and a call to the defined function. The function definitions 
@@ -160,16 +160,16 @@ not defined when \Src{CallAfterIf} is applied to it.
 
 So how can we fix this? If we are working within the blocking 
 threading model, we have to handle branches differently.
-\begin{verbatim}
+\begin{Code}
 eval (JS_Branch b c1 c2 :>>= k) = 
   case evalStyle (ThreadProxy :: ThreadProxy t) of
     A -> compileBranch_A b c1 c2 k
     B -> compileBranch_B b c1 c2 k
-\end{verbatim}
+\end{Code}
 \Src{evalStyle} is provided by the class \Src{SunroofThread} and
 provides the threading model currently used. The call to \Src{compileBranch\_A}
 executes our naive definition from Figure \ref{fig:branch-translation}.
-\begin{verbatim}
+\begin{Code}
 compileBranch_B b c1 c2 k = do
   fn_e <- compileContinuation $
             \a -> blockableJS $ JS $ \k2 -> k a >>= k2
@@ -178,7 +178,7 @@ compileBranch_B b c1 c2 k = do
   src1 <- compile $ extractProgramJS (apply (var fn)) c1
   src2 <- compile $ extractProgramJS (apply (var fn)) c2
   return ( [mkVarStmt fn fn_e] ++ src0 ++ [ IfStmt res0 src1 src2 ])
-\end{verbatim}
+\end{Code}
 \TODO{Talk about \Src{blockableJS}}
 We can see that the rest of our computation is captured in a
 continuation \Src{fn\_e} that takes the results of our branching
@@ -189,7 +189,7 @@ of creating bindings for each returned value we apply the produced
 continuation to the returned values and like that make them visible for
 the ongoing computation, even if we capture our current continuation. 
 Now the produced code looks like this:
-\begin{verbatim}
+\begin{Code}
 var v11 = function() {
   var v2 = function(v0) {
     CallAfterIf(v0);
@@ -209,7 +209,7 @@ var v11 = function() {
   }
 };
 v11();
-\end{verbatim}
+\end{Code}
 We can see that the function call after the branch is captured by the 
 continuation \Src{v2} and that continuation is called with the 
 return values as parameters inside each branch.
@@ -222,11 +222,11 @@ indirections.
 
 The compiler can be called through two functions. 
 One for each threading model. \TODO{Maybe remove the string argument from JSB}
-\begin{verbatim}
+\begin{Code}
 sunroofCompileJSA :: Sunroof a 
                   => CompilerOpts -> String -> JS A a  -> IO String
 sunroofCompileJSB :: CompilerOpts -> String -> JS B () -> IO String
-\end{verbatim}
+\end{Code}
 
 \begin{comment}
 Given the language, and monadic-reification, how do we compile this language?
@@ -253,13 +253,13 @@ They represents abstract statements. While expressions and values
 represented with type wrappers are assumed to be free of side-effects,
 the instructions model side-effects in JavaScript. Examples for Instructions
 are assignment of an attribute or the application of a function.
-\begin{verbatim}
+\begin{Code}
 data JSI :: T -> * -> * where
   JS_Assign :: (...) => JSSelector a -> a -> JSObject -> JSI t ()
   JS_Invoke :: (...) => a -> JSFunction a r -> JSI t r
   JS_Branch :: (...) => bool -> JS t a -> JS t a  -> JSI t a
   ...
-\end{verbatim}
+\end{Code}
 The \JS-monad with its combinators builds a sequence of 
 \JSI{}nstructions through the operational
 package~\cite{Hackage:10:Operational,Apfelmus:10:Operational}.
@@ -269,12 +269,12 @@ As mentioned earlier the \JS-monad comes in two threading flavors,
 parameterized using a phantom type.
 Internally the \JS-monad is implemented using CPS on the 
 underlying \Src{Program} type from Operational. 
-\begin{verbatim}
+\begin{Code}
 data JS :: T -> * -> * where
   JS   :: ((a -> Program (JSI t) ()) -> Program (JSI t) ()) 
        -> JS t a
   ...
-\end{verbatim}
+\end{Code}
 For atomic
 computations we just produce a list of instructions from the continuation. 
 When translating possibly blocking code we directly translate that continuation
@@ -288,13 +288,13 @@ is done.
 
 On top of our \JS-monad we provide ways of specifying (typed)
 interfaces to JavaScript capabilities, a Foreign Function Interface.
-\begin{verbatim}
+\begin{Code}
 alert :: JSString -> JS t ()
 alert = fun "alert"
 
 getElementById :: JSString -> JSObject -> JS t JSCanvas
 getElementById = invoke "getElementById"
-\end{verbatim}
+\end{Code}
 Notice, that calling a JavaScript function or method is done by giving its
 name to one of the provided combinators. Types can be specialized using 
 a Haskell type annotation. A flexible and easy to use approach.

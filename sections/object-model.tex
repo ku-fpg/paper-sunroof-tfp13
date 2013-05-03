@@ -12,20 +12,20 @@ and others. A simple
 casting function is provided when the type-system
 needs to be overwritten. Along with each of these types,
 we provide typed methods.
-\begin{verbatim}
+\begin{Code}
  jsDrawBox :: JSObject -> JS t ()
  jsDrawBox document = do
      foo <- document # getElementById("foo")
      cxt <- foo # getContext("2d")     cxt # drawRect (0,0,100,100)
-\end{verbatim}
+\end{Code}
 Here, \Src{\#} is a reverse apply, so the types
 of the function in the above example are
-\begin{verbatim}
+\begin{Code}
 (#) :: o -> (o -> JS t a) -> JS t a
 getElementById :: JSString -> JSObject -> JS t JSContext
 getContext :: JSString -> JSContext -> JS t JSCanvas
 drawRect :: (JSNumber,JSNumber,JSNumber,JSNumber) -> JSCanvas -> JS t ()
-\end{verbatim}        
+\end{Code}        
 From experience, even though we are targeting
 an untyped language, the type system gets in the
 way less than we expected.
@@ -45,31 +45,31 @@ JavaScript expressions.
 % We use a white lie instead of the actual fixpoint Expr type.
 % We only need that type for expression sharing, which 
 % is not essential for the scope of this paper.
-\begin{verbatim}
+\begin{Code}
 data Expr 
   = Lit String -- Precompiled (atomic) JavaScript literal
   | Var Id     -- Variable
   | Apply expr [expr]    -- Function application
   ...
-\end{verbatim}
+\end{Code}
 This core expression type is then wrapped to represent a more specific 
 type. Each of these wrappers implements the \Src{Sunroof} type 
 class.
-\begin{verbatim}
+\begin{Code}
 class SunroofArgument a => Sunroof a where
   box :: Expr -> a
   unbox :: a -> Expr
   ...
-\end{verbatim}
+\end{Code}
 \TODO{Maybe hide SunroofArgument at this point.}
 It marks that these types represent possible values in JavaScript.
 An example for this is the \Src{JSString} data type.
-\begin{verbatim}
+\begin{Code}
 data JSString = JSString Expr
 instance Sunroof JSString where
   box = JSString
   unbox (JSString e) = e
-\end{verbatim}
+\end{Code}
 But what do we gain by adding a wrapper? We can
 provide specific functionality for each distinct type.
 Our example type \Src{JSString} has a \Src{Monoid} and a 
@@ -138,11 +138,11 @@ Section \ref{sec:functions-continuations}.
 The table also shows that most of basic Haskell types have counterparts in
 Sunroof. To convert these core Haskell values into their Sunroof 
 counterparts we provide the \Src{SunroofValue} type class.
-\begin{verbatim}
+\begin{Code}
 class SunroofValue a where
   type ValueOf a :: *
   js :: (Sunroof (ValueOf a)) => a -> ValueOf a
-\end{verbatim}
+\end{Code}
 It provides the corresponding Sunroof value through the type function
 \Src{ValueOf} \TODO{cite type functions} and offers the function 
 \Src{js} to convert to that type. By design \Src{SunroofValue} does
@@ -163,12 +163,12 @@ unwanted macro behavior of Sunroof in these cases.
 Sunroof also offers the ability to work with record like data structures to 
 keep values that belong together in one place.
 For this purpose Sunroof offers the \Src{JSTuple} type class.
-\begin{verbatim}
+\begin{Code}
 class Sunroof o => JSTuple o where
   type Internals o
   match :: (Sunroof o) => o -> Internals o
   tuple :: Internals o -> JS t o
-\end{verbatim}
+\end{Code}
 If you have a record of Sunroof data that you want to
 encode as a JavaScript object you can provide this ability 
 by implementing \Src{JSTuple}. The \Src{Internals} type function

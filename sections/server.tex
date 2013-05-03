@@ -11,14 +11,14 @@ of JavaScript to a calling website for execution.
 Like this it is possible to interleave Haskell and JavaScript 
 computations with each other as needed. The three major functions
 provided are \Src{sunroofServer}, \Src{syncJS} and \Src{asyncJS}.
-\begin{verbatim}
+\begin{Code}
 type SunroofApp = SunroofEngine -> IO ()
 sunroofServer :: SunroofServerOptions -> SunroofApp -> IO ()
 
 syncJS  :: SunroofResult a 
         => SunroofEngine -> JS t a -> IO (ResultOf a)
 asyncJS :: SunroofEngine -> JS t () -> IO ()
-\end{verbatim}
+\end{Code}
 \Src{sunroofServer} starts the server.
 It will the given callback function (\Src{SunroofApp}) 
 for each request to the server.

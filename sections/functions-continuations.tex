@@ -10,12 +10,12 @@ be able to take more then one argument, which means a
 \Src{Sunroof $\alpha$} constraint would be to restrictive.
 Thus we introduced \Src{SunroofArgument} to constraint the 
 types that may be used as arguments for functions.
-\begin{verbatim}
+\begin{Code}
 class SunroofArgument args where
   jsArgs   :: args -> [Expr]
   jsValue  :: (UniqM m) => m args
   ...
-\end{verbatim}
+\end{Code}
 It enables use to convert each argument into its expression
 through \Src{jsArgs}, which is used to supply the
 arguments to a function call. \Src{jsValue} generates
@@ -25,20 +25,20 @@ the function itself to a value.
 Since the usefulness of partial application is questionable in
 the context of JavaScript, we choose to only permit uncurried functions,
 by providing instances for tuples of sunroof values.
-\begin{verbatim}
+\begin{Code}
 instance (Sunroof a, Sunroof b) => SunroofArgument (a,b) where
   jsArgs ~(a,b) = [unbox a, unbox b]
   jsValue = liftM2 (,) jsVar jsVar
-\end{verbatim}
+\end{Code}
 Remember that each \Src{Sunroof} value already has to be 
 a \Src{SunroofArgument}, which also enables us to pass a single argument
 to a function. 
 
 To create a JavaScript function we provide the \Src{function} combinator.
-\begin{verbatim}
+\begin{Code}
 function :: (SunroofArgument a, Sunroof b) 
          => (a -> JS A b)  -> JS t (JSFunction a b)
-\end{verbatim}
+\end{Code}
 As a function can have side-effects its computation and result has to be 
 expressed through the \JS-monad. Again, due to observable allocation,
 the creation of a function is considered a side-effect.
@@ -46,10 +46,10 @@ the creation of a function is considered a side-effect.
 A function can be applied to arguments through the \Src{apply} combinator
 or the \Src{\$\$} operator.
 Functions can only be applied in the \JS-monad since they can have side-effects.
-\begin{verbatim}
+\begin{Code}
 apply, ($$) :: (SunroofArgument a, Sunroof b) 
             => JSFunction args ret -> args -> JS t ret
-\end{verbatim}
+\end{Code}
 Creation and application are implemented using the \Src{JS\_Function}
 and \Src{JS\_Invoke} instructions introduced in 
 Figure \ref{fig:jsi-definition}.
@@ -63,12 +63,12 @@ are meant to be a representation of side-effects --
 ongoing computations inside the \JS-monad -- and might 
 not terminate, they do not return a value. As with functions 
 there is a combinator to create and apply a continuation.
-\begin{verbatim}
+\begin{Code}
 continuation :: (SunroofArgument a) 
              => (a -> JS B ()) -> JS t (JSContinuation a)
 goto         :: (SunroofArgument a) 
              => JSContinuation a -> a -> JS t b
-\end{verbatim}
+\end{Code}
 The major difference is that a call to \Src{goto} will never
 return, as it execute the given continuation and abandons the 
 current one. This allows \Src{goto} to be fully polymorphic
@@ -77,19 +77,19 @@ on its result.
 To give access to the internal continuations of the \JS-monad
 Sunroof offers the powerful call-with-current-continuation 
 function \Src{callcc} \TODO{cite for \Src{callcc}}.
-\begin{verbatim}
+\begin{Code}
 callcc :: SunroofArgument a 
        => (JSContinuation a -> JS B a) -> JS B a
-\end{verbatim}
+\end{Code}
 It enables us to use the current continuation, which 
 models everything that would usually happen after the call
 to \Src{callcc}. 
-\begin{verbatim}
+\begin{Code}
 callcc f = JS $ \ k -> unJS 
     (continuation (\a -> JS $ \ _ -> k a) >>= f) k
 
 unJS :: JS t a -> (a -> Program (JSI t) ()) -> Program (JSI t) ()
-\end{verbatim}
+\end{Code}
 The implementation of \Src{callcc} is interesting,
 because it shows how the \Src{Program}-continuation is translated 
 into a \Src{JSContinuation} that is passed to the given function \Src{f}.

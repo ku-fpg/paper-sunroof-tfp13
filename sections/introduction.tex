@@ -20,22 +20,22 @@ in figure \ref{fig:code-example} to see how it achieves this goal.
 \vspace{-0.5cm}
 \centering
 \begin{subfigure}{0.45\textwidth}%
-\begin{verbatim}
+\begin{Code}
  jsCode :: JS t ()
  jsCode = do
    name <- prompt "Your name?"
    alert ("Your name: " <> name)
-\end{verbatim}%
+\end{Code}%
 \end{subfigure}%
 \hfill%
 \begin{subfigure}{0.45\textwidth}
 \vspace{0.25cm}%
-\begin{verbatim}
+\begin{Code}
   
   
 var v0 = prompt("Your name?"); 
 alert("Your name: " + v0);
-\end{verbatim}%
+\end{Code}%
 \end{subfigure}% 
 %\vspace{-0.2cm}%
 \caption{Sunroof program and the expected JavaScript on the left.}%
@@ -56,10 +56,10 @@ well known from Haskell when writing JavaScript.
 We also introduces types that support us when 
 writing code and reveal common mistakes. The functions
 in figure \ref{fig:code-example} have the following signatures:
-\begin{verbatim}
+\begin{Code}
 prompt :: JSString -> JSString -> JS t JSObject
 alert  :: JSString -> JS t ()
-\end{verbatim}
+\end{Code}
 This improves the quality of written code.
 Using a deep embedding like this gives opportunity 
 for optimizations when producing the actual JavaScript.

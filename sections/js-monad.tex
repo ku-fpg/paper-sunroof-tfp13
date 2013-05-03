@@ -22,13 +22,13 @@ variable \Src{v0}.
 Inside this simple example is a challenging problem -- where does
 \Src{v0} come from? The bind inside the monadic \Src{do} is
 unconstrained:
-\begin{verbatim}
+\begin{Code}
 (>>=) :: JS t a -> (a -> JS t b) -> JS t b
-\end{verbatim}
+\end{Code}
 What we want is:
-\begin{verbatim}
+\begin{Code}
 (>>=) :: (Sunroof a) => JS t a -> (a -> JS t b) -> JS t b
-\end{verbatim}
+\end{Code}
 Where \Src{Sunroof} constrains the bind to
 arguments for which we can generate a JavaScript variable.
 Counterintuitively, 
@@ -47,7 +47,7 @@ We represent these primitives with the \JSI~instruction
 abstract JavaScript instructions that are sequenced by the \Src{Program}
 monad.
 \begin{figure}
-\begin{verbatim}
+\begin{Code}
 data JSI :: T -> * -> * where
   JS_Invoke   :: (SunroofArgument a, Sunroof r) 
               => a -> JSFunction a r -> JSI t r
@@ -58,7 +58,7 @@ data JSI :: T -> * -> * where
   JS_Assign   :: (Sunroof a) 
               => JSSelector a -> a -> JSObject -> JSI t ()
   ...
-\end{verbatim}
+\end{Code}
 \caption{Parts of the \JSI nstruction data type.}
 \label{fig:jsi-definition}
 \end{figure}
@@ -78,11 +78,11 @@ But, because of our threading plans, there is more then just
 normalization going on behind the scenes. 
 Actually the \JS-monad is a continuation monad over the 
 \Src{Program}-monad.
-\begin{verbatim}
+\begin{Code}
 data JS :: T -> * -> * where
   JS :: ((a -> Program (JSI t) ()) -> Program (JSI t) ()) -> JS t a
   ...
-\end{verbatim}
+\end{Code}
 The monad instance used is the standard implementation of 
 a continuation monad \TODO{cite}.
 

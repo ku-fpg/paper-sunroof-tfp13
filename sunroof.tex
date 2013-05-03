@@ -10,6 +10,7 @@
 \usepackage{graphicx}
 \usepackage{caption}
 \usepackage{subcaption}
+\usepackage{verbatim}
 
 \newcommand{\SunroofAnalog}[1]{#1\ensuremath{_\downarrow}}
 \newcommand{\HaskellAnalog}[1]{#1\ensuremath{_\uparrow}}
@@ -40,6 +41,8 @@
 \vspace{-0.5cm}%
 \end{figure}%
 }
+
+\newenvironment{Code}{\verbatim}{\endverbatim}
 
 \begin{document}
 %

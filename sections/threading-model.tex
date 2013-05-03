@@ -38,9 +38,9 @@ We use the callback mechanism to implement the blocking model.
 This implies that every atomic computation can be converted into 
 a blocking computation. Such a conversion can be done with the
 \Src{liftJS} combinator.
-\begin{verbatim}
+\begin{Code}
 liftJS :: Sunroof a => JS A a -> JS t a
-\end{verbatim}
+\end{Code}
 Each time a computation is suspended we register our current
 continuation as a callback to resume later. Like this other 
 threads (registered continuations) get a chance to run.
@@ -51,20 +51,20 @@ point, will keep others from running.
 \begin{comment}
 The compiler offers two functions to choose in which
 model the \JS-monad shall be compiled.
-\begin{verbatim}
+\begin{Code}
 sunroofCompileJSA :: (Sunroof a) 
                   => CompilerOpts -> String -> JS A a -> IO String
 sunroofCompileJSB :: CompilerOpts -> String -> JS B () -> IO String
-\end{verbatim}
+\end{Code}
 \end{comment}
 
 There are three main primitives Sunroof offers to work with in
 the blocking model.
-\begin{verbatim}
+\begin{Code}
 forkJS      :: SunroofThread t1 => JS t1 () -> JS t2 ()
 threadDelay :: JSNumber -> JS B ()
 yield       :: JS B ()
-\end{verbatim}
+\end{Code}
 They can all be seen as Sunroof versions of their \IO~counterparts.
 \Src{forkJS} can be thought of as an equivalent to \Src{forkIO}.
 It creates a continuation from the given computation and registers 
@@ -86,14 +86,14 @@ by the executing instance to register our callbacks.
 The class \Src{SunroofThread} offers functions to retrieve the 
 current threading model (\Src{evalStyle}) and to create a possible
 blocking computation (\Src{blockableJS})
-\begin{verbatim}
+\begin{Code}
 class SunroofThread (t :: T) where
   evalStyle    :: ThreadProxy t -> T
   blockableJS :: (Sunroof a) => JS t a -> JS B a
-\end{verbatim}
+\end{Code}
 Based on this primitive combinators we also offer a Sunroof 
 version of \Src{MVar} and \Src{Chan}: \Src{JSMVar} and \Src{JSChan}.
-\begin{verbatim}
+\begin{Code}
 newMVar      :: (SunroofArgument a) => a -> JS t (JSMVar a)
 newEmptyMVar :: (SunroofArgument a) => JS t (JSMVar a)
 putMVar      :: (SunroofArgument a) => a -> JSMVar a -> JS B ()
@@ -102,7 +102,7 @@ takeMVar     :: (SunroofArgument a) => JSMVar a -> JS B a
 newChan   :: (SunroofArgument a) => JS t (JSChan a)
 writeChan :: (SunroofArgument a) => a -> JSChan a -> JS t ()
 readChan  :: (SunroofArgument a) => JSChan a -> JS B a
-\end{verbatim}
+\end{Code}
 Both implementation use arrays to store the waiting readers and
 writers in form of continuations. Note that all functions
 are able to handle \Src{SunroofArgument}s, not just \Src{Sunroof}
