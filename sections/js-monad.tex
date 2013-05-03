@@ -84,7 +84,9 @@ data JS :: T -> * -> * where
   ...
 \end{Code}
 The monad instance used is the standard implementation of 
-a continuation monad \TODO{cite}.
+a continuation monad 
+\cite{Wadler:90:ComprehendingMonads,Wadler:94:MonadsComposableContinuations} 
+\TODO{Both of these cites do not seem right, but they were the best I could find.}.
 
 
 \TODO{Maybe put this section after the section about the object model.}
@@ -112,7 +114,7 @@ Implementation
 \item Whats going on here?
 \item \JS-monad is a continuation monad on the \Src{Program} type from operational
 \item Monad instance is the standard implementation for a continuation 
-monad \TODO{cite for continuation monad}
+monad
 \item This is necessary, because we want to support different threading styles 
 (discussed in chapter \ref{sec:threading-models})
 \item For now think of it as producing a sequence/list of abstract instructions: \JSI

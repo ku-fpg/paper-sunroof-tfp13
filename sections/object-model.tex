@@ -80,7 +80,7 @@ Svenningsson \cite{Svenningsson:12:CombiningEmbedding}.
 
 Table \ref{tab:sunroof-types} gives a summary of the 
 most prominent types in Sunroof. Some types like \Src{JSFunction} also involve 
-phantom types to give more type safety \TODO{cite phantom types}.
+phantom types to give more type safety \cite{Cheney:03:FirstClassPhantomTypes}.
 The requisite \Src{SunroofArgument} is needed to permit values
 to be function arguments. A detailed explanation is given in 
 Section \ref{sec:functions-continuations}.
@@ -144,7 +144,7 @@ class SunroofValue a where
   js :: (Sunroof (ValueOf a)) => a -> ValueOf a
 \end{Code}
 It provides the corresponding Sunroof value through the type function
-\Src{ValueOf} \TODO{cite type functions} and offers the function 
+\Src{ValueOf} \cite{Chakravarty:05:AssociatedTypeSynonyms} and offers the function 
 \Src{js} to convert to that type. By design \Src{SunroofValue} does
 only provide instances for values that can be converted in a pure
 manner. Certain primitive values in JavaScript are referential 
