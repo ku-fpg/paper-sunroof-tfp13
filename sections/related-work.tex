@@ -25,11 +25,17 @@ attempted before.
 Deep embeddings of monads based on data structures have been used before
 in Unimo \cite{Lin:06:Unimo} and Operational \cite{Apfelmus:10:Operational,Hackage:10:Operational}. 
 The specific approach Sunroof takes 
-by using GADTs has been discussed by Sculthrope in detail 
-\cite{Sculthorpe:13:ConstrainedMonads}.
+by using GADTs has been discussed by 
+Sculthrope et al. \cite{Sculthorpe:13:ConstrainedMonads} 
+in detail.
 
 The Sunroof server does not have the aim to provide a full featured 
-web framework, like HAppS, Snap or Yesod do.
+web framework, like HAppS, Snap or Yesod do. It only provides 
+the infrastructure to communicate with the currently calling website
+through the Kansas comet \cite{project:kansas-comet} 
+push mechanism \cite{pattern:push}. Although all of the
+frameworks mentioned above would be able to implement this technique
+to our knowledge none of them has yet.
 
 
 -----------
