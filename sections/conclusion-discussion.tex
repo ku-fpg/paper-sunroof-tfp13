@@ -1,6 +1,20 @@
  
-\section{Conclusion / Discussion}
+\section{Conclusion}
 
-
-
-
+We can see that Sunroof took the key idea of monad reification and
+sucessfully created the \JS-monad to describe computations
+in JavaScript. This work was mainly already done by Farmer and
+Gill \cite{Farmer:12:WebDSLs} and has been streamlined during the 
+further development of Sunroof. Through adding the concept 
+of \Src{JSFunction} and \Src{JSContinuation} there now is a connections between
+functions as values in the JavaScript and the Sunroof language space 
+(Figure \ref{fig:func-cont}). It is possible to go back and forth between 
+both worlds. Combining both concepts, functions and the \JS-monad,
+we were able to create a second implementation of the monad. This
+time based on the direct translation of continuations from Haskell
+to JavaScript. It enabled us to build a blocking threading model
+on top of JavaScript that resembles the model already known from Haskell.
+Based on this model and the provided abstraction over continuations
+we can use synchronization primitives like \Src{forkJS} or \Src{yield}.
+Higher level abstractions like \Src{JSMVar} and \Src{JSChan} are also
+available. 
