@@ -1,17 +1,32 @@
  
 \section{Related Work}
 
-
-
 There have been several attempts to translate Haskell to JavaScript.
 Prominent ones are the compiler backends for 
 UHC \cite{Stutterheim:12:ImprovingUHCJavaScriptBackend} and 
-GHCJS \cite{Nazarov:GHCJS}. Also 
-a number of EDSLs to generate JavaScript inside of Haskell 
-exists
-\TODO{JMacro, Yesod plugin, search for other deep embeddings}.
+GHCJS \cite{project:ghcjs}. There are also projects like Fay \cite{project:fay} 
+that compile subsets of Haskell to JavaScript or JMacro \cite{project:jmacro}
+which use quasiquotation \cite{Mainland:07:QuasiquotingHaskell} to embed 
+a custom tailored language into Haskell code.
 
-\TODO{Unimo/operational deep embedding of monad?}
+At the same time there are also project, like 
+CoffeeScript \cite{project:coffeescript} or LiveScript \cite{project:livescript},
+to build custom languages 
+that are very similar to JavaScript, but add convenient syntax and
+support for missing features.
+
+Our approach to cooperative concurrency through continuations in JavaScript has
+has been used before 
+\cite{Cooper:07:LinksWebProgrammingTiers,Predescu:02:CocoonContinuationBasedControlFlow}.
+To our knowledge the attempt to create a direct connection
+between Haskell and JavaScript continuations has not been 
+attempted before.
+
+Deep embeddings of monads based on data structures have been used before
+in Unimo \cite{Lin:06:Unimo} and Operational \cite{Apfelmus:10:Operational,Hackage:10:Operational}. 
+The specific approach Sunroof takes 
+by using GADTs has been discussed by Sculthrope in detail 
+\cite{Sculthorpe:13:ConstrainedMonads}.
 
 The Sunroof server does not have the aim to provide a full featured 
 web framework, like HAppS, Snap or Yesod do.
@@ -21,11 +36,7 @@ web framework, like HAppS, Snap or Yesod do.
 
 Timberlang
 
-Continuations and there use for concurrency
-
 Talk about Active, but not in any details.
-
-To Javascript in Javascript (CoffeeScript).
 
 
 Node.js / asm.js ???
