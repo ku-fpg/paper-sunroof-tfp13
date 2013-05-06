@@ -105,7 +105,20 @@ After we have compiled both branches we compile the rest and
 construct the list of statements in a canonical fashion.
 
 This works perfectly when we work in the atomic threading model,
-but it causes problems when inside the blocking model. To 
+but it causes problems when inside the blocking model. 
+What goes wrong? In the blocking model either branch 
+may involve continuations inside of it. As each 
+continuation describes the rest of the computation from
+the point it is invoked, it also captures the 
+assignments of the result values at the end of the
+current branch. If the assignments are captured inside a continuations
+the assigned variables are not visible outside of the 
+it. So they are not visible after the branch
+statement and the code inside of \Src{rest} refers to them
+although they are not defined.
+
+\begin{comment}
+To 
 see what can go wrong lets look at a small example.
 \begin{Code}
 branchFail = do
@@ -147,8 +160,9 @@ captured the assignments that have to be done at the end of either branch
 to pass on the result value. But the assignments are hidden inside 
 the scope of the continuations and, because of that, \Src{v0} is 
 not defined when \Src{CallAfterIf} is applied to it.
+\end{comment}
 
-So how can we fix this? If we are working within the blocking 
+How can we fix this? If we are working within the blocking 
 threading model, we have to handle branches differently.
 \begin{Code}
 eval (JS_Branch b c1 c2 :>>= k) = 
@@ -178,7 +192,9 @@ to avoid the duplication of the continuation in the produced sources.
 The key difference lays in the call to \Src{extractProgramJS}. Instead
 of creating bindings for each returned value we apply the produced
 continuation to the returned values and like that make them visible for
-the ongoing computation, even if we capture our current continuation. 
+the ongoing computation.
+\begin{comment}
+, even if we capture our current continuation. 
 Now the produced code looks like this:
 \begin{Code}
 var v11 = function() {
@@ -198,6 +214,7 @@ v11();
 We can see that the function call after the branch is captured by the 
 continuation \Src{v2} and that continuation is called with the 
 return values as parameters inside each branch.
+\end{comment}
 
 Of course, we could compile every branch with the 
 continuation variant. But that would unnecessarily 
