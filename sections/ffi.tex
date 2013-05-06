@@ -1,0 +1,83 @@
+ 
+\section{Foreign Function Interface}
+\label{sec:ffi}
+
+As interface to produce JavaScript Sunroof also offers a 
+foreign function interface, which enables us to easily 
+access predefined JavaScript. The Sunroof FFI consists of three core functions.
+\begin{Code}
+fun    :: (SunroofArgument a, Sunroof r) 
+       => String -> JSFunction a r
+object :: String -> JSObject
+new    :: (SunroofArgument a) 
+       => String a -> JS t JSObject
+invoke :: (SunroofArgument a, Sunroof o, Sunroof r) 
+       => String -> a -> o -> JS t r
+\end{Code}
+\Src{fun} is used to create Sunroof functions from their names in JavaScript.
+This can happen in two ways. Either to call a function in line or to 
+create a real binding for that function in Sunroof. As an example 
+the \Src{alert} function can be called in line through \Src{fun "alert" \$\$ "text"}
+or you can provide a Sunroof binding in form of a Haskell function for it.
+\begin{Code}
+alert :: JSString -> JS t ()
+alert s = fun "alert" $$ s
+\end{Code}
+
+Objects can be bound through the \Src{object} function, e.g.
+the \Src{document} object is bound through \Src{object "document"}.
+Constructors can be called using \Src{new}. To create a new plain
+object you would call \Src{new "Object" ()}.
+
+To call methods of objects Sunroof provides \Src{invoke}. Again, this 
+can be used in line and to create a real binding. A inline 
+use of this to produce \Src{document{\linebreak}.getElementById("id")} would look like this: 
+\begin{Code}
+object "document" # invoke "getElementById" "id"
+\end{Code}
+Where \Src{\#} is just a flipped function application. To provide a binding 
+to the \Src{getElementById} method one can write:
+\begin{Code}
+getElementById :: JSString -> JSObject -> JS t JSObject
+getElementById s = invoke "getElementById" s
+\end{Code}
+Providing actual bindings instead of using the FFI in line ensures that
+everything is typed correctly and avoids ambiguities that need 
+to be resolved through large type annotations inside
+of Sunroof code.
+
+The current release of Sunroof already provides bindings for most of the 
+core browser API, the HTML5 canvas element and some of the JQuery API.
+
+\begin{comment}
+Table \ref{tab:ffi} gives an overview of
+how Sunroof's FFI can be used. 
+\begin{table}
+\begin{center}
+\begin{tabular}{l@{\quad}p{7cm}}
+  \hline\rule{0pt}{12pt}%
+  JavaScript & 
+  Sunroof \\ \hline\rule{0pt}{12pt}%
+%
+  \Src{alert("Test");} & 
+  \Src{fun "alert" \$\$ "Test"} \\[2pt]
+%
+  \Src{alert} as a Sunroof function & 
+  \Src{alert :: JSFunction JSString ()\newline alert = fun "alert"} \\[2pt]
+%
+  \Src{alert} as a Haskell function & 
+  \Src{alert :: JSString -> JS t ()\newline alert s = fun "alert" \$\$ s} \\[2pt]
+%
+  \Src{document.getElementById("id");} & 
+  \Src{object "document" \# invoke "getElementById" "id"} \\[2pt]
+%
+  \Src{getElementById} as method & 
+  \Src{getElementById :: JSString -> JSObject -> JS t JSObject\newline
+       getElementById s = invoke "getElementById" s} \\[2pt]
+\hline
+\end{tabular}
+\end{center}
+\caption{JavaScript expressed through the Sunroof FFI.}
+\label{tab:ffi}
+\end{table} 
+\end{comment}
