@@ -65,10 +65,11 @@ Using a deep embedding gives opportunity
 for optimizations when producing the actual JavaScript.
 At the same time Sunroof offers an interface that is 
 close to actual JavaScript making it easy to use.
+This interface can be extended easily through
+the foreign function interface Sunroof provides.
 We model the imperative nature of JavaScript
 using the transitional functional programming 
 mechanism to be imperative, a monad~\cite{Moggi:91:ComputationMonads}.
-\TODO{Talk about foreign function interface}
 
 % The scope of this paper is to show how Sunroof achieves these goals.
 % It will cover the most important parts of Sunroof and how they are 
@@ -89,8 +90,8 @@ computations.
 \item
 Section \ref{sec:object-model} will discuss how we annotate 
 the JavaScript objects in Sunroof with types using wrappers 
-and offer the possibility 
-to add custom types later on.
+and offer the possibility to add custom types later on.
+It will also show how Sunroof's FFI works.
 \item
 The special role of functions and continuations will
 be treated in Section \ref{sec:functions-continuations}. 
