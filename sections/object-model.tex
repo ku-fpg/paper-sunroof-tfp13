@@ -42,9 +42,6 @@ system to type JavaScript needs to be extensible.
 To solve this problem we provide a basic \Src{Expr}ession 
 language that has no associated type information to construct 
 JavaScript expressions.
-% We use a white lie instead of the actual fixpoint Expr type.
-% We only need that type for expression sharing, which 
-% is not essential for the scope of this paper.
 \begin{Code}
 data Expr 
   = Lit String -- Precompiled (atomic) JavaScript literal
@@ -52,7 +49,11 @@ data Expr
   | Apply expr [expr]    -- Function application
   ...
 \end{Code}
-This core expression type is then wrapped to represent a more specific 
+This core expression type\footnote{
+Since observable sharing \TODO{Cite?} is used to optimize compilation
+of expressions, the actual expressions type is a bit more 
+complicated and involves a fixpoint \TODO{Cite?}.} 
+is then wrapped to represent a more specific 
 type. Each of these wrappers implements the \Src{Sunroof} type 
 class.
 \begin{Code}
@@ -61,8 +62,10 @@ class SunroofArgument a => Sunroof a where
   unbox :: a -> Expr
   ...
 \end{Code}
-\TODO{Maybe hide SunroofArgument at this point.}
 It marks that these types represent possible values in JavaScript.
+The \Src{{\linebreak}SunroofArgument} prerequisite is there, because 
+every Sunroof value can be argument of a function 
+(Section \ref{sec:functions-continuations}).
 An example for this is the \Src{JSString} data type.
 \begin{Code}
 data JSString = JSString Expr
@@ -77,6 +80,8 @@ Our example type \Src{JSString} has a \Src{Monoid} and a
 wrappers, e.g. \Src{JSBool} or \Src{JSNumber}.
 This approach was first introduced by 
 Svenningsson \cite{Svenningsson:12:CombiningEmbedding}.
+The smooth embedding of booleans and numbers is done through
+the Boolean package \cite{project:boolean}.
 
 Table \ref{tab:sunroof-types} gives a summary of the 
 most prominent types in Sunroof. Some types like \Src{JSFunction} also involve 
