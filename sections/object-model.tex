@@ -63,10 +63,13 @@ class SunroofArgument a => Sunroof a where
   ...
 \end{Code}
 It marks that these types represent possible values in JavaScript.
-The \Src{{\linebreak}SunroofArgument} prerequisite is there, because 
-every Sunroof value can be argument of a function 
-(Section \ref{sec:functions-continuations}).
-An example for this is the \Src{JSString} data type.
+The \Src{SunroofArgument} class permits a type 
+to be function argument (Section \ref{sec:functions-continuations}).
+Since every Sunroof value can be a function argument it is a 
+prerequisite.
+
+An example of a Sunroof type is \Src{JSString}, the representation
+of JavaScript strings.
 \begin{Code}
 data JSString = JSString Expr
 instance Sunroof JSString where
@@ -86,9 +89,6 @@ the Boolean package \cite{project:boolean}.
 Table \ref{tab:sunroof-types} gives a summary of the 
 most prominent types in Sunroof. Some types like \Src{JSFunction} also involve 
 phantom types to give more type safety \cite{Cheney:03:FirstClassPhantomTypes}.
-The requisite \Src{SunroofArgument} is needed to permit values
-to be function arguments. A detailed explanation is given in 
-Section \ref{sec:functions-continuations}.
 \begin{table}
 \begin{center}
 \begin{tabular}{r@{\quad}l@{\quad}l@{\quad}c}
