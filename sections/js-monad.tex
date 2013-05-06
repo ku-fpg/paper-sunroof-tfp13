@@ -8,7 +8,7 @@ their side-effects. In that sense it is almost
 exact analog for the Haskell \IO-monad, except there
 is an extra phantom argument~\cite{Leijen:99:Phantom} 
 that decides which threading model to use, as
-discussed in Section \ref{sec:threading-models}.
+discussed later in Section \ref{sec:threading-models}.
 For now we can ignore this extra argument.
 
 The basic idea is that each binding becomes an
@@ -36,14 +36,14 @@ it turns out that a specific form of normalization allows
 the ``\Src{a}'' type to be constrained and the bind to 
 be an instance of the standard monad class~\cite{Sculthorpe:13:ConstrainedMonads}.
 Through this keyhole of {\em monadic reification},
-the entire Sunroof language is realized. The 
-normalization is done through the Operational package 
-\cite{Apfelmus:10:Operational,Hackage:10:Operational}.
+the entire Sunroof language is realized. 
 
+The normalization is done through the Operational package 
+\cite{Apfelmus:10:Operational,Hackage:10:Operational}.
 It provides the \Src{Program} data type as a monad that
 can be equipped with custom primitives or effects.
-We represent these primitives with the \JSI~instruction 
-(Figure \ref{fig:jsi-definition}) type. It represents the 
+We represent these primitives with the \JSI nstruction 
+type displayed in Figure \ref{fig:jsi-definition}. It represents the 
 abstract JavaScript instructions that are sequenced by the \Src{Program}
 monad.
 \begin{figure}
@@ -55,8 +55,7 @@ data JSI :: T -> * -> * where
               => (a -> JS A b) -> JSI t (JSFunction a b)
   JS_Branch   :: (SunroofThread t, SunroofArgument a, Sunroof bool) 
               => bool -> JS t a -> JS t a  -> JSI t a
-  JS_Assign   :: (Sunroof a) 
-              => JSSelector a -> a -> JSObject -> JSI t ()
+  JS_Assign_  :: (Sunroof a) => Id -> a -> JSI t ()
   ...
 \end{Code}
 \caption{Parts of the \JSI nstruction data type.}
@@ -68,7 +67,7 @@ the threading model and can be ignored up to Section \ref{sec:threading-models}.
 Figure \ref{fig:jsi-definition} shows some of the instructions
 in \JSI.
 \Src{JS\_Invoke} calls a function, that has been created with \Src{JS\_Function}.
-Branches are represented with \Src{JS\_Branch}. Assignments to variable
+Branches are represented with \Src{JS\_Branch}. Assignments to a variable
 are represented by \Src{JS\_Assign\_}.
 
 If it was not for our promise to provide an alternative 
@@ -85,12 +84,9 @@ data JS :: T -> * -> * where
 \end{Code}
 The monad instance used is the standard implementation of 
 a continuation monad 
-\cite{Wadler:90:ComprehendingMonads,Wadler:94:MonadsComposableContinuations} 
+\cite{Wadler:90:ComprehendingMonads,Wadler:94:MonadsComposableContinuations}.
 \TODO{Both of these cites do not seem right, but they were the best I could find.
-I can't find the paper from Oleg and Simon you talked about}.
-
-
-\TODO{Maybe put this section after the section about the object model.}
+I can't find the paper from Oleg and Simon you talked about}
 
 \begin{comment}
 \subsubsection{RESOURCES - REMOVE WHEN FINISHED}

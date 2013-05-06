@@ -44,7 +44,7 @@ liftJS :: Sunroof a => JS A a -> JS t a
 Each time a computation is suspended we register our current
 continuation as a callback to resume later. Like this other 
 threads (registered continuations) get a chance to run.
-Of course, this model depends on cooperation between the thread,
+Of course, this model depends on cooperation between the threads,
 because a thread that does terminate or suspend itself at some
 point, will keep others from running.
 

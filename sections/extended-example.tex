@@ -52,7 +52,7 @@ essentially equal data structures on each side has to be written,
 as wall as representation of Haskell structures in Sunroof. An
 essential part of our example deals with conversion and encoding of
 data in JavaScript. About 85 lines are devoted to this task.
-But there is a great potential in automatically generating this
+But there is great potential in automatically generating this
 kind of Sunroof infrastructure using techniques like template Haskell,
 since most of the written code is systematic.
 
@@ -71,13 +71,14 @@ both languages. Code for client and server side can be written in one place
 instead of being separated. Like this we do not have to worry about 
 either of both sides getting out of sync with the other as much, since
 the type system helps us. We also noticed that we have to write
-an considerable amount of boilerplate code to communicate data that goes beyond 
-the basic data types Sunroof already support. But this process can automatized.
+a considerable amount of boilerplate code to communicate data that goes beyond 
+the basic data types Sunroof already supports. But this process can automatized.
 The transliteration of actual JavaScript into Sunroof has a overhead and
 tends to be verbose. This problem can be hidden away through libraries building
 on Sunroof. So the main gain is a solid and robust foundation to build
-on more advanced systems that want to utilize the browser. Also basic
-communication between server and browser was simplified.
+on more advanced systems that want to utilize the browser. Also Sunroof 
+offers a convenient foreign function interface to execute generated 
+JavaScript on the fly.
 
 \TODO{This section turned out in weird way. I am not satisfied.}
 

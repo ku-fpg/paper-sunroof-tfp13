@@ -20,15 +20,15 @@ syncJS  :: SunroofResult a
 asyncJS :: SunroofEngine -> JS t () -> IO ()
 \end{Code}
 \Src{sunroofServer} starts the server.
-It will the given callback function (\Src{SunroofApp}) 
+It will call the given callback function
 for each request to the server.
 \Src{syncJS} and \Src{asyncJS} allow the server
 to remotely execute monadic JavaScript from inside the 
 requesting website.
 \Src{asyncJS} executes JavaScript asynchronously without 
-waiting for a return value. In contract to that 
+waiting for a return value. In contrast to that 
 \Src{syncJS} waits until the execution is complete and
-then sends the result back to the server and converts if 
+then sends the result back to the server and converts it 
 into a Haskell value that can be processed further. 
 Values that can be returned from a synchronous execution 
 have to implement the \Src{SunroofResult} class. It contains a type-function
@@ -40,7 +40,7 @@ type.
 Besides these basic functions it also provides the abstract 
 concepts of \Src{Downlink}s and \Src{Uplink}s. They are 
 channels for sending data either from the server or to
-the server direction.
+the server.
 
 \begin{comment}
 \subsubsection{RESOURCES - REMOVE WHEN FINISHED}

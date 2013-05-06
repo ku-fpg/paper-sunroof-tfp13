@@ -12,8 +12,8 @@ in the Browser in Haskell.
 
 % Simon: State your contributions
 Sunroofs was developed to tackle this goal. 
-when generating JavaScript. Lets look at the small example
-in figure \ref{fig:code-example} to see how it achieves this goal.
+Lets look at the small example
+in Figure \ref{fig:code-example} to see how it achieves this goal.
 
 % Simon: An illustrative example
 \begin{figure}[h]
@@ -55,19 +55,19 @@ to Haskell's. Like this programmers can reuse abstractions
 well known from Haskell when writing JavaScript.
 We also introduces types that support us when 
 writing code and reveal common mistakes. The functions
-in figure \ref{fig:code-example} have the following signatures:
+in Figure \ref{fig:code-example} have the following signatures:
 \begin{Code}
 prompt :: JSString -> JSString -> JS t JSObject
 alert  :: JSString -> JS t ()
 \end{Code}
 This improves the quality of written code.
-Using a deep embedding like this gives opportunity 
+Using a deep embedding gives opportunity 
 for optimizations when producing the actual JavaScript.
 At the same time Sunroof offers an interface that is 
 close to actual JavaScript making it easy to use.
 We model the imperative nature of JavaScript
 using the transitional functional programming 
-mechanism for being imperative, a monad~\cite{Moggi:91:ComputationMonads}.
+mechanism to be imperative, a monad~\cite{Moggi:91:ComputationMonads}.
 \TODO{Talk about foreign function interface}
 
 % The scope of this paper is to show how Sunroof achieves these goals.
@@ -111,10 +111,12 @@ As Sunroof is quite useful in combination with a server \cite{Farmer:12:WebDSLs}
 Section \ref{sec:server} will explain how we can utilize it 
 to interleave Haskell and JavaScript computations as needed.
 \item
-Section \ref{sec:extended-example} will covers a small application 
-written in Sunroof. It shows how Sunroof can be used to utilize the 
-display capabilities of a browser, while still using Haskell when needed
-and where it is strong.
+Section \ref{sec:extended-example} will cover a small application 
+written in Sunroof. 
+It surveys how usable Sunroof is in the context of application development. 
+%It shows how Sunroof can be used to utilize the 
+%display capabilities of a browser, while still using Haskell when needed
+%and where it is strong.
 \end{itemize}
 
 \begin{comment}

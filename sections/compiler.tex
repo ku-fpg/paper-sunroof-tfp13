@@ -5,7 +5,7 @@
 Given the language, and monadic-reification, how do we compile this language?
 Through the \JS-monad we produce a \Src{Program (JSI t) ()} instance. We 
 translate such a program into a list of statements (\Src{Stmt}) by matching over 
-the \JSI constructors.
+the \JSI~constructors.
 \begin{Code}
 data Stmt 
   = AssignStmt Rhs Expr       -- Assignment
@@ -34,25 +34,21 @@ compile p = eval (view p)
 \end{Code}
 The compilation monad \Src{CompM} provides us with 
 the compiler options and a supply of fresh integer
-values to generate new variable when needed.
+values to generate new variables when needed.
 
 To get a feel for how the compiler works, lets take a look at 
-the case for \Src{JS\_Assign}. Recall its signature from 
+the case for \Src{JS\_Assign\_}. Recall its signature from 
 Figure \ref{fig:jsi-definition}:
 \begin{Code}
-JS_Assign :: Sunroof a => JSSelector a -> a -> JSObject -> JSI t ()
+JS_Assign_ :: (Sunroof a) => Id -> a -> JSI t ()
 \end{Code}
-This instruction assigns a new value \Src{a} to the attribute
-selected by the \Src{JSSelector a} of the \Src{JSObject}.
+This instruction assigns the value \Src{a} to the 
+variable given by the \Src{Id}, which is just a synonym for \Src{String}.
 \begin{Code}
-eval (JS_Assign sel a obj :>>= k) = do
-  (stmts0,val) <- compileExpr (unbox a)
-  stmts1 <- compile (k ())
-  return (  stmts0 
-         ++ [ AssignStmt (DotRhs (unbox obj) 
-                                 (unboxSelector sel)) 
-                         val ] 
-         ++ stmts1 )
+eval (JS_Assign_ v a :>>= k) = do
+      (stmts0,val) <- compileExpr (unbox a)
+      stmts1       <- compile (k ())
+      return ( stmts0 ++ [AssignStmt (VarRhs v) val] ++ stmts1)
 \end{Code}
 First we compile the expression that will be assigned. That
 produces a series of statements to compute the expression and 
@@ -61,14 +57,16 @@ Then we compile the rest of the Sunroof computation \Src{k}. Since
 the assignment does not produce a interesting value (it has type \Src{JSI t ()}),
 we can pass unit to \Src{k}.
 We return the concatenation of the produced statements with a statement 
-for the assignment in between. The \Src{unbox} functions reveal the 
-\Src{Expr} inside of our Sunroof wrapper types.
+for the assignment in between. 
 
-\TODO{Talk about translation of function}
+%The \Src{unbox} functions reveal the 
+%\Src{Expr} inside of our Sunroof wrapper types.
+
+\TODO{Talk about translation of function. Space does not really permit this}
 
 Lets now look at a more interesting part of the compiler: The translation of 
 branches.
-Recall the \JSI constructor for branches from Figure \ref{fig:jsi-definition}.
+Recall the \JSI~constructor for branches from Figure \ref{fig:jsi-definition}.
 \begin{Code}
 JS_Branch :: (SunroofThread t, SunroofArgument a, Sunroof bool) 
           => bool -> JS t a -> JS t a  -> JSI t a
@@ -163,8 +161,10 @@ eval (JS_Branch b c1 c2 :>>= k) =
     A -> compileBranch_A b c1 c2 k
     B -> compileBranch_B b c1 c2 k
 \end{Code}
-\Src{evalStyle} is provided by the class \Src{SunroofThread} and
-provides the threading model currently used. The call to \Src{compileBranch\_A}
+%\Src{evalStyle} is provided by the class \Src{SunroofThread} and
+%provides the threading model currently used. 
+%%% KNOWN FROM PREVIOUS SECTION
+The call to \Src{compileBranch\_A}
 executes our naive definition from Figure \ref{fig:branch-translation}.
 \begin{Code}
 compileBranch_B b c1 c2 k = do
@@ -216,9 +216,19 @@ sunroofCompileJSA :: Sunroof a
                   => CompilerOpts -> String -> JS A a  -> IO String
 sunroofCompileJSB :: CompilerOpts -> String -> JS B () -> IO String
 \end{Code}
-Not that the compiler of the blocking threading model only
+Notice, that the compiler of the blocking threading model only
 excepts computations that return unit. This is due to their 
-continuation based nature.
+continuation based nature. The string argument provides 
+the name of the variable to bind the computation result to.
+
+
+
+
+
+
+
+
+
 
 \begin{comment}
 Given the language, and monadic-reification, how do we compile this language?
