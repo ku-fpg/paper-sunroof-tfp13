@@ -64,18 +64,96 @@
         </section>
 
         <section>
-          <h2>What is Sunroof?</h2>
-          <p>
-            TODO
-          </p>
-          <pre><code class="haskell" style="font-size: 18px; margin-top: 20px;">
-jsCode :: JS t ()
-jsCode = do
-  name &lt;- prompt "Your name?"
-  alert ("Your name: " &lt;&gt; name)
-          </code></pre>
+          <section>
+            <h2>What is Sunroof?</h2>
+            <ul>
+              <li>Foreign Function Interface</li>
+              <li>Platform for hybrid Haskell/JavaScript applications</li>
+            </ul>
+          </section>
+          <section>
+            <h2>Features</h2>
+            <ul>
+              <li>Types</li>
+              <li>Haskell-style (cooperative) concurrency</li>
+              <li>Simple, ready to use server</li>
+            </ul>
+          </section>
+          <section>
+            <h2>Example</h2>
+            <p>
+              Example, show types
+            </p>
+            <pre><code class="haskell" style="font-size: 18px; margin-top: 20px;">
+  jsCode :: JS t ()
+  jsCode = do
+    name &lt;- prompt "Your name?"
+    alert ("Your name: " &lt;&gt; name)
+            </code></pre>
+          </section>
+          <section>
+            <h2>Structure</h2>
+            <p>Figure: Structure of Sunroof</p>
+          </section>
         </section>
-
+        
+        <section>
+          <h2>JS-Monad</h2>
+          <p>
+            Problem / Solution
+          </p>
+        </section>
+        
+        <section>
+          <h2>Object Model</h2>
+          <p>
+            Expression type / Sunroof class / Table of Types / FFI
+          </p>
+        </section>
+        
+        <section>
+          <h2>Functions &amp; Continuations</h2>
+          <p>
+            Signatures / callcc / Connection Figure
+          </p>
+        </section>
+        
+        <section>
+          <h2>Threading Models</h2>
+          <p>
+            Describe A / Describe B / Signature Primitives and MVar/Chan
+          </p>
+        </section>
+        
+        <section>
+          <h2>Compiler</h2>
+          <p>
+            Statment Datetype is Target / Translation of Branches
+          </p>
+        </section>
+        
+        <section>
+          <h2>Server</h2>
+          <p>
+            Interface / Short description
+          </p>
+        </section>
+        
+        <section>
+          <h2>Case Study</h2>
+          <p>
+            Calculator Image / Figure Structure / Statistics + Downsides
+          </p>
+        </section>
+        
+        <section>
+          <h2>Conclusion / Related Work / Acknowledgments</h2>
+          <p>
+            Conclude
+            Do we really need rel. work here?
+            Thanks to Conal Elliott.
+          </p>
+        </section>
       </div>
 
     </div>
