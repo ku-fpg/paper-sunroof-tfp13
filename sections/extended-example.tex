@@ -14,7 +14,7 @@ will be used to implement this JavaScript/Haskell hybrid.
 {fig:example-application}%
 {figures/example-application.png}%
 {The example application running on the Sunroof server.}%
-{scale=0.76}
+{scale=0.6}
 
 The classical approach to develop an application like this would have 
 been to write a server that provides a RESTful interface and replies 
@@ -41,44 +41,55 @@ This also shows how Sunroof blurs the border between the server
 and client side. You are not restricted by an interface or language 
 barrier. If you need the client to do something you can just 
 send arbitrary Sunroof code to execute in the client.
-Setting up the client-server response loop, which shuffles 
-new input to the server and executes the response in the client
-took about 25 lines of Haskell.
 
-A problem that still arises is data conversion. Pure Haskell data types
-can not be handled in Sunroof and vice versa, because of the language
-boundary between JavaScript and Haskell. So code to convert between two 
-essentially equal data structures on each side has to be written,
-as wall as representation of Haskell structures in Sunroof. An
-essential part of our example deals with conversion and encoding of
-data in JavaScript. About 85 lines are devoted to this task.
-But there is great potential in automatically generating this
-kind of Sunroof infrastructure using techniques like template Haskell,
-since most of the written code is systematic.
+Lets look into a few statistics (Table \ref{tab:example-statistics}) 
+about how much code it took to write which parts of the client.
 
-The client code for displaying the results is basically a 
-transliteration of the JavaScript that one would write for this 
-purpose. It makes up main part of the application, about 190 lines.
-The transliteration going on here is not very appealing, but can 
-be automated through higher level libraries and interfaces, which
-Sunroof is intended to deliver a foundation for.
+\begin{table}
+\begin{center}
+\begin{tabular}{l@{\quad}rr}
+\hline\rule{0pt}{12pt}%
+Part of Application & Lines of Code & Percentage \\[2pt]
+\hline\rule{0pt}{12pt}%
+Response loop & 25 & 6.5\% \\[2pt]
+Data conversion & 85 & 22.0\% \\[2pt]
+Rendering & 190 & 49.5\% \\[2pt]
+Parsing and Interpretation & 85 & 22.0\% \\[2pt]
+\hline
+\end{tabular}
+\end{center}
+\caption{Lines of code needed for the example.}
+\label{tab:example-statistics}
+\end{table} 
+
+The client-server response loop shuffles new input to the server 
+and executes the response in the client.
+
+Data conversion is needed, because pure Haskell data types
+can not be handled in Sunroof and vice versa. There still
+is a language boundary between JavaScript and Haskell. 
+Code to convert between two essentially equal data structures on 
+each side has to be written, as wall as representation of Haskell 
+structures in Sunroof. But there is great potential in automatically 
+generating this code using techniques like template Haskell.
+
+The code for displaying the results is basically a 
+transliteration of the JavaScript that you would write for this 
+purpose.
+The transliteration going on here is not very appealing. 
+In future this code can be generated through higher level 
+libraries. Sunroof is intended to deliver a foundation for
+this purpose.
 
 The rest of our code to parse the arithmetic expression and calculate 
-result takes up about 85 lines. 
+result is classical Haskell code. 
 
-What did we gain? First of all, in a sense we blurred the line between
-both languages. Code for client and server side can be written in one place
-instead of being separated. Like this we do not have to worry about 
-either of both sides getting out of sync with the other as much, since
-the type system helps us. We also noticed that we have to write
-a considerable amount of boilerplate code to communicate data that goes beyond 
-the basic data types Sunroof already supports. But this process can automatized.
+So right now we have a lot of boilerplate code for data conversion
+that has potential to be generated.
 The transliteration of actual JavaScript into Sunroof has a overhead and
-tends to be verbose. This problem can be hidden away through libraries building
-on Sunroof. So the main gain is a solid and robust foundation to build
-on more advanced systems that want to utilize the browser. Also Sunroof 
-offers a convenient foreign function interface to execute generated 
-JavaScript on the fly.
-
-\TODO{This section turned out in weird way. I am not satisfied.}
+tends to be verbose. This problem can be hidden away through 
+higher level libraries using Sunroof as a backend. 
+We can see that Sunroof has the potential to us a low level interface
+to the browsers capabilities. It offers a solid and robust foundation to build
+on more advanced systems that want to utilize the browser.
 
