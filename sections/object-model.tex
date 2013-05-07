@@ -2,44 +2,17 @@
 \section{JavaScript Object Model}
 \label{sec:object-model}
 
-\begin{comment}
-JavaScript is object based. It provides various objects,
-including numbers, booleans, maps, and others. We
-provide in Sunroof about a dozen common object,
-including \Src{JSObject} (the generic object type), \Src{JSNumber}
-(floating point numbers), \Src{JSCanvas} (HTML5 canvas type) 
-and others. A simple
-casting function is provided when the type-system
-needs to be overwritten. Along with each of these types,
-we provide typed methods.
-\begin{Code}
- jsDrawBox :: JSObject -> JS t ()
- jsDrawBox document = do
-     foo <- document # getElementById("foo")
-     cxt <- foo # getContext("2d")     cxt # drawRect (0,0,100,100)
-\end{Code}
-Here, \Src{\#} is a reverse apply, so the types
-of the function in the above example are
-\begin{Code}
-(#) :: o -> (o -> JS t a) -> JS t a
-getElementById :: JSString -> JSObject -> JS t JSContext
-getContext :: JSString -> JSContext -> JS t JSCanvas
-drawRect :: (JSNumber,JSNumber,JSNumber,JSNumber) -> JSCanvas -> JS t ()
-\end{Code}        
-From experience, even though we are targeting
-an untyped language, the type system gets in the
-way less than we expected.
-\end{comment}
-
-As JavaScript is not statically typed, one goal
-of Sunroof is to use Haskell's type system to
-increase the correctness of the written JavaScript.
-At the same time we have the problem that we can not characterize 
+One goal of Sunroof is to use Haskell's type system to
+increase the correctness of expressed JavaScript.
+At the same time we can not characterize 
 all different types of objects in JavaScript, since 
-users can write their own objects. This means our 
+users can create their own objects. Thus our 
 system to type JavaScript needs to be extensible.
 
-To solve this problem we provide a basic \Src{Expr}ession 
+Our solution is to provide a basic \Src{Expr}ession\footnote{
+Since observable sharing \TODO{Cite?} is used to optimize compilation
+of expressions, the actual expressions type is a bit more 
+complicated and involves a fixpoint \TODO{Cite?}.}
 language that has no associated type information to construct 
 JavaScript expressions.
 \begin{Code}
@@ -49,10 +22,7 @@ data Expr
   | Apply expr [expr]    -- Function application
   ...
 \end{Code}
-This core expression type\footnote{
-Since observable sharing \TODO{Cite?} is used to optimize compilation
-of expressions, the actual expressions type is a bit more 
-complicated and involves a fixpoint \TODO{Cite?}.} 
+This core expression type 
 is then wrapped to represent a more specific 
 type. Each of these wrappers implements the \Src{Sunroof} type 
 class.
@@ -62,13 +32,11 @@ class SunroofArgument a => Sunroof a where
   unbox :: a -> Expr
   ...
 \end{Code}
-It marks that these types represent possible values in JavaScript.
-The \Src{SunroofArgument} class permits a type 
-to be function argument (Section \ref{sec:functions-continuations}).
-Since every Sunroof value can be a function argument it is a 
-prerequisite.
+It marks these types as possible values in JavaScript.
+The \Src{SunroofArgument} prerequisite permits them 
+to be function arguments (Section \ref{sec:functions-continuations}).
 
-An example of a Sunroof type is \Src{JSString}, the representation
+An example of is \Src{JSString}, the representation
 of JavaScript strings.
 \begin{Code}
 data JSString = JSString Expr
@@ -76,18 +44,16 @@ instance Sunroof JSString where
   box = JSString
   unbox (JSString e) = e
 \end{Code}
-But what do we gain by adding a wrapper? We can
+But what do we gain through a wrapper? We can
 provide specific functionality for each distinct type.
 Our example type \Src{JSString} has a \Src{Monoid} and a 
 \Src{IsString} instance that are not provided for other 
 wrappers, e.g. \Src{JSBool} or \Src{JSNumber}.
 This approach was first introduced by 
 Svenningsson \cite{Svenningsson:12:CombiningEmbedding}.
-The smooth embedding of booleans and numbers is done through
-the Boolean package \cite{project:boolean}.
 
 Table \ref{tab:sunroof-types} gives a summary of the 
-most prominent types in Sunroof. Some types like \Src{JSFunction} also involve 
+prominent Sunroof types. Some types involve 
 phantom types to give more type safety \cite{Cheney:03:FirstClassPhantomTypes}.
 \begin{table}
 \begin{center}
@@ -135,33 +101,39 @@ phantom types to give more type safety \cite{Cheney:03:FirstClassPhantomTypes}.
 \caption{Sunroof types and their Haskell pendant.}
 \label{tab:sunroof-types}
 \end{table} 
-The table also shows that most of basic Haskell types have counterparts in
-Sunroof. To convert these core Haskell values into their Sunroof 
-counterparts we provide the \Src{SunroofValue} type class.
+The smooth embedding of booleans and numbers is done through
+the Boolean package \cite{project:boolean}.
+
+The table shows that most basic Haskell types have counterparts in
+Sunroof. To convert Haskell values into their 
+counterparts we provide the \Src{SunroofValue} class.
 \begin{Code}
 class SunroofValue a where
   type ValueOf a :: *
   js :: (Sunroof (ValueOf a)) => a -> ValueOf a
 \end{Code}
-It provides the corresponding Sunroof value through the type function
-\Src{ValueOf} \cite{Chakravarty:05:AssociatedTypeSynonyms} and offers the function 
-\Src{js} to convert to that type. By design \Src{SunroofValue} does
+The type function
+\Src{ValueOf} \cite{Chakravarty:05:AssociatedTypeSynonyms} 
+provides the corresponding Sunroof type.
+\Src{js} converts a value from Haskell to Sunroof. 
+By design \Src{SunroofValue} does
 only provide instances for values that can be converted in a pure
-manner. Certain primitive values in JavaScript are referential 
+manner. Some type in JavaScript are referential 
 transparent according to \Src{==} while others, like general objects,
 are not. As an example, if you call \Src{new Object()} twice you get the 
 same empty object, but when compared by \Src{==} they are different. They
 are not identical, because in this case reference equality is checked
 instead of value equality. We call this observable allocation and handle 
-it as a side-effect which should only occur in the \JS-monad. 
+it as a side-effect which may only occur in the \JS-monad. 
 
-An advantage of this approach is that we ensure to bind a variable to the 
-new value. Instead of creating copies of that value everywhere
-it is used, we refer to one value. This resolves 
-unwanted macro behavior of Sunroof in these cases.
+This approach ensures to bind a new value to a variable,
+instead of creating copies of that value everywhere
+it is used. This resolves some unwanted macro behavior 
+of Sunroof.
 
-Sunroof also offers the ability to work with record like data structures to 
-keep values that belong together in one place.
+% JSTuple is not a major selling point nor is it essential to sunroof.
+\begin{comment}
+Sunroof also offers the ability to work with record like data structures.
 For this purpose Sunroof offers the \Src{JSTuple} type class.
 \begin{Code}
 class Sunroof o => JSTuple o where
@@ -181,6 +153,7 @@ Decomposing the encoding is done with \Src{match}. Because the
 can be done in a pure manner although there are ways to mutate 
 values referenced by the decomposed record, since they are only 
 references to the actual data in JavaScript.
+\end{comment}
 
 \begin{comment}
 \subsubsection{RESOURCES - REMOVE WHEN FINISHED}
