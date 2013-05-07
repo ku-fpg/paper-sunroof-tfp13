@@ -9,22 +9,24 @@ all different types of objects in JavaScript, since
 users can create their own objects. Thus our 
 system to type JavaScript needs to be extensible.
 
-Our solution is to provide a basic \Src{Expr}ession\footnote{
-Since observable sharing \TODO{Cite?} is used to optimize compilation
-of expressions, the actual expressions type is a bit more 
-complicated and involves a fixpoint \TODO{Cite?}.}
+Our solution is to provide a basic \Src{Expr}ession
 language that has no associated type information to construct 
-JavaScript expressions.
+JavaScript expressions. Simplified slightly, we have:
 \begin{Code}
 data Expr 
-  = Lit String -- Precompiled (atomic) JavaScript literal
-  | Var Id     -- Variable
-  | Apply expr [expr]    -- Function application
+  = Lit String        -- Precompiled (atomic) JavaScript literal
+  | Var Id            -- Variable
+  | Apply Expr [Expr] -- Function application
   ...
 \end{Code}
 This core expression type 
 is then wrapped to represent a more specific 
-type. Each of these wrappers implements the \Src{Sunroof} type 
+type. 
+In reality, we generalize \Src{Expr} with the recursive type,
+to facilitate the usage observable sharing\cite{...},
+and therefore sub-expression computations to also be shared.
+
+Each of these wrappers implements the \Src{Sunroof} type 
 class.
 \begin{Code}
 class SunroofArgument a => Sunroof a where
