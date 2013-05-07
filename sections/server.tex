@@ -2,10 +2,7 @@
 \section{The Sunroof Server}
 \label{sec:server}
 
-The Sunroof compiler can compile JavaScript that can be used
-stand-alone. But Sunroof really comes
-into its own when used with the Sunroof server.
-
+Sunroof really comes into its own when used with the Sunroof server.
 It provides infrastructure to send arbitrary pieces 
 of JavaScript to a calling website for execution. 
 Like this it is possible to interleave Haskell and JavaScript 
@@ -19,23 +16,19 @@ syncJS  :: SunroofResult a
         => SunroofEngine -> JS t a -> IO (ResultOf a)
 asyncJS :: SunroofEngine -> JS t () -> IO ()
 \end{Code}
-\Src{sunroofServer} starts the server.
-It will call the given callback function
-for each request to the server.
+\Src{sunroofServer} a server that will call the given callback function
+for each request.
 \Src{syncJS} and \Src{asyncJS} allow the server
-to remotely execute monadic JavaScript from inside the 
-requesting website.
-\Src{asyncJS} executes JavaScript asynchronously without 
+to run Sunroof code inside the requesting website.
+\Src{asyncJS} executes it asynchronously without 
 waiting for a return value. In contrast to that 
 \Src{syncJS} waits until the execution is complete and
-then sends the result back to the server and converts it 
-into a Haskell value that can be processed further. 
-Values that can be returned from a synchronous execution 
-have to implement the \Src{SunroofResult} class. It contains a type-function
-\Src{ResultOf} that maps the 
-Sunroof type to a corresponding Haskell type and also 
-implements a function to convert incoming data to that 
-type.
+then sends the result back to the server. It
+is converted into a Haskell value that can be processed further. 
+Values that can be converted to a Haskell type after a synchronous
+call implement the \Src{SunroofResult} class. It maps the 
+Sunroof type to a corresponding Haskell type through a type-function 
+and provides a function to convert the data to that type.
 
 Besides these basic functions it also provides the abstract 
 concepts of \Src{Downlink}s and \Src{Uplink}s. They are 
