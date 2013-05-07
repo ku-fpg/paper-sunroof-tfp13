@@ -69,7 +69,7 @@ current threading model (\Src{evalStyle}) and to create a possible
 blocking computation (\Src{blockableJS}).
 \begin{Code}
 class SunroofThread (t :: T) where
-  evalStyle    :: ThreadProxy t -> T
+  evalStyle   :: ThreadProxy t -> T
   blockableJS :: (Sunroof a) => JS t a -> JS B a
 \end{Code}
 Based on these primitive combinators we also offer a Sunroof 

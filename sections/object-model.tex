@@ -28,7 +28,7 @@ is then wrapped to represent a more specific type.
 Each of these wrappers implements the \Src{Sunroof} type class.
 \begin{Code}
 class SunroofArgument a => Sunroof a where
-  box :: Expr -> a
+  box   :: Expr -> a
   unbox :: a -> Expr
   ...
 \end{Code}
@@ -41,7 +41,7 @@ of JavaScript strings.
 \begin{Code}
 data JSString = JSString Expr
 instance Sunroof JSString where
-  box = JSString
+  box                = JSString
   unbox (JSString e) = e
 \end{Code}
 But what do we gain through a wrapper? We can
