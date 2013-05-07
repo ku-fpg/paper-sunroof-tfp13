@@ -2,29 +2,25 @@
 \section{The Sunroof Compiler}
 \label{sec:compiler}
 
-Given the language, and monadic-reification, how do we compile this language?
+How do we compile Sunroof?
 Through the \JS-monad we produce a \Src{Program (JSI t) ()} instance. We 
 translate such a program into a list of statements (\Src{Stmt}) by matching over 
 the \JSI~constructors.
 \begin{Code}
-data Stmt 
-  = AssignStmt Rhs Expr       -- Assignment
-  | DeleteStmt Expr           -- Delete reference
-  | ExprStmt Expr             -- Expression as statement
-  | ReturnStmt Expr           -- Return statement
-  | IfStmt Expr [Stmt] [Stmt] -- If-Then-Else statement
-  | WhileStmt Expr [Stmt]     -- While loop
-  | CommentStmt String        -- Comment
+data Stmt = AssignStmt Rhs Expr       -- Assignment
+          | ExprStmt Expr             -- Expression as statement
+          | ReturnStmt Expr           -- Return statement
+          | IfStmt Expr [Stmt] [Stmt] -- If-Then-Else statement
+          ...
 \end{Code}
-The constructors of \Src{Stmt} are straight forward and
-directly represent the different statements one can write
-in JavaScript.
+The constructors of \Src{Stmt} directly represent the 
+different statements you can write in JavaScript.
 
-To translate a \Src{Program (JSI t) ()} into statements we
-have to translate it into a \Src{ProgramView} since 
-Operational prohibits us from working on \Src{Program} directly.
-\Src{ProgramView} can then be taken apart to translate 
-the \JSI nstructions inside.
+The \Src{Program} type is abstract. Before we 
+can work with it we need to convert it to a \Src{ProgramView}
+instance.
+The monadic structure captured by \Src{ProgramView} can be taken 
+apart to translate the instructions inside.
 \begin{Code}
 compile :: Program (JSI t) () -> CompM [Stmt]
 compile p = eval (view p)
@@ -32,35 +28,25 @@ compile p = eval (view p)
     eval :: ProgramView (JSI t) () -> CompM [Stmt]
     ...
 \end{Code}
-The compilation monad \Src{CompM} provides us with 
-the compiler options and a supply of fresh integer
-values to generate new variables when needed.
+The compiler options and fresh variables are provided 
+through the \Src{CompM} monad.
 
-To get a feel for how the compiler works, lets take a look at 
-the case for \Src{JS\_Assign\_}. Recall its signature from 
-Figure \ref{fig:jsi-definition}:
-\begin{Code}
-JS_Assign_ :: (Sunroof a) => Id -> a -> JSI t ()
-\end{Code}
-This instruction assigns the value \Src{a} to the 
-variable given by the \Src{Id}, which is just a synonym for \Src{String}.
+Lets see how \Src{JS\_Assign\_} is translated. Recall from 
+Figure \ref{fig:jsi-definition} that it takes a variable name 
+and the value to assign as arguments. The result type is unit.
 \begin{Code}
 eval (JS_Assign_ v a :>>= k) = do
       (stmts0,val) <- compileExpr (unbox a)
       stmts1       <- compile (k ())
       return ( stmts0 ++ [AssignStmt (VarRhs v) val] ++ stmts1)
 \end{Code}
-First we compile the expression that will be assigned. That
-produces a series of statements to compute the expression and 
-the expressions value \Src{val}.
-Then we compile the rest of the Sunroof computation \Src{k}. Since 
-the assignment does not produce a interesting value (it has type \Src{JSI t ()}),
-we can pass unit to \Src{k}.
-We return the concatenation of the produced statements with a statement 
-for the assignment in between. 
+First we compile the expression \Src{a} to assign into a series of 
+statements that compute it together with the result value \Src{val}.
+Next we compile that happens after the assignment. Since 
+the assignment produces unit, we can pass that to \Src{k}.
+In the end we concatenate all statements with the assignment in between. 
 
-Lets now look at a more interesting part of the compiler: The translation of 
-branches.
+A more interesting part of the compiler is the translation of branches.
 Recall the \JSI~constructor for branches from Figure \ref{fig:jsi-definition}.
 \begin{Code}
 JS_Branch :: (SunroofThread t, SunroofArgument a, Sunroof bool) 
@@ -86,35 +72,34 @@ eval (JS_Branch b c1 c2 :>>= k) = do
 \caption{Naive translation of branches in Sunroof.}
 \label{fig:branch-translation}
 \end{figure}
-First we generate the statements to compute the branching condition.
-Then we generate unique names for each of the values returned in 
-either branch. \Src{bindResults} generates the assignments of
-the returned values to the generated variables. When compiling 
-the branches we use the function \Src{extractProgramJS}.
+First we generate the statements for the branching condition.
+Then we generate unique variables for each of the returned values in 
+either branch and use \Src{bindResults} to assign them to the 
+new variables. The function \Src{extractProgramJS} 
+passes the result of a computation \Src{m} 
+into the function \Src{f} and
+closes the continuation in \JS~with \Src{return}.
+The result is a \Src{Program} containing
+all instructions of \Src{m >>= k}.
 \begin{Code}
 extractProgramJS :: (a -> JS t ()) -> JS t a -> Program (JSI t) ()
 extractProgramJS k m = unJS (m >>= k) return
 \end{Code}
-It passes the result of a computation \Src{m} 
-into the given function \Src{f} and
-closes the continuation inside \JS~with \Src{return},
-such that the result is a \Src{Program} containing
-all instructions of \Src{m >>= k}.
 
-After we have compiled both branches we compile the rest and
-construct the list of statements in a canonical fashion.
+After the compilation of both branches we translate the 
+rest and create the list of statements in a canonical fashion.
 
-This works perfectly when we work in the atomic threading model,
-but it causes problems when inside the blocking model. 
+This works perfectly if we are in the atomic threading model,
+but can fail when inside the blocking model. 
 What goes wrong? In the blocking model either branch 
-may involve continuations inside of it. As each 
-continuation describes the rest of the computation from
-the point it is invoked, it also captures the 
-assignments of the result values at the end of the
-current branch. If the assignments are captured inside a continuations
-the assigned variables are not visible outside of the 
-it. So they are not visible after the branch
-statement and the code inside of \Src{rest} refers to them
+may involve continuations. Each 
+continuation describes the rest of the computation up
+to the end of that branch. It also captures the 
+assignments at the end of the branch. 
+Assignments captured inside a continuation
+are not visible outside of the 
+it. That means the variables with the result are not visible 
+after the branch and the code inside of \Src{rest} refers to them
 although they are not defined.
 
 \begin{comment}
@@ -221,19 +206,17 @@ continuation variant. But that would unnecessarily
 obfuscate the produced code and lead to many superfluous 
 indirections.
 
-The compiler can be called through two functions. 
-One for each threading model.
+The compiler offers two functions to compile either threading 
+model.
 \begin{Code}
 sunroofCompileJSA :: Sunroof a 
                   => CompilerOpts -> String -> JS A a  -> IO String
 sunroofCompileJSB :: CompilerOpts -> String -> JS B () -> IO String
 \end{Code}
-Notice, that the compiler of the blocking threading model only
-excepts computations that return unit. This is due to their 
-continuation based nature. The string argument provides 
-the name of the variable to bind the computation result to.
-
-
+Notice, that for the blocking threading model only unit
+may be returned due to their continuation based nature. 
+The string argument provides the name of the variable to 
+bind the computation result to.
 
 
 
