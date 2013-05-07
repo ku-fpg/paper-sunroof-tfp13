@@ -2,50 +2,47 @@
 \section{The JavaScript Monad}
 \label{sec:js-monad}
 
-The \JS-monad is
-used to model sequences of JavaScript statements and
-their side-effects. In that sense it is almost
-exact analog for the Haskell \IO-monad, except there
-is an extra phantom argument~\cite{Leijen:99:Phantom} 
-that decides which threading model to use, as
-discussed later in Section \ref{sec:threading-models}.
-For now we can ignore this extra argument.
+The imperative nature and side-effects of JavaScript are 
+modeled through the \JS-monad. It resembles the \IO-monad, 
+but has an extra phantom argument~\cite{Leijen:99:Phantom} 
+to decides which threading model is used. 
+For now we can ignore this extra argument. We will
+discuss it in Section \ref{sec:threading-models}.
 
-The basic idea is that each binding becomes an
+The basic idea is that a binding in the \JS-monad becomes an
 assignment to a fresh variable in JavaScript. Like
 this the results of previous computations are passed on to 
 later ones.
-An example for this can be seen in Figure~\ref{fig:code-example}.
+Figure~\ref{fig:code-example} gives an example.
 The binding \Src{name} is translated to the freshly generated
 variable \Src{v0}.
 
-Inside this simple example is a challenging problem -- where does
+This simple example displays a challenging problem -- where does
 \Src{v0} come from? The bind inside the monadic \Src{do} is
-unconstrained:
+unconstrained.
 \begin{Code}
 (>>=) :: JS t a -> (a -> JS t b) -> JS t b
 \end{Code}
-What we want is:
+Thus we do not know how to create a value of type \Src{a}. What we want is:
 \begin{Code}
 (>>=) :: (Sunroof a) => JS t a -> (a -> JS t b) -> JS t b
 \end{Code}
 Where \Src{Sunroof} constrains the bind to
-arguments for which we can generate a JavaScript variable.
-Counterintuitively, 
-it turns out that a specific form of normalization allows 
-the ``\Src{a}'' type to be constrained and the bind to 
+arguments for which we can generate a variable.
+It turns out that a specific form of normalization allows 
+the type \Src{a} to be constrained and \JS~to 
 be an instance of the standard monad class~\cite{Sculthorpe:13:ConstrainedMonads}.
 Through this keyhole of {\em monadic reification},
 the entire Sunroof language is realized. 
 
-The normalization is done through the Operational package 
+The normalization is done through Operational 
 \cite{Apfelmus:10:Operational,Hackage:10:Operational}.
-It provides the \Src{Program} data type as a monad that
-can be equipped with custom primitives or effects.
+It provides the \Src{Program}-monad that
+can be equipped with custom primitives.
 We represent these primitives with the \JSI nstruction 
-type displayed in Figure \ref{fig:jsi-definition}. It represents the 
-abstract JavaScript instructions that are sequenced by the \Src{Program}
-monad.
+type shown in Figure \ref{fig:jsi-definition}. It represents the 
+abstract JavaScript instructions that are sequenced inside 
+the \Src{Program}-monad.
 \begin{figure}
 \begin{Code}
 data JSI :: T -> * -> * where
@@ -61,21 +58,19 @@ data JSI :: T -> * -> * where
 \caption{Parts of the \JSI nstruction data type.}
 \label{fig:jsi-definition}
 \end{figure}
-The type parameter \Src{t} in \Src{JSI t a} again represents 
+The parameter \Src{t} in \Src{JSI t a} again represents 
 the threading model and can be ignored up to Section \ref{sec:threading-models}. 
-\Src{a} represents the type of the primitive's return value. 
-Figure \ref{fig:jsi-definition} shows some of the instructions
-in \JSI.
+\Src{a} represents the primitive's return value. 
 \Src{JS\_Invoke} calls a function, that has been created with \Src{JS\_Function}.
 Branches are represented with \Src{JS\_Branch}. Assignments to a variable
 are represented by \Src{JS\_Assign\_}.
 
-If it was not for our promise to provide an alternative 
-threading model, the normalization through the Operational package
+Without the alternative threading model, 
+the normalization through Operational
 would be enough to offer a monad suitable for Sunroof.
-But, because of our threading plans, there is more then just 
+Due to our threading plans, there is more then just 
 normalization going on behind the scenes. 
-Actually the \JS-monad is a continuation monad over the 
+The \JS-monad is a continuation monad over the 
 \Src{Program}-monad.
 \begin{Code}
 data JS :: T -> * -> * where
