@@ -18,16 +18,15 @@ will be used to implement this JavaScript/Haskell hybrid.
 
 The classical approach to develop an application like this would have 
 been to write a server that provides a RESTful interface and replies 
-through a JSON data structure. This can be seen in Figure 
-\ref{fig:example-structure}.
+through a JSON data structure. 
+The client side of that application would have been written in JavaScript
+directly.
+This can be seen in Figure \ref{fig:example-structure}.
 
 \Figure%
 {fig:example-structure}%
 {figures/example-structure.pdf}%
 {Classical structure and Sunroof structure of a web application.}
-
-The client side of that application would have been written in JavaScript
-directly.
 
 How does Sunroof improve or change this classical structure?
 First of all, in Sunroof you write the client side code together with
@@ -47,7 +46,7 @@ about how much code it took to write which parts of the client.
 
 \begin{table}
 \begin{center}
-\begin{tabular}{l@{\quad}rr}
+\begin{tabular}{l@{\quad}r@{\quad}r}
 \hline\rule{0pt}{12pt}%
 Part of Application & Lines of Code & Percentage \\[2pt]
 \hline\rule{0pt}{12pt}%
@@ -89,7 +88,7 @@ that has potential to be generated.
 The transliteration of actual JavaScript into Sunroof has a overhead and
 tends to be verbose. This problem can be hidden away through 
 higher level libraries using Sunroof as a backend. 
-We can see that Sunroof has the potential to us a low level interface
+We can see that Sunroof has the potential to be a low level interface
 to the browsers capabilities. It offers a solid and robust foundation to build
 on more advanced systems that want to utilize the browser.
 

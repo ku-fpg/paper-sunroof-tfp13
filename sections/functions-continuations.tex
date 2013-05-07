@@ -24,7 +24,7 @@ the function itself to a value.
 
 Since partial application is questionable in
 the context of JavaScript, we choose to only permit uncurried functions,
-by providing instances for tuples of sunroof values.
+by providing instances for tuples of Sunroof values.
 \begin{Code}
 instance (Sunroof a, Sunroof b) => SunroofArgument (a,b) where
   jsArgs ~(a,b) = [unbox a, unbox b]
@@ -58,7 +58,7 @@ Figure \ref{fig:jsi-definition}.
 It was introduced to work with continuations in Sunroof. 
 Technically they are only
 specializations of functions, but
-restricted to the second threading models. Continuations
+restricted to the second threading model. Continuations
 are meant to be a representation of side-effects -- 
 ongoing computations inside the \JS-monad -- and may  
 not terminate, so they do not return a value. As with functions 

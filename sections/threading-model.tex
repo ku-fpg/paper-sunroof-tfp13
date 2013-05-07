@@ -25,7 +25,7 @@ with a phantom type that represents the threading model used,
 with \Src{A} for \Src{A}tomic,
 and \Src{B} for \Src{B}locking threads. 
 Atomic threads are classical JavaScript computations that
-can not be interrupted and actively use callback
+can not be interrupted and actively use the callback
 mechanism. Blocking threads can
 support suspending operations and cooperative concurrency
 abstractions as known from Haskell. By using phantom
@@ -34,8 +34,7 @@ restrictions on specific combinators, as well
 as provide combinators to allow both types of
 threads to cooperate.
 
-The blocking model uses the callback mechanism and hides it 
-behind abstractions.
+The blocking model hides the callback mechanism behind abstractions.
 This implies that every atomic computation can be converted into 
 a blocking computation. \Src{liftJS} achieves this.
 \begin{Code}
@@ -73,7 +72,7 @@ class SunroofThread (t :: T) where
   evalStyle    :: ThreadProxy t -> T
   blockableJS :: (Sunroof a) => JS t a -> JS B a
 \end{Code}
-Based on this primitive combinators we also offer a Sunroof 
+Based on these primitive combinators we also offer a Sunroof 
 version of \Src{MVar} and \Src{Chan}: \Src{JSMVar} and \Src{JSChan}.
 \begin{Code}
 newMVar      :: (SunroofArgument a) => a -> JS t (JSMVar a)
@@ -91,7 +90,7 @@ are able to handle \Src{SunroofArgument}s, not just \Src{Sunroof}
 types. This is possible, because the computations themselves
 (their current continuation) are
 stored in the lists through \Src{callcc}.
-When a arguments is written either the waiting
+When arguments are written either the waiting
 continuation is called with those arguments or a new continuation 
 that applies an incoming one with those arguments is created.
 

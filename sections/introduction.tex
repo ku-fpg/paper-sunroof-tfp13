@@ -4,7 +4,7 @@
 % Simon: Describe the problem
 JavaScript is an imperative language with access to a wide range
 of established and useful services, like graphical canvases and event
-handling. JavaScript also provides features that are associated with 
+handling. It also provides features that are associated with 
 functional languages, like first-class functions. 
 We want to express JavaScript in Haskell, adding use
 of Haskell's static typing, and gaining access to JavaScript services
@@ -52,7 +52,7 @@ It introduces a threading model and abstraction similar
 to Haskell's. Like this programmers can reuse well known 
 techniques from Haskell when writing JavaScript.
 We also utilize the static type system to support us when 
-writing code. The functions
+writing code, e.g. the functions
 in Figure \ref{fig:code-example} have the following signatures:
 \begin{Code}
 prompt :: JSString -> JSString -> JS t JSObject
@@ -76,8 +76,8 @@ mechanism to be imperative, a monad~\cite{Moggi:91:ComputationMonads}.
 {figures/sunroof-structure.pdf}%
 {The structure of Sunroof.}
 
-We will go cover each of the layers in Figure \ref{fig:structure}
-throughout the paper:
+Figure \ref{fig:structure} shows Sunroof's structure.
+We will cover each of the layers throughout the paper:
 \begin{itemize}
 \item
 The \JS-monad together with the underlying \JSI~primitives 

@@ -16,7 +16,7 @@ syncJS  :: SunroofResult a
         => SunroofEngine -> JS t a -> IO (ResultOf a)
 asyncJS :: SunroofEngine -> JS t () -> IO ()
 \end{Code}
-\Src{sunroofServer} a server that will call the given callback function
+\Src{sunroofServer} starts a server that will call the given callback function
 for each request.
 \Src{syncJS} and \Src{asyncJS} allow the server
 to run Sunroof code inside the requesting website.

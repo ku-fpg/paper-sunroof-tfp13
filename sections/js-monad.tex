@@ -6,8 +6,8 @@ The imperative nature and side-effects of JavaScript are
 modeled through the \JS-monad. It resembles the \IO-monad, 
 but has an extra phantom argument~\cite{Leijen:99:Phantom} 
 to decides which threading model is used. 
-For now we can ignore this extra argument. We will
-discuss it in Section \ref{sec:threading-models}.
+For now we can ignore this extra argument. It will be
+discussed it in Section \ref{sec:threading-models}.
 
 The basic idea is that a binding in the \JS-monad becomes an
 assignment to a fresh variable in JavaScript. Like
@@ -17,7 +17,7 @@ Figure~\ref{fig:code-example} gives an example.
 The binding \Src{name} is translated to the freshly generated
 variable \Src{v0}.
 
-This simple example displays a challenging problem -- where does
+This simple example displays a challenging problem. Where does
 \Src{v0} come from? The bind inside the monadic \Src{do} is
 unconstrained.
 \begin{Code}

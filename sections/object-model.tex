@@ -36,7 +36,7 @@ It marks these types as possible values in JavaScript.
 The \Src{SunroofArgument} prerequisite permits them 
 to be function arguments (Section \ref{sec:functions-continuations}).
 
-An example of is \Src{JSString}, the representation
+An example of this is \Src{JSString}, the representation
 of JavaScript strings.
 \begin{Code}
 data JSString = JSString Expr
@@ -83,7 +83,7 @@ phantom types to give more type safety \cite{Cheney:03:FirstClassPhantomTypes}.
   \Src{SunroofArgument $\alpha$}
   & \Src{JSFunction $\alpha$ $\beta$ }
   & \Src{$\HaskellAnalog{\alpha}$ $\rightarrow$ JS$_\Src{A}$ $\HaskellAnalog{\beta}$} 
-  & $\checkmark$ \\
+  & \\
   \Src{Sunroof $\beta$} \\
   
   \Src{SunroofArgument $\alpha$}
@@ -118,7 +118,7 @@ provides the corresponding Sunroof type.
 \Src{js} converts a value from Haskell to Sunroof. 
 By design \Src{SunroofValue} does
 only provide instances for values that can be converted in a pure
-manner. Some type in JavaScript are referential 
+manner. Some types in JavaScript are referential 
 transparent according to \Src{==} while others, like general objects,
 are not. As an example, if you call \Src{new Object()} twice you get the 
 same empty object, but when compared by \Src{==} they are different. They
