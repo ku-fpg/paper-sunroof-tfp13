@@ -2,9 +2,9 @@
 \section{Foreign Function Interface}
 \label{sec:ffi}
 
-As interface to produce JavaScript Sunroof also offers a 
+Sunroof also offers a 
 foreign function interface, which enables us to easily 
-access predefined JavaScript. The Sunroof FFI consists of three core functions.
+access predefined JavaScript. There are three core functions.
 \begin{Code}
 fun    :: (SunroofArgument a, Sunroof r) 
        => String -> JSFunction a r
@@ -16,9 +16,9 @@ invoke :: (SunroofArgument a, Sunroof o, Sunroof r)
 \end{Code}
 \Src{fun} is used to create Sunroof functions from their names in JavaScript.
 This can happen in two ways. Either to call a function in line or to 
-create a real binding for that function in Sunroof. As an example 
+create a real binding for that function. As an example 
 the \Src{alert} function can be called in line through \Src{fun "alert" \$\$ "text"}
-or you can provide a Sunroof binding in form of a Haskell function for it.
+or you can provide a binding in form of a Haskell function for it.
 \begin{Code}
 alert :: JSString -> JS t ()
 alert s = fun "alert" $$ s
@@ -26,10 +26,10 @@ alert s = fun "alert" $$ s
 
 Objects can be bound through the \Src{object} function, e.g.
 the \Src{document} object is bound through \Src{object "document"}.
-Constructors can be called using \Src{new}. To create a new plain
+Constructors can be called using \Src{new}. To create a new
 object you would call \Src{new "Object" ()}.
 
-To call methods of objects Sunroof provides \Src{invoke}. Again, this 
+We can call methods of objects through \Src{invoke}. Again, this 
 can be used in line and to create a real binding. A inline 
 use of this to produce \Src{document{\linebreak}.getElementById("id")} would look like this: 
 \begin{Code}
@@ -41,10 +41,10 @@ to the \Src{getElementById} method one can write:
 getElementById :: JSString -> JSObject -> JS t JSObject
 getElementById s = invoke "getElementById" s
 \end{Code}
-Providing actual bindings instead of using the FFI in line ensures that
-everything is typed correctly and avoids ambiguities that need 
-to be resolved through large type annotations inside
-of Sunroof code.
+
+Providing actual bindings ensures that
+everything is typed correctly and prevents resolving ambiguities 
+through large type annotations inside of code.
 
 The current release of Sunroof already provides bindings for most of the 
 core browser API, the HTML5 canvas element and some of the JQuery API.
