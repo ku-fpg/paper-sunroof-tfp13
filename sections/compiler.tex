@@ -91,14 +91,14 @@ rest and create the list of statements in a canonical fashion.
 
 This works perfectly if we are in the atomic threading model,
 but can fail when inside the blocking model. 
-What goes wrong? In the blocking model either branch 
+In the blocking model either branch 
 may involve continuations. Each 
 continuation describes the rest of the computation up
 to the end of that branch. It also captures the 
 assignments at the end of the branch. 
 Assignments captured inside a continuation
 are not visible outside of the 
-it. That means the variables with the result are not visible 
+it. That means the variables are not visible 
 after the branch and the code inside of \Src{rest} refers to them
 although they are not defined.
 
@@ -147,7 +147,7 @@ the scope of the continuations and, because of that, \Src{v0} is
 not defined when \Src{CallAfterIf} is applied to it.
 \end{comment}
 
-How can we fix this? If we are working within the blocking 
+How can we fix this? Within the blocking 
 threading model, we have to handle branches differently.
 \begin{Code}
 eval (JS_Branch b c1 c2 :>>= k) = 
@@ -155,9 +155,6 @@ eval (JS_Branch b c1 c2 :>>= k) =
     A -> compileBranch_A b c1 c2 k
     B -> compileBranch_B b c1 c2 k
 \end{Code}
-%\Src{evalStyle} is provided by the class \Src{SunroofThread} and
-%provides the threading model currently used. 
-%%% KNOWN FROM PREVIOUS SECTION
 The call to \Src{compileBranch\_A}
 executes our naive definition from Figure \ref{fig:branch-translation}.
 \begin{Code}
@@ -170,17 +167,15 @@ compileBranch_B b c1 c2 k = do
   src2 <- compile $ extractProgramJS (apply (var fn)) c2
   return ( [mkVarStmt fn fn_e] ++ src0 ++ [ IfStmt res0 src1 src2 ])
 \end{Code}
-We can see that the rest of our computation is captured in a
-continuation \Src{fn\_e} that takes the results of our branching
-as arguments. We assign that computation to the new variable \Src{fn}
-to avoid the duplication of the continuation in the produced sources.
-The key difference lays in the call to \Src{extractProgramJS}. Instead
-of creating bindings for each returned value we apply the produced
-continuation to the returned values and like that make them visible for
-the ongoing computation.
+We can see that the rest of our computation is captured in the
+continuation \Src{fn\_e}. It takes the results of a branch
+as arguments. A new variable \Src{fn} is used to share
+the continuation in both branches.
+The key difference is the parameter to \Src{extractProgramJS}. Instead
+of creating bindings to variables, we apply the produced
+continuation to the returned values. That passes them to the 
+ongoing computation.
 \begin{comment}
-, even if we capture our current continuation. 
-Now the produced code looks like this:
 \begin{Code}
 var v11 = function() {
   var v2 = function(v0) { CallAfterIf(v0); };
@@ -202,9 +197,8 @@ return values as parameters inside each branch.
 \end{comment}
 
 Of course, we could compile every branch with the 
-continuation variant. But that would unnecessarily 
-obfuscate the produced code and lead to many superfluous 
-indirections.
+continuation variant. But that would unnecessarily
+obfuscate the produced code and lead to indirections.
 
 The compiler offers two functions to compile either threading 
 model.
