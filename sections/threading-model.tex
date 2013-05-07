@@ -3,14 +3,14 @@
 \label{sec:threading-models}
 
 JavaScript uses a callback centric model of computation. There
-is no concurrency. Events are handled through callbacks,
-which are called as soon as the current computation is done.
+is no concurrency, only a central loop that executes callbacks
+when events occur.
 
 In contrast Haskell has real concurrency and wide-spread 
 abstractions for synchronization, e.g. \Src{MVar}s and \Src{Chan}s
 \cite{Jones:96:ConcurrentHaskell}.
 So the question arises: do we generate atomic JavaScript code, 
-and keep the callback centric model of computation, or generate JavaScript
+and keep the callback centric model, or generate JavaScript
 using CPS \cite{Claessen:99:PoorMansConcurrencyMonad}, 
 and allow for blocking primitives and
 cooperative concurrency. The latter, though more powerful, 
@@ -18,69 +18,56 @@ precluded using the compiler to generate
 code that can be cleanly called from native JavaScript.
 Both choices had poor consequences.
 
-So, rather than pick one, we decided to explicitly support both,
+We decided to explicitly support both,
 and make both first class threading strategies in Sunroof.
 In terms of user-interface, we parameter the \JS-monad
-with a phantom type that represents the threading model
-to compile with, with \Src{A} for \Src{A}tomic threads,
-and \Src{B} for \Src{B}locking (cooperative concurrency) threads. 
+with a phantom type that represents the threading model used, 
+with \Src{A} for \Src{A}tomic,
+and \Src{B} for \Src{B}locking threads. 
 Atomic threads are classical JavaScript computations that
-can not be interrupted. They represent the JavaScript callback
-centric threading model. Blocking threads can
-support suspending operations and support (cooperative) concurrency
+can not be interrupted and actively use callback
+mechanism. Blocking threads can
+support suspending operations and cooperative concurrency
 abstractions as known from Haskell. By using phantom
 types, we can express the necessary
 restrictions on specific combinators, as well
 as provide combinators to allow both types of
-threads to cooperate successfully.
+threads to cooperate.
 
-We use the callback mechanism to implement the blocking model.
+The blocking model uses the callback mechanism and hides it 
+behind abstractions.
 This implies that every atomic computation can be converted into 
-a blocking computation. Such a conversion can be done with the
-\Src{liftJS} combinator.
+a blocking computation. \Src{liftJS} achieves this.
 \begin{Code}
 liftJS :: Sunroof a => JS A a -> JS t a
 \end{Code}
-Each time a computation is suspended we register our current
-continuation as a callback to resume later. Like this other 
-threads (registered continuations) get a chance to run.
+
+When suspending, we register our current
+continuation as a callback to resume later. This gives other 
+threads (registered continuations) a chance to run.
 Of course, this model depends on cooperation between the threads,
-because a thread that does terminate or suspend itself at some
-point, will keep others from running.
+because a not terminating or suspending thread will keep others from running.
 
-\begin{comment}
-The compiler offers two functions to choose in which
-model the \JS-monad shall be compiled.
-\begin{Code}
-sunroofCompileJSA :: (Sunroof a) 
-                  => CompilerOpts -> String -> JS A a -> IO String
-sunroofCompileJSB :: CompilerOpts -> String -> JS B () -> IO String
-\end{Code}
-\end{comment}
-
-There are three main primitives Sunroof offers to work with in
-the blocking model.
+There are three main primitives for the blocking model.
 \begin{Code}
 forkJS      :: SunroofThread t1 => JS t1 () -> JS t2 ()
 threadDelay :: JSNumber -> JS B ()
 yield       :: JS B ()
 \end{Code}
-They can all be seen as Sunroof versions of their \IO~counterparts.
-\Src{forkJS} can be thought of as an equivalent to \Src{forkIO}.
-It creates a continuation from the given computation and registers 
-it as a callback. \Src{yield} suspends the current thread by 
-registering the current continuation as a callback. Like this 
-other threads have time to run and the concurrency becomes 
-cooperative. \Src{threadDelay} is a form of \Src{yield} that sets 
-the callback to be called after a certain amount of time,
-effectively forcing it to sleep that amount of time.
-We depend on the JavaScript function \Src{window.setTimeout} 
-\cite{whatwg:timers} to be provided
-by the executing instance to register our callbacks.
+They can all be seen as analogues of their \IO~counterparts.
+\Src{forkJS} resembles \Src{forkIO}.
+It registers the continuation of the given computation as a callback. 
+\Src{yield} suspends the current thread by 
+registering the current continuation as a callback,
+giving other thread time to run.
+\Src{threadDelay} is a form of \Src{yield} that sets 
+the callback to be called after a certain amount of time.
+We rely on the JavaScript function \Src{window.setTimeout} 
+\cite{whatwg:timers} to register our callbacks.
 
 The class \Src{SunroofThread} offers functions to retrieve the 
 current threading model (\Src{evalStyle}) and to create a possible
-blocking computation (\Src{blockableJS})
+blocking computation (\Src{blockableJS}).
 \begin{Code}
 class SunroofThread (t :: T) where
   evalStyle    :: ThreadProxy t -> T
