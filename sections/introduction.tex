@@ -3,9 +3,9 @@
 
 % Simon: Describe the problem
 JavaScript is an imperative language with access to a wide range
-of established and useful services, like graphical canvases and event
+of established and useful services, e.g. graphical canvases and event
 handling. It also provides features that are associated with 
-functional languages, like first-class functions. 
+functional languages, such as first-class functions. 
 We want to express JavaScript in Haskell, adding use
 of Haskell's static typing, and gaining access to JavaScript services
 in the browser from Haskell.
@@ -58,13 +58,14 @@ in Figure \ref{fig:code-example} have the following signatures:
 prompt :: JSString -> JSString -> JS t JSObject
 alert  :: JSString -> JS t ()
 \end{Code}
-This improves the quality of written code.
+This allows the type checker to detect a wide class
+of malformed JavaScript programs.
 Using a deep embedding gives opportunity 
 for optimizations when producing the actual JavaScript.
-At the same time Sunroof offers an interface that is 
+At the same time, Sunroof offers an interface that is 
 close to actual JavaScript making it easy to use.
 The interface is easily extendable through
-a foreign function interface.
+a foreign-function interface.
 We use a monad \cite{Moggi:91:ComputationMonads} 
 to reflect the imperative nature of JavaScript.
 
@@ -80,9 +81,9 @@ Figure \ref{fig:structure} shows Sunroof's structure.
 We will cover each of the layers throughout the paper:
 \begin{itemize}
 \item
-The \JS-monad together with the underlying \JSI~primitives 
-will be explained in Section \ref{sec:js-monad}. 
-We will show how it is implemented and how we solved
+The semantics and implementation of the \JS-monad is explained 
+in Section \ref{sec:js-monad}, along with a description of how
+we solved
 the problem of constraining types involved in the monadic 
 computations.
 \item
@@ -90,14 +91,14 @@ Section \ref{sec:object-model} will discuss how we annotate
 JavaScript objects with types using wrappers 
 and offer the possibility to add custom types later on.
 \item
-The special role of functions and continuations and
+The special role of functions, continuations and
 how we model them as first-class values in Haskell and JavaScript
 will be covered in Section \ref{sec:functions-continuations}.
 \item
 The two threading models offered by Sunroof are explained 
 in Section \ref{sec:threading-models}.
 \item
-Section \ref{sec:ffi} introduces Sunroof's foreign function interface.
+Section \ref{sec:ffi} introduces Sunroof's foreign-function interface.
 \item
 Translation of Sunroof to JavaScript is handled in 
 Section \ref{sec:compiler}. We will explain the 

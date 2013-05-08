@@ -19,7 +19,7 @@ data Expr
   | Apply Expr [Expr] -- Function application
   ...
 \end{Code}
-In reality, we generalize \Src{Expr} with the recursive type,
+In reality, we abstract \Src{Expr} over the recursive type,
 to facilitate the usage of observable sharing \cite{Gill:09:TypeSafeReification}
 and allow sub-expression computations to be shared.
 
@@ -104,7 +104,8 @@ phantom types to give more type safety \cite{Cheney:03:FirstClassPhantomTypes}.
 The smooth embedding of booleans and numbers is done through
 the Boolean package \cite{project:boolean}.
 
-The table shows that most basic Haskell types have counterparts in
+Table \ref{tab:sunroof-types} shows that most basic 
+Haskell types have counterparts in
 Sunroof. To convert Haskell values into their 
 counterparts, we provide the \Src{SunroofValue} class.
 \begin{Code}
@@ -116,8 +117,8 @@ The type function
 \Src{ValueOf} \cite{Chakravarty:05:AssociatedTypeSynonyms} 
 provides the corresponding Sunroof type.
 \Src{js} converts a value from Haskell to Sunroof. 
-By design \Src{SunroofValue} does
-only provide instances for values that can be converted in a pure
+By design \Src{SunroofValue} 
+only provides instances for values that can be converted in a pure
 manner. Some types in JavaScript are referentially 
 transparent according to \Src{==}, while others, like general objects,
 are not. As an example, if you call \Src{new Object()}, twice you get two 
