@@ -6,7 +6,7 @@ Functions are first class values in Haskell and JavaScript.
 Sunroof represents function with the type 
 \Src{JSFunction $\alpha$ $\beta$}, which resembles 
 a function $\alpha \rightarrow \beta$ in JavaScript. 
-A \Src{Sunroof $\alpha$} constraint would be to restrictive,
+A \Src{Sunroof $\alpha$} constraint would be too restrictive,
 since functions allow more then one argument.
 Thus we introduced \Src{SunroofArgument} to constrain the 
 types that may be used as arguments for functions.
@@ -39,7 +39,7 @@ We can create functions with the \Src{function} combinator.
 function :: (SunroofArgument a, Sunroof b) 
          => (a -> JS A b)  -> JS t (JSFunction a b)
 \end{Code}
-As a function can have side-effects, its computation and result has to be 
+As a function can have side-effects, its computation and result have to be 
 expressed in the \JS-monad. The creation of a function is considered 
 a side-effect, due to observable allocation.
 
@@ -54,14 +54,14 @@ Creation and application are implemented using the \Src{JS\_Function}
 and \Src{JS\_Invoke} instructions introduced in 
 Figure \ref{fig:jsi-definition}.
 
-\Src{JSContinuation $\alpha$} is used models continuations in the \JS-monad. 
+\Src{JSContinuation $\alpha$} is used to model continuations in the \JS-monad. 
 It was introduced to work with continuations in Sunroof. 
 Technically they are only
 specializations of functions, but
 restricted to the second threading model. Continuations
 are meant to be a representation of side-effects -- 
 ongoing computations inside the \JS-monad -- and may  
-not terminate, so they do not return a value. As with functions 
+not terminate, so they do not return a value. As with functions, 
 there is a combinator to create and apply a continuation.
 \begin{Code}
 continuation :: (SunroofArgument a) 
@@ -100,10 +100,10 @@ to each other, as can be seen in Figure \ref{fig:func-cont}.
 \Figure%
 {fig:func-cont}%
 {figures/sunroof-func-cont.pdf}%
-{How functions and continuations relate between the Haskell- and Sunroof-domain.}%
+{How functions and continuations relate between the Haskell and Sunroof domain.}%
 We can go back and forth between the Haskell and the Sunroof
 representation of a function or continuation. But once a function
-was specialized to a continuation it is not possible to go back,
+was specialized to a continuation, it is not possible to go back,
 because continuations only model the side-effect, but do 
 not return anything.
 

@@ -4,14 +4,14 @@
 
 One goal of Sunroof is to use Haskell's type system to
 increase the correctness of expressed JavaScript.
-At the same time we can not characterize 
+At the same time we cannot characterize 
 all different types of objects in JavaScript, since 
 users can create their own objects. Thus our 
 system to type JavaScript needs to be extensible.
 
 Our solution is to provide a basic \Src{Expr}ession
 language to construct JavaScript expressions 
-that has no associated type information. Simplified slightly, we have:
+that have no associated type information. Simplified slightly, we have:
 \begin{Code}
 data Expr 
   = Lit String        -- Precompiled (atomic) JavaScript literal
@@ -46,7 +46,7 @@ instance Sunroof JSString where
 \end{Code}
 But what do we gain through a wrapper? We can
 provide specific functionality for each distinct type.
-Our example type \Src{JSString} has a \Src{Monoid} and a 
+Our example type \Src{JSString} has a \Src{Monoid} and an 
 \Src{IsString} instance that are not provided for other 
 wrappers, e.g. \Src{JSBool} or \Src{JSNumber}.
 This approach was first introduced by 
@@ -106,7 +106,7 @@ the Boolean package \cite{project:boolean}.
 
 The table shows that most basic Haskell types have counterparts in
 Sunroof. To convert Haskell values into their 
-counterparts we provide the \Src{SunroofValue} class.
+counterparts, we provide the \Src{SunroofValue} class.
 \begin{Code}
 class SunroofValue a where
   type ValueOf a :: *
@@ -118,10 +118,10 @@ provides the corresponding Sunroof type.
 \Src{js} converts a value from Haskell to Sunroof. 
 By design \Src{SunroofValue} does
 only provide instances for values that can be converted in a pure
-manner. Some types in JavaScript are referential 
-transparent according to \Src{==} while others, like general objects,
-are not. As an example, if you call \Src{new Object()} twice you get the 
-same empty object, but when compared by \Src{==} they are different. They
+manner. Some types in JavaScript are referentially 
+transparent according to \Src{==}, while others, like general objects,
+are not. As an example, if you call \Src{new Object()}, twice you get two 
+equivalent empty objects, but when compared by \Src{==} they are different. They
 are not identical, because in this case reference equality is checked
 instead of value equality. We call this observable allocation and handle 
 it as a side-effect which may only occur in the \JS-monad. 

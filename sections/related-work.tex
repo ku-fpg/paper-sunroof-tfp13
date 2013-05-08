@@ -7,18 +7,18 @@ UHC \cite{Stutterheim:12:ImprovingUHCJavaScriptBackend} and
 GHCJS \cite{project:ghcjs}. There are also projects like Fay \cite{project:fay} 
 that compile subsets of Haskell to JavaScript or JMacro \cite{project:jmacro}
 which use quasiquotation \cite{Mainland:07:QuasiquotingHaskell} to embed 
-a custom tailored language into Haskell code.
+a custom-tailored language into Haskell code.
 
-At the same time there are also projects, like 
-CoffeeScript \cite{project:coffeescript} or LiveScript \cite{project:livescript},
+At the same time there are also projects like 
+CoffeeScript \cite{project:coffeescript} or LiveScript \cite{project:livescript}
 to build custom languages 
-that are very similar to JavaScript, but add convenient syntax and
+that are very similar to JavaScript but add convenient syntax and
 support for missing features.
 
 Our approach to cooperative concurrency through continuations in JavaScript has
 has been used before 
 \cite{Cooper:07:LinksWebProgrammingTiers,Predescu:02:CocoonContinuationBasedControlFlow}.
-To our knowledge the attempt to create a direct connection
+To our knowledge, creating a direct connection
 between Haskell and JavaScript continuations has not been 
 attempted before.
 
@@ -26,20 +26,20 @@ Deep embeddings of monads based on data structures have been used before
 in Unimo \cite{Lin:06:Unimo} and Operational \cite{Apfelmus:10:Operational,Hackage:10:Operational}. 
 The specific approach Sunroof takes 
 by using GADTs has been discussed by 
-Sculthrope et al. \cite{Sculthorpe:13:ConstrainedMonads} 
+Sculthorpe et al. \cite{Sculthorpe:13:ConstrainedMonads} 
 in detail.
 
-The Sunroof server does not have the aim to provide a full featured 
-web framework, like HAppS, Snap or Yesod do. It only provides 
+The Sunroof server does not have the aim to provide a full-featured 
+web framework, as HAppS, Snap or Yesod do. It only provides 
 the infrastructure to communicate with the currently calling website
 through the Kansas comet \cite{project:kansas-comet} 
 push mechanism \cite{pattern:push}. Although all of the
-frameworks mentioned above would be able to implement this technique
-to our knowledge none of them has yet.
+frameworks mentioned above would be able to implement this technique,
+to our knowledge, none of them has yet.
 
-To our knowledge Sunroof is the only library that supports 
+To our knowledge, Sunroof is the only library that supports 
 generation of JavaScript inside of Haskell using cheap and cheerful Haskell
-in a type safe manner. All other approaches discussed above
+in a type-safe manner. All other approaches discussed above
 either require a separate compilation step or introduce new 
 syntax inside of Haskell.
 

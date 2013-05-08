@@ -5,7 +5,7 @@
 Sunroof really comes into its own when used with the Sunroof server.
 It provides infrastructure to send arbitrary pieces 
 of JavaScript to a calling website for execution. 
-Like this it is possible to interleave Haskell and JavaScript 
+So, it is possible to interleave Haskell and JavaScript 
 computations with each other as needed. The three major functions
 provided are \Src{sunroofServer}, \Src{syncJS} and \Src{asyncJS}.
 \begin{Code}
@@ -21,16 +21,16 @@ for each request.
 \Src{syncJS} and \Src{asyncJS} allow the server
 to run Sunroof code inside the requesting website.
 \Src{asyncJS} executes it asynchronously without 
-waiting for a return value. In contrast to that 
+waiting for a return value. In contrast to that, 
 \Src{syncJS} waits until the execution is complete and
 then sends the result back to the server. It
 is converted into a Haskell value that can be processed further. 
 Values that can be converted to a Haskell type after a synchronous
 call implement the \Src{SunroofResult} class. It maps the 
-Sunroof type to a corresponding Haskell type through a type-function 
+Sunroof type to a corresponding Haskell type through a type function 
 and provides a function to convert the data to that type.
 
-Besides these basic functions it also provides the abstract 
+Besides these basic functions, it also provides the abstract 
 concepts of \Src{Downlink}s and \Src{Uplink}s. They are 
 channels for sending data either from the server or to
 the server.

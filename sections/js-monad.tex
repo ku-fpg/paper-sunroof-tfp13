@@ -5,13 +5,13 @@
 The imperative nature and side-effects of JavaScript are 
 modeled through the \JS-monad. It resembles the \IO-monad, 
 but has an extra phantom argument~\cite{Leijen:99:Phantom} 
-to decides which threading model is used. 
+to decide which threading model is used. 
 For now we can ignore this extra argument. It will be
-discussed it in Section \ref{sec:threading-models}.
+discussed in Section \ref{sec:threading-models}.
 
 The basic idea is that a binding in the \JS-monad becomes an
-assignment to a fresh variable in JavaScript. Like
-this the results of previous computations are passed on to 
+assignment to a fresh variable in JavaScript. 
+In this way. the results of previous computations are passed on to 
 later ones.
 Figure~\ref{fig:code-example} gives an example.
 The binding \Src{name} is translated to the freshly generated
@@ -27,7 +27,7 @@ Thus we do not know how to create a value of type \Src{a}. What we want is:
 \begin{Code}
 (>>=) :: (Sunroof a) => JS t a -> (a -> JS t b) -> JS t b
 \end{Code}
-Where \Src{Sunroof} constrains the bind to
+\Src{Sunroof} constrains the bind to
 arguments for which we can generate a variable.
 It turns out that a specific form of normalization allows 
 the type \Src{a} to be constrained and \JS~to 
@@ -61,7 +61,7 @@ data JSI :: T -> * -> * where
 The parameter \Src{t} in \Src{JSI t a} again represents 
 the threading model and can be ignored up to Section \ref{sec:threading-models}. 
 \Src{a} represents the primitive's return value. 
-\Src{JS\_Invoke} calls a function, that has been created with \Src{JS\_Function}.
+\Src{JS\_Invoke} calls a function that has been created with \Src{JS\_Function}.
 Branches are represented with \Src{JS\_Branch}. Assignments to a variable
 are represented by \Src{JS\_Assign\_}.
 

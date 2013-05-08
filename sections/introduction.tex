@@ -8,10 +8,10 @@ handling. It also provides features that are associated with
 functional languages, like first-class functions. 
 We want to express JavaScript in Haskell, adding use
 of Haskell's static typing, and gaining access to JavaScript services
-in the Browser from Haskell.
+in the browser from Haskell.
 
 % Simon: State your contributions
-Sunroofs was developed to tackle this goal.
+Sunroof was developed to tackle this goal.
 The small example in Figure \ref{fig:code-example} 
 shows how Sunroof feels.
 % Simon: An illustrative example
@@ -44,13 +44,13 @@ alert("Your name: " + v0);
 % Simon: Why is this useful?
 The expected JavaScript output is shown on the right. But what makes 
 this useful? We produced code that is shorter 
-then the Sunroof code on the left and can easily be written by hand.
+than the Sunroof code on the left and can easily be written by hand.
 
 % Simon: List of contributions
 Sunroof's approach has several advantages. 
 It introduces a threading model and abstraction similar
-to Haskell's. Like this programmers can reuse well known 
-techniques from Haskell when writing JavaScript.
+to Haskell's. This allows programmers to use common Haskell 
+techniques when writing JavaScript.
 We also utilize the static type system to support us when 
 writing code, e.g. the functions
 in Figure \ref{fig:code-example} have the following signatures:
@@ -65,9 +65,9 @@ At the same time Sunroof offers an interface that is
 close to actual JavaScript making it easy to use.
 The interface is easily extendable through
 a foreign function interface.
-We model the imperative nature of JavaScript
-using the transitional functional programming 
-mechanism to be imperative, a monad~\cite{Moggi:91:ComputationMonads}.
+We use a monad \cite{Moggi:91:ComputationMonads} 
+to reflect the imperative nature of JavaScript.
+
 % The scope of this paper is to show how Sunroof achieves these goals.
 % It will cover the most important parts of Sunroof and how they are 
 % implemented.
@@ -92,7 +92,7 @@ and offer the possibility to add custom types later on.
 \item
 The special role of functions and continuations and
 how we model them as first-class values in Haskell and JavaScript
-will be covered in Section \ref{sec:functions-continuations}. .
+will be covered in Section \ref{sec:functions-continuations}.
 \item
 The two threading models offered by Sunroof are explained 
 in Section \ref{sec:threading-models}.
@@ -109,7 +109,7 @@ The ability to interleave Haskell and JavaScript computations as needed
 through the Sunroof server will be highlighted in Section \ref{sec:server}.
 \item
 Section \ref{sec:extended-example} will cover a small application 
-written in Sunroof to surveys how usable Sunroof is in the 
+written in Sunroof to survey how usable Sunroof is in the 
 context of application development. 
 %It shows how Sunroof can be used to utilize the 
 %display capabilities of a browser, while still using Haskell when needed

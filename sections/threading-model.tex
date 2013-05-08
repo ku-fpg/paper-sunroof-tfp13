@@ -6,7 +6,7 @@ JavaScript uses a callback centric model of computation. There
 is no concurrency, only a central loop that executes callbacks
 when events occur.
 
-In contrast Haskell has real concurrency and wide-spread 
+In contrast, Haskell has real concurrency and wide-spread 
 abstractions for synchronization, e.g. \Src{MVar}s and \Src{Chan}s
 \cite{Jones:96:ConcurrentHaskell}.
 So the question arises: do we generate atomic JavaScript code, 
@@ -19,13 +19,13 @@ code that can be cleanly called from native JavaScript.
 Both choices had poor consequences.
 
 We decided to explicitly support both,
-and make both first class threading strategies in Sunroof.
-In terms of user-interface, we parameter the \JS-monad
+and make both first-class threading strategies in Sunroof.
+In terms of user-interface, we parameterize the \JS-monad
 with a phantom type that represents the threading model used, 
 with \Src{A} for \Src{A}tomic,
 and \Src{B} for \Src{B}locking threads. 
 Atomic threads are classical JavaScript computations that
-can not be interrupted and actively use the callback
+cannot be interrupted and actively use the callback
 mechanism. Blocking threads can
 support suspending operations and cooperative concurrency
 abstractions as known from Haskell. By using phantom
@@ -47,7 +47,7 @@ threads (registered continuations) a chance to run.
 Of course, this model depends on cooperation between the threads,
 because a not terminating or suspending thread will keep others from running.
 
-There are three main primitives for the blocking model.
+There are three main primitives for the blocking model:
 \begin{Code}
 forkJS      :: SunroofThread t1 => JS t1 () -> JS t2 ()
 threadDelay :: JSNumber -> JS B ()
@@ -58,7 +58,7 @@ They can all be seen as analogues of their \IO~counterparts.
 It registers the continuation of the given computation as a callback. 
 \Src{yield} suspends the current thread by 
 registering the current continuation as a callback,
-giving other thread time to run.
+giving other threads time to run.
 \Src{threadDelay} is a form of \Src{yield} that sets 
 the callback to be called after a certain amount of time.
 We rely on the JavaScript function \Src{window.setTimeout} 
@@ -72,7 +72,7 @@ class SunroofThread (t :: T) where
   evalStyle   :: ThreadProxy t -> T
   blockableJS :: (Sunroof a) => JS t a -> JS B a
 \end{Code}
-Based on these primitive combinators we also offer a Sunroof 
+Based on these primitive combinators, we also offer a Sunroof 
 version of \Src{MVar} and \Src{Chan}: \Src{JSMVar} and \Src{JSChan}.
 \begin{Code}
 newMVar      :: (SunroofArgument a) => a -> JS t (JSMVar a)
@@ -84,13 +84,13 @@ newChan   :: (SunroofArgument a) => JS t (JSChan a)
 writeChan :: (SunroofArgument a) => a -> JSChan a -> JS t ()
 readChan  :: (SunroofArgument a) => JSChan a -> JS B a
 \end{Code}
-Both implementation use arrays to store the waiting readers and
-writers in form of continuations. Note that all functions
+Both implementations use arrays to store the waiting readers and
+writers in the form of continuations. Note that all functions
 are able to handle \Src{SunroofArgument}s, not just \Src{Sunroof}
 types. This is possible, because the computations themselves
 (their current continuation) are
 stored in the lists through \Src{callcc}.
-When arguments are written either the waiting
+When arguments are written, either the waiting
 continuation is called with those arguments or a new continuation 
 that applies an incoming one with those arguments is created.
 

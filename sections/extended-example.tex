@@ -1,8 +1,8 @@
  
-\section{Case Study - A small Calculator}
+\section{Case Study - A Small Calculator}
 \label{sec:extended-example}
 
-To see how Sunroof works in practice we will look into the 
+To see how Sunroof works in practice, we will look into the 
 experience we gathered when writing a small calculator
 for arithmetic expressions (Figure \ref{fig:example-application}). 
 We use Sunroof to display our interface
@@ -30,19 +30,19 @@ This can be seen in Figure \ref{fig:example-structure}.
 
 How does Sunroof improve or change this classical structure?
 First of all, in Sunroof you write the client side code together with
-your server application within Haskell. In our example all code 
+your server application within Haskell. In our example, all code 
 for the server and client is in Haskell. The control logic 
 for the client side is provided through the server.
 This leads to a tight coupling between both sides. 
-It enforces both sides to work together
+It forces both sides to work together
 correctly because they share types and interfaces. 
 This also shows how Sunroof blurs the border between the server 
 and client side. You are not restricted by an interface or language 
-barrier. If you need the client to do something you can just 
+barrier. If you need the client to do something, you can just 
 send arbitrary Sunroof code to execute in the client.
 
-Lets look into a few statistics (Table \ref{tab:example-statistics}) 
-about how much code it took to write which parts of the client.
+Following are a few statistics (Table \ref{tab:example-statistics}) 
+about how much code it took to write each part of the client.
 
 \begin{table}
 \begin{center}
@@ -53,7 +53,7 @@ Part of Application & Lines of Code & Percentage \\[2pt]
 Response loop & 25 & 6.5\% \\[2pt]
 Data conversion & 85 & 22.0\% \\[2pt]
 Rendering & 190 & 49.5\% \\[2pt]
-Parsing and Interpretation & 85 & 22.0\% \\[2pt]
+Parsing and interpretation & 85 & 22.0\% \\[2pt]
 \hline
 \end{tabular}
 \end{center}
@@ -65,18 +65,18 @@ The client-server response loop shuffles new input to the server
 and executes the response in the client.
 
 Data conversion is needed, because pure Haskell data types
-can not be handled in Sunroof and vice versa. There still
-is a language boundary between JavaScript and Haskell. 
+cannot be handled in Sunroof and vice versa. There still
+exists a language barrier between JavaScript and Haskell. 
 Code to convert between two essentially equal data structures on 
-each side has to be written, as wall as representation of Haskell 
-structures in Sunroof. But there is great potential in automatically 
+each side must be written, as well as representations of Haskell 
+structures in Sunroof. However, there is great potential in automatically 
 generating this code using techniques like template Haskell.
 
 The code for displaying the results is basically a 
 transliteration of the JavaScript that you would write for this 
 purpose.
-The transliteration going on here is not very appealing. 
-In future this code can be generated through higher level 
+The transliteration used here is not very appealing. 
+In the future, this code can be generated through higher-level 
 libraries. Sunroof is intended to deliver a foundation for
 this purpose.
 
@@ -85,10 +85,10 @@ result is classical Haskell code.
 
 We have a lot of boilerplate code for data conversion
 that has potential to be generated.
-The transliteration of JavaScript into Sunroof has a overhead and
+The transliteration of JavaScript into Sunroof has an overhead and
 tends to be verbose. This problem can be hidden through 
-higher level libraries using Sunroof as a backend. 
-We can see that Sunroof has the potential to be a low level interface
-to the browsers capabilities. It offers a solid and robust foundation to build
-on more advanced systems that want to utilize the browser.
+higher-level libraries using Sunroof as a backend. 
+We can see that Sunroof has the potential to be a low-level interface
+to the browser's capabilities. It offers a solid and robust foundation to build
+more advanced systems that want to utilize the browser.
 

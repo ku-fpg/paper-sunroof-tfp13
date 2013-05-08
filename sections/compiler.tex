@@ -17,7 +17,7 @@ The constructors of \Src{Stmt} directly represent the
 different statements you can write in JavaScript.
 
 The \Src{Program} type is abstract. Before we 
-can work with it we need to convert it to a \Src{ProgramView}
+can work with it, we need to convert it to a \Src{ProgramView}
 instance.
 The monadic structure captured by \Src{ProgramView} can be taken 
 apart to translate the instructions inside.
@@ -31,7 +31,8 @@ compile p = eval (view p)
 The compiler options and fresh variables are provided 
 through the \Src{CompM} monad.
 
-Lets see how \Src{JS\_Assign\_} is translated. Recall from 
+To get started, \Src{JS\_Assign\_} is translated in the following manner. 
+Recall from 
 Figure \ref{fig:jsi-definition} that it takes a variable name 
 and the value to assign as arguments. The result type is unit.
 \begin{Code}
@@ -40,21 +41,21 @@ eval (JS_Assign_ v a :>>= k) = do
       stmts1       <- compile (k ())
       return ( stmts0 ++ [AssignStmt (VarRhs v) val] ++ stmts1)
 \end{Code}
-First we compile the expression \Src{a} to assign into a series of 
+First, we compile the expression \Src{a} to assign into a series of 
 statements that compute it together with the result value \Src{val}.
-Next we compile that happens after the assignment. Since 
+Next, we compile what happens after the assignment. Since 
 the assignment produces unit, we can pass that to \Src{k}.
-In the end we concatenate all statements with the assignment in between. 
+In the end, we concatenate all statements with the assignment in between. 
 
 A more interesting part of the compiler is the translation of branches.
-Recall the \JSI~constructor for branches from Figure \ref{fig:jsi-definition}.
+Recall the \JSI~constructor for branches from Figure \ref{fig:jsi-definition}:
 \begin{Code}
 JS_Branch :: (SunroofThread t, SunroofArgument a, Sunroof bool) 
           => bool -> JS t a -> JS t a  -> JSI t a
 \end{Code}
-Aside of the fact that branches may return \Src{SunroofArgument}s
-instead of just \Src{Sunroof} values the translation seems to 
-be straight forward (Figure \ref{fig:branch-translation}).
+Aside from the fact that branches may return \Src{SunroofArgument}s
+instead of just \Src{Sunroof} values, the translation seems to 
+be straightforward (Figure \ref{fig:branch-translation}).
 \begin{figure}[h]
 \begin{Code}
 eval (JS_Branch b c1 c2 :>>= k) = do
@@ -72,7 +73,7 @@ eval (JS_Branch b c1 c2 :>>= k) = do
 \caption{Naive translation of branches in Sunroof.}
 \label{fig:branch-translation}
 \end{figure}
-First we generate the statements for the branching condition.
+First, we generate the statements for the branching condition.
 Then we generate unique variables for each of the returned values in 
 either branch and use \Src{bindResults} to assign them to the 
 new variables. The function \Src{extractProgramJS} 
@@ -86,7 +87,7 @@ extractProgramJS :: (a -> JS t ()) -> JS t a -> Program (JSI t) ()
 extractProgramJS k m = unJS (m >>= k) return
 \end{Code}
 
-After the compilation of both branches we translate the 
+After the compilation of both branches, we translate the 
 rest and create the list of statements in a canonical fashion.
 
 This works perfectly if we are in the atomic threading model,
@@ -97,7 +98,7 @@ continuation describes the rest of the computation up
 to the end of that branch. It also captures the 
 assignments at the end of the branch. 
 Assignments captured inside a continuation
-are not visible outside of the 
+are not visible outside of 
 it. That means the variables are not visible 
 after the branch and the code inside of \Src{rest} refers to them
 although they are not defined.
@@ -147,8 +148,8 @@ the scope of the continuations and, because of that, \Src{v0} is
 not defined when \Src{CallAfterIf} is applied to it.
 \end{comment}
 
-How can we fix this? Within the blocking 
-threading model, we have to handle branches differently.
+Therefore, within the blocking 
+threading model, we have to handle branches differently:
 \begin{Code}
 eval (JS_Branch b c1 c2 :>>= k) = 
   case evalStyle (ThreadProxy :: ThreadProxy t) of
@@ -201,16 +202,16 @@ continuation variant. But that would unnecessarily
 obfuscate the produced code and lead to indirections.
 
 The compiler offers two functions to compile either threading 
-model.
+model:
 \begin{Code}
 sunroofCompileJSA :: Sunroof a 
                   => CompilerOpts -> String -> JS A a  -> IO String
 sunroofCompileJSB :: CompilerOpts -> String -> JS B () -> IO String
 \end{Code}
-Notice, that for the blocking threading model only unit
-may be returned due to their continuation based nature. 
-The string argument provides the name of the variable to 
-bind the computation result to.
+Notice that for the blocking threading model only unit
+may be returned due to their continuation-based nature. 
+The string argument provides the name of the variable to which to
+bind the computation result.
 
 
 
