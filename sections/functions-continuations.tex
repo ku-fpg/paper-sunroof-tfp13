@@ -7,7 +7,7 @@ Sunroof represents function with the type
 \Src{JSFunction $\alpha$ $\beta$}, which resembles 
 a function $\alpha \rightarrow \beta$ in JavaScript. 
 A \Src{Sunroof $\alpha$} constraint would be too restrictive,
-since functions allow more then one argument.
+since functions allow more than one argument.
 Thus we introduced \Src{SunroofArgument} to constrain the 
 types that may be used as arguments for functions.
 \begin{Code}
@@ -44,7 +44,7 @@ expressed in the \JS-monad. The creation of a function is considered
 a side-effect, due to observable allocation.
 
 Function application is done through 
-the \Src{apply} or \Src{\$\$} combinator.
+the \Src{apply} or \Src{\$\$} combinator, they are synonyms.
 Functions can only be applied in the \JS-monad, since they can have side-effects.
 \begin{Code}
 apply, ($$) :: (SunroofArgument a, Sunroof b) 
@@ -52,7 +52,7 @@ apply, ($$) :: (SunroofArgument a, Sunroof b)
 \end{Code}
 Creation and application are implemented using the \Src{JS\_Function}
 and \Src{JS\_Invoke} instructions introduced in 
-Figure \ref{fig:jsi-definition}.
+\FigRef{fig:jsi-definition}.
 
 \Src{JSContinuation $\alpha$} is used to model continuations in the \JS-monad. 
 It was introduced to work with continuations in Sunroof. 
@@ -92,18 +92,18 @@ unJS :: JS t a -> (a -> Program (JSI t) ()) -> Program (JSI t) ()
 The implementation of \Src{callcc} is interesting,
 because it shows how the \Src{Program}-continuation is translated 
 into a \Src{JSContinuation} that is passed to the given function \Src{f}.
-Section \ref{sec:threading-models} will show why this function
+\SecRef{sec:threading-models} will show why this function
 is important for Sunroof and what it is used for.
 
 Functions and continuations are similar and connected 
-to each other, as can be seen in Figure \ref{fig:func-cont}.
+to each other, as can be seen in \FigRef{fig:func-cont}.
 \Figure%
 {fig:func-cont}%
 {figures/sunroof-func-cont.pdf}%
 {How functions and continuations relate between the Haskell and Sunroof domain.}%
 We can go back and forth between the Haskell and the Sunroof
 representation of a function or continuation. But once a function
-was specialized to a continuation, it is not possible to go back,
+is specialized to a continuation, it is not possible to go back,
 because continuations only model the side-effect, but do 
 not return anything.
 
@@ -163,7 +163,7 @@ instructions.
 \item Implementation of \Src{goto} is interesting. Ignores 
 the current continuation in the \JS-monad and continues with the given one
 by actually invoking the JavaScript function representing it.
-\item Major difference in translation between both on compiler level (section \ref{sec:compiler})
+\item Major difference in translation between both on compiler level (\SecRef{sec:compiler})
 \item \TODO{Further detail on continuations; Here or somewhere else?}
 \end{itemize}
 \end{comment}

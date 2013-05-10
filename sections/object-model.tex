@@ -34,7 +34,7 @@ class SunroofArgument a => Sunroof a where
 \end{Code}
 It marks these types as possible values in JavaScript.
 The \Src{SunroofArgument} prerequisite permits them 
-to be function arguments (Section \ref{sec:functions-continuations}).
+to be function arguments (\SecRef{sec:functions-continuations}).
 
 An example of this is \Src{JSString}, the representation
 of JavaScript strings.
@@ -52,7 +52,7 @@ wrappers, e.g. \Src{JSBool} or \Src{JSNumber}.
 This approach was first introduced by 
 Svenningsson \cite{Svenningsson:12:CombiningEmbedding}.
 
-Table \ref{tab:sunroof-types} gives a summary of the 
+\TabRef{tab:sunroof-types} gives a summary of the 
 prominent Sunroof types. Some types involve 
 phantom types to give more type safety \cite{Cheney:03:FirstClassPhantomTypes}.
 \begin{table}
@@ -104,7 +104,7 @@ phantom types to give more type safety \cite{Cheney:03:FirstClassPhantomTypes}.
 The smooth embedding of booleans and numbers is done through
 the Boolean package \cite{project:boolean}.
 
-Table \ref{tab:sunroof-types} shows that most basic 
+\TabRef{tab:sunroof-types} shows that most basic 
 Haskell types have counterparts in
 Sunroof. To convert Haskell values into their 
 counterparts, we provide the \Src{SunroofValue} class.
@@ -190,7 +190,7 @@ are created when converting.
 \item \Src{JSArray} not possible because of conflicts with \Src{String}
 instance (minor point); also issue of mutability of arrays; observable 
 allocation issue like with \Src{JSTuple}.
-\item Forward reference to section \ref{sec:threading-models} for \Src{JSMVar}
+\item Forward reference to \SecRef{sec:threading-models} for \Src{JSMVar}
 and \Src{JSChan}
 \end{itemize}
 JSTuple and records in JS

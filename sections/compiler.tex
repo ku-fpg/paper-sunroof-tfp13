@@ -16,11 +16,11 @@ data Stmt = AssignStmt Rhs Expr       -- Assignment
 The constructors of \Src{Stmt} directly represent the 
 different statements you can write in JavaScript.
 
-The \Src{Program} type is abstract. Before we 
-can work with it, we need to convert it to a \Src{ProgramView}
-instance.
-The monadic structure captured by \Src{ProgramView} can be taken 
-apart to translate the instructions inside.
+Operationals \cite{Apfelmus:10:Operational,Hackage:10:Operational} 
+\Src{Program} type is abstract and has to be converted 
+to a \Src{ProgramView} instance to work with.
+It provides the \Src{:>>=} and \Src{Return} constructors 
+to pattern match on and translate the instructions inside.
 \begin{Code}
 compile :: Program (JSI t) () -> CompM [Stmt]
 compile p = eval (view p)
@@ -28,18 +28,17 @@ compile p = eval (view p)
     eval :: ProgramView (JSI t) () -> CompM [Stmt]
     ...
 \end{Code}
-The compiler options and fresh variables are provided 
-through the \Src{CompM} monad.
+The \Src{CompM} state monad provides the compiler options and fresh variables.
 
 To get started, \Src{JS\_Assign\_} is translated in the following manner. 
 Recall from 
-Figure \ref{fig:jsi-definition} that it takes a variable name 
-and the value to assign as arguments. The result type is unit.
+\FigRef{fig:jsi-definition} that it takes a variable name 
+and the value to assign as arguments. The result is the unit type.
 \begin{Code}
 eval (JS_Assign_ v a :>>= k) = do
-      (stmts0,val) <- compileExpr (unbox a)
-      stmts1       <- compile (k ())
-      return ( stmts0 ++ [AssignStmt (VarRhs v) val] ++ stmts1)
+  (stmts0,val) <- compileExpr (unbox a) -- Expr -> CompM ([Stmt], Expr)
+  stmts1       <- compile (k ())
+  return ( stmts0 ++ [AssignStmt (VarRhs v) val] ++ stmts1)
 \end{Code}
 First, we compile the expression \Src{a} to assign into a series of 
 statements that compute it together with the result value \Src{val}.
@@ -48,14 +47,14 @@ the assignment produces unit, we can pass that to \Src{k}.
 In the end, we concatenate all statements with the assignment in between. 
 
 A more interesting part of the compiler is the translation of branches.
-Recall the \JSI~constructor for branches from Figure \ref{fig:jsi-definition}:
+Recall the \JSI~constructor for branches from \FigRef{fig:jsi-definition}:
 \begin{Code}
 JS_Branch :: (SunroofThread t, SunroofArgument a, Sunroof bool) 
           => bool -> JS t a -> JS t a  -> JSI t a
 \end{Code}
 Aside from the fact that branches may return \Src{SunroofArgument}s
 instead of just \Src{Sunroof} values, the translation seems to 
-be straightforward (Figure \ref{fig:branch-translation}).
+be straightforward (\FigRef{fig:branch-translation}).
 \begin{figure}[h]
 \begin{Code}
 eval (JS_Branch b c1 c2 :>>= k) = do
@@ -157,7 +156,7 @@ eval (JS_Branch b c1 c2 :>>= k) =
     B -> compileBranch_B b c1 c2 k
 \end{Code}
 The call to \Src{compileBranch\_A}
-executes our naive definition from Figure \ref{fig:branch-translation}.
+executes our naive definition from \FigRef{fig:branch-translation}.
 \begin{Code}
 compileBranch_B b c1 c2 k = do
   fn_e <- compileContinuation $
@@ -222,7 +221,7 @@ bind the computation result.
 
 \begin{comment}
 Given the language, and monadic-reification, how do we compile this language?
-Figure \ref{fig:structure} shows how Sunroof is structured.
+\FigRef{fig:structure} shows how Sunroof is structured.
 On the lowest level we provide an untyped expression language \Src{Expr}
 that describes JavaScript expressions. 
 To provide type safety when using Sunroof we create

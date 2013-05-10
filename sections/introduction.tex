@@ -12,11 +12,11 @@ in the browser from Haskell.
 
 % Simon: State your contributions
 Sunroof was developed to tackle this goal.
-The small example in Figure \ref{fig:code-example} 
+The small example in \FigRef{fig:code-example} 
 shows how Sunroof feels.
 % Simon: An illustrative example
-\begin{figure}[h]
-\vspace{-0.5cm}
+\begin{figure}
+%\vspace{-0.5cm}
 \centering
 \begin{subfigure}{0.45\textwidth}%
 \begin{Code}
@@ -39,7 +39,7 @@ alert("Your name: " + v0);
 %\vspace{-0.2cm}%
 \caption{Sunroof program and the expected JavaScript on the left.}%
 \label{fig:code-example}%
-\vspace{-0.5cm}
+\vspace{0.5cm}%
 \end{figure}
 % Simon: Why is this useful?
 The expected JavaScript output is shown on the right. But what makes 
@@ -53,7 +53,7 @@ to Haskell's. This allows programmers to use common Haskell
 techniques when writing JavaScript.
 We also utilize the static type system to support us when 
 writing code, e.g. the functions
-in Figure \ref{fig:code-example} have the following signatures:
+in \FigRef{fig:code-example} have the following signatures:
 \begin{Code}
 prompt :: JSString -> JSString -> JS t JSObject
 alert  :: JSString -> JS t ()
@@ -77,39 +77,39 @@ to reflect the imperative nature of JavaScript.
 {figures/sunroof-structure.pdf}%
 {The structure of Sunroof.}
 
-Figure \ref{fig:structure} shows Sunroof's structure.
+\FigRef{fig:structure} shows Sunroof's structure.
 We will cover each of the layers throughout the paper:
 \begin{itemize}
 \item
 The semantics and implementation of the \JS-monad is explained 
-in Section \ref{sec:js-monad}, along with a description of how
+in \SecRef{sec:js-monad}, along with a description of how
 we solved
 the problem of constraining types involved in the monadic 
 computations.
 \item
-Section \ref{sec:object-model} will discuss how we annotate 
+\SecRef{sec:object-model} will discuss how we annotate 
 JavaScript objects with types using wrappers 
 and offer the possibility to add custom types later on.
 \item
 The special role of functions, continuations and
 how we model them as first-class values in Haskell and JavaScript
-will be covered in Section \ref{sec:functions-continuations}.
+will be covered in \SecRef{sec:functions-continuations}.
 \item
 The two threading models offered by Sunroof are explained 
-in Section \ref{sec:threading-models}.
+in \SecRef{sec:threading-models}.
 \item
-Section \ref{sec:ffi} introduces Sunroof's foreign-function interface.
+\SecRef{sec:ffi} introduces Sunroof's foreign-function interface.
 \item
 Translation of Sunroof to JavaScript is handled in 
-Section \ref{sec:compiler}. We will explain the 
+\SecRef{sec:compiler}. We will explain the 
 compilation of selected language constructs. This is 
 especially interesting in the light of our use of continuations
 and their translation to JavaScript.
 \item
 The ability to interleave Haskell and JavaScript computations as needed
-through the Sunroof server will be highlighted in Section \ref{sec:server}.
+through the Sunroof server will be highlighted in \SecRef{sec:server}.
 \item
-Section \ref{sec:extended-example} will cover a small application 
+\SecRef{sec:extended-example} will cover a small application 
 written in Sunroof to survey how usable Sunroof is in the 
 context of application development. 
 %It shows how Sunroof can be used to utilize the 
@@ -126,21 +126,21 @@ context of application development.
 \item Talk about the general structure of Sunroof
 \item Relate each part of the structure to a specific section:
   \begin{itemize}
-  \item \JSA\ /\ \JSB: \JS-monad in section \ref{sec:js-monad};
+  \item \JSA\ /\ \JSB: \JS-monad in \SecRef{sec:js-monad};
   together with \JSI\ and contiuations used by the \JS-monad.
-  \item Type Wrappers / Expr: Discussed in section \ref{sec:object-model}
+  \item Type Wrappers / Expr: Discussed in \SecRef{sec:object-model}
   \end{itemize}
-\item Details about functions and continuations are given in section \ref{sec:functions-continuations}
+\item Details about functions and continuations are given in \SecRef{sec:functions-continuations}
 \item 
 Sunroof was first documented in our previous 
 workshop paper~\cite{Farmer:12:WebDSLs},
 where the possibility of monadic reification was observed.
 In this paper, we raised an unresolved issue:
 
-Threading Model: Built on top of \JS-monad (section \ref{sec:threading-models})
-\item Explain how the compiler works and what it does \ref{sec:compiler}
-\item In section \ref{sec:server} we will look at the sunroof server 
-\item Extended example in section \ref{sec:extended-example}
+Threading Model: Built on top of \JS-monad (\SecRef{sec:threading-models})
+\item Explain how the compiler works and what it does \SecRef{sec:compiler}
+\item In \SecRef{sec:server} we will look at the sunroof server 
+\item Extended example in \SecRef{sec:extended-example}
 
 \end{itemize}
 

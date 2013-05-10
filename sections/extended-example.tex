@@ -4,7 +4,7 @@
 
 To see how Sunroof works in practice, we will look into the 
 experience we gathered when writing a small calculator
-for arithmetic expressions (Figure \ref{fig:example-application}). 
+for arithmetic expressions (\FigRef{fig:example-application}). 
 We use Sunroof to display our interface
 and the results of our computation. Haskell will be used to parse the 
 arithmetic expressions and calculate the result. The Sunroof server 
@@ -21,7 +21,7 @@ been to write a server that provides a RESTful interface and replies
 through a JSON data structure. 
 The client side of that application would have been written in JavaScript
 directly.
-This can be seen in Figure \ref{fig:example-structure}.
+This can be seen in \FigRef{fig:example-structure}.
 
 \Figure%
 {fig:example-structure}%
@@ -29,7 +29,7 @@ This can be seen in Figure \ref{fig:example-structure}.
 {Classical structure and Sunroof structure of a web application.}
 
 How does Sunroof improve or change this classical structure?
-First of all, in Sunroof you write the client side code together with
+First of all, in Sunroof you write the client-side code together with
 your server application within Haskell. In our example, all code 
 for the server and client is in Haskell. The control logic 
 for the client side is provided through the server.
@@ -41,10 +41,10 @@ and client side. You are not restricted by an interface or language
 barrier. If you need the client to do something, you can just 
 send arbitrary Sunroof code to execute in the client.
 
-Following are a few statistics (Table \ref{tab:example-statistics}) 
+Following are a few statistics (\TabRef{tab:example-statistics}) 
 about how much code it took to write each part of the client.
 
-\begin{table}
+\begin{table}[t]
 \begin{center}
 \begin{tabular}{l@{\quad}r@{\quad}r}
 \hline\rule{0pt}{12pt}%
@@ -59,6 +59,7 @@ Parsing and interpretation & 85 & 22.0\% \\[2pt]
 \end{center}
 \caption{Lines of code needed for the example.}
 \label{tab:example-statistics}
+\vspace{-0.5cm}
 \end{table} 
 
 The client-server response loop shuffles new input to the server 
@@ -70,7 +71,8 @@ exists a language barrier between JavaScript and Haskell.
 Code to convert between two essentially equal data structures on 
 each side must be written, as well as representations of Haskell 
 structures in Sunroof. However, there is great potential in automatically 
-generating this code using techniques like template Haskell.
+generating this code using techniques such as template Haskell
+\cite{Sheard:02:TemplateMetaProgrammingHaskell}.
 
 The code for displaying the results is basically a 
 transliteration of the JavaScript that you would write for this 

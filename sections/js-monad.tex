@@ -7,13 +7,13 @@ modeled through the \JS-monad. It resembles the \IO-monad,
 but has an extra phantom argument~\cite{Leijen:99:Phantom} 
 to decide which threading model is used. 
 For now we can ignore this extra argument. It will be
-discussed in Section \ref{sec:threading-models}.
+discussed in \SecRef{sec:threading-models}.
 
 The basic idea is that a binding in the \JS-monad becomes an
 assignment to a fresh variable in JavaScript. 
 This allows the results of previous computations are passed on to 
 later ones.
-Figure~\ref{fig:code-example} gives an example.
+\FigRef{fig:code-example} gives an example.
 The binding \Src{name} is translated to the freshly generated
 variable \Src{v0}.
 
@@ -41,10 +41,10 @@ It provides the \Src{Program}-monad that
 can be equipped with custom primitives.
 We represent these primitives with the JavaScript instruction
 (\JSI)
-type shown in Figure \ref{fig:jsi-definition}. It represents the 
+type shown in \FigRef{fig:jsi-definition}. It represents the 
 abstract instructions that are sequenced inside 
 the \Src{Program}-monad.
-\begin{figure}
+\begin{figure}[t]
 \begin{Code}
 data JSI :: T -> * -> * where
   JS_Invoke   :: (SunroofArgument a, Sunroof r) 
@@ -56,11 +56,11 @@ data JSI :: T -> * -> * where
   JS_Assign_  :: (Sunroof a) => Id -> a -> JSI t ()
   ...
 \end{Code}
-\caption{Parts of the \JSI nstruction data type.}
+\caption{Parts of the JavaScript instruction data type (\JSI).}
 \label{fig:jsi-definition}
 \end{figure}
 The parameter \Src{t} in \Src{JSI t a} again represents 
-the threading model and can be ignored up to Section \ref{sec:threading-models}. 
+the threading model and can be ignored up to \SecRef{sec:threading-models}. 
 The type \Src{a} represents the primitive's return value. 
 \Src{JS\_Invoke} calls a function that has been created with \Src{JS\_Function}.
 Branches are represented with \Src{JS\_Branch}. Assignments to a variable
@@ -93,8 +93,8 @@ Basic Idea
 \item \JS-monad is analog of \IO-monad
 \item Monad used to model sequences of statements with side-effect in 
 JavaScript \cite{Moggi:91:ComputationMonads}
-\item binding in Haskell becomes binding in JavaScript (more about this in section \ref{sec:compiler})
-\item There also is a expression level (discussed in section \ref{sec:object-model})
+\item binding in Haskell becomes binding in JavaScript (more about this in \SecRef{sec:compiler})
+\item There also is a expression level (discussed in \SecRef{sec:object-model})
 \item Feels like a native monad, cf STM.
 \item Can build abstractions on top of this.
 \end{itemize}
@@ -109,7 +109,7 @@ Implementation
 \item Monad instance is the standard implementation for a continuation 
 monad
 \item This is necessary, because we want to support different threading styles 
-(discussed in chapter \ref{sec:threading-models})
+(discussed in \SecRef{sec:threading-models})
 \item For now think of it as producing a sequence/list of abstract instructions: \JSI
 \item Look at the \JSI\ type and introduce it
 \item Explain how it is a high-level representation of JavaScript
