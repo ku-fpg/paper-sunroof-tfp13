@@ -15,7 +15,7 @@ data Stmt = AssignStmt Rhs Expr       -- Assignment
 \end{Code}
 The constructors of \Src{Stmt} directly represent the 
 different statements you can write in JavaScript.
-
+%
 Operationals \cite{Apfelmus:10:Operational,Hackage:10:Operational} 
 \Src{Program} type is abstract and has to be converted 
 to a \Src{ProgramView} instance to work with.
@@ -24,16 +24,15 @@ to pattern match on and translate the instructions inside.
 \begin{Code}
 compile :: Program (JSI t) () -> CompM [Stmt]
 compile p = eval (view p)
-  where
-    eval :: ProgramView (JSI t) () -> CompM [Stmt]
-    ...
+  where eval :: ProgramView (JSI t) () -> CompM [Stmt]
+        ...
 \end{Code}
 The \Src{CompM} state monad provides the compiler options and fresh variables.
 
 To get started, \Src{JS\_Assign\_} is translated in the following manner. 
 Recall from 
 \FigRef{fig:jsi-definition} that it takes a variable name 
-and the value to assign as arguments. The result is the unit type.
+and the value to assign as arguments. %The result is the unit type.
 \begin{Code}
 eval (JS_Assign_ v a :>>= k) = do
   (stmts0,val) <- compileExpr (unbox a) -- Expr -> CompM ([Stmt], Expr)
@@ -52,9 +51,9 @@ Recall the \JSI~constructor for branches from \FigRef{fig:jsi-definition}:
 JS_Branch :: (SunroofThread t, SunroofArgument a, Sunroof bool) 
           => bool -> JS t a -> JS t a  -> JSI t a
 \end{Code}
-Aside from the fact that branches may return \Src{SunroofArgument}s
-instead of just \Src{Sunroof} values, the translation seems to 
-be straightforward (\FigRef{fig:branch-translation}).
+%Aside from the fact that branches may return \Src{SunroofArgument}s
+%instead of just \Src{Sunroof} values, the translation seems to 
+%be straightforward (\FigRef{fig:branch-translation}).
 \begin{figure}[h]
 \begin{Code}
 eval (JS_Branch b c1 c2 :>>= k) = do
@@ -72,7 +71,8 @@ eval (JS_Branch b c1 c2 :>>= k) = do
 \caption{Naive translation of branches in Sunroof.}
 \label{fig:branch-translation}
 \end{figure}
-First, we generate the statements for the branching condition.
+To compile \Src{JS\_Branch},
+we generate the statements for the branching condition.
 Then we generate unique variables for each of the returned values in 
 either branch and use \Src{bindResults} to assign them to the 
 new variables. The function \Src{extractProgramJS} 
@@ -195,10 +195,10 @@ We can see that the function call after the branch is captured by the
 continuation \Src{v2} and that continuation is called with the 
 return values as parameters inside each branch.
 \end{comment}
-
+%
 Of course, we could compile every branch with the 
-continuation variant. But that would unnecessarily
-obfuscate the produced code and lead to indirections.
+continuation variant, but this would unnecessarily
+obfuscate the produced code. % and lead to indirections.
 
 The compiler offers two functions to compile either threading 
 model:
