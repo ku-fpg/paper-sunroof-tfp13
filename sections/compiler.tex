@@ -45,7 +45,7 @@ Next, we compile what happens after the assignment. Since
 the assignment produces unit, we can pass that to \Src{k}.
 In the end, we concatenate all statements with the assignment in between. 
 
-A more interesting part of the compiler is the translation of branches.
+Now we will look into the translation of branches.
 Recall the \JSI~constructor for branches from \FigRef{fig:jsi-definition}:
 \begin{Code}
 JS_Branch :: (SunroofThread t, SunroofArgument a, Sunroof bool) 
@@ -71,8 +71,8 @@ eval (JS_Branch b c1 c2 :>>= k) = do
 \caption{Naive translation of branches in Sunroof.}
 \label{fig:branch-translation}
 \end{figure}
-To compile \Src{JS\_Branch},
-we generate the statements for the branching condition.
+\FigRef{fig:branch-translation} shows how to compile a \Src{JS\_Branch}.
+We generate the statements for the branching condition.
 Then we generate unique variables for each of the returned values in 
 either branch and use \Src{bindResults} to assign them to the 
 new variables. The function \Src{extractProgramJS} 
@@ -100,7 +100,7 @@ Assignments captured inside a continuation
 are not visible outside of 
 it. That means the variables are not visible 
 after the branch and the code inside of \Src{rest} refers to them
-although they are not defined.
+although they are not defined in that scope.
 
 \begin{comment}
 To 
