@@ -6,9 +6,11 @@ Functions are first class values in Haskell and JavaScript.
 Sunroof represents function with the type 
 \Src{JSFunction $\alpha$ $\beta$}, which resembles 
 a function $\alpha \rightarrow \beta$ in JavaScript. 
-A \Src{Sunroof $\alpha$} constraint would be too restrictive,
-since functions allow more than one argument.
-Thus we introduced \Src{SunroofArgument} to constrain the 
+Since partial application is questionable in
+the context of JavaScript, we only permit uncurried functions.
+Thus a \Src{Sunroof $\alpha$} constraint would prohibit 
+functions to take more than one argument.
+We introduced \Src{SunroofArgument} to constrain the 
 types that may be used as arguments for functions.
 \begin{Code}
 class SunroofArgument args where
@@ -22,12 +24,11 @@ arguments to a function call. \Src{jsValue} generates
 unique names for each argument, which is needed when compiling
 the function itself to a value. 
 
-Since partial application is questionable in
-the context of JavaScript, we choose to only permit uncurried functions,
-by providing instances for tuples of Sunroof values.
+Now we can provide more then one argument
+by providing \Src{SunroofArgument} instances for tuples of Sunroof values.
 \begin{Code}
 instance (Sunroof a, Sunroof b) => SunroofArgument (a,b) where
-  jsArgs ~(a,b) = [unbox a, unbox b]
+  jsArgs (a,b) = [unbox a, unbox b]
   jsValue = liftM2 (,) jsVar jsVar
 \end{Code}
 Remember that each \Src{Sunroof} value already has to be 
@@ -69,10 +70,14 @@ continuation :: (SunroofArgument a)
 goto         :: (SunroofArgument a) 
              => JSContinuation a -> a -> JS t b
 \end{Code}
-The major difference is that a call to \Src{goto} will never
+The presented \Src{goto} should not be considered 
+harmful \cite{Dijkstra:68:GotoConsideredHarmful}.
+It calls a continuation,
+as \Src{apply} calls functions.
+The difference is that a call to \Src{goto} will never
 return, as it executes the given continuation and abandons the 
 current one. This allows \Src{goto} to be fully polymorphic
-on its result. 
+on its result.
 
 Access to the current continuations is given through
 the powerful call-with-current-continuation 
