@@ -11,6 +11,7 @@
 \usepackage{caption}
 \usepackage{subcaption}
 \usepackage{verbatim}
+\usepackage{url}
 
 \newcommand{\SunroofAnalog}[1]{#1\ensuremath{_\downarrow}}
 \newcommand{\HaskellAnalog}[1]{#1\ensuremath{_\uparrow}}
@@ -30,8 +31,8 @@
 }
 
 \newcommand{\FigureS}[4]{%
-\begin{figure}[h]%
-\vspace{-0.5cm}%
+\begin{figure}[t]%
+%\vspace{-0.5cm}%
 \begin{center}%
 \includegraphics[#4]{#2}%
 \vspace{-0.5cm}%
@@ -43,6 +44,10 @@
 }
 
 \newenvironment{Code}{\verbatim}{\endverbatim}
+
+\newcommand{\FigRef}[1]{Fig.~\ref{#1}}
+\newcommand{\SecRef}[1]{Section~\ref{#1}}
+\newcommand{\TabRef}[1]{Table~\ref{#1}}
 
 \begin{document}
 %
@@ -183,5 +188,6 @@ Javascript? There are three things we have bought by using our DSL.
 %
 \bibliographystyle{splncs03}
 \bibliography{sunroof}
+\vspace{-0.5cm} % THIS SAVED MY LIFE
 
 \end{document}
