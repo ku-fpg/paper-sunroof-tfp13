@@ -10,12 +10,12 @@ fun    :: (SunroofArgument a, Sunroof r)
        => String -> JSFunction a r
 object :: String -> JSObject
 new    :: (SunroofArgument a) 
-       => String a -> JS t JSObject
+       => String -> a -> JS t JSObject
 invoke :: (SunroofArgument a, Sunroof o, Sunroof r) 
        => String -> a -> o -> JS t r
 \end{Code}
 \Src{fun} is used to create Sunroof functions from their names in JavaScript.
-This can happen in two ways: either to call a function in line, or to 
+This can happen in two ways: either to call a function inline, or to 
 create a real binding for that function. As an example, 
 the \Src{alert} function can be called in line through \Src{fun "alert" \$\$ "text"},
 or you can provide a binding in form of a Haskell function for it.
@@ -30,7 +30,7 @@ Constructors can be called using \Src{new}. To create a new
 object you would call \Src{new "Object" ()}.
 
 We can call methods of objects through \Src{invoke}. Again, this 
-can be used in line and to create a real binding. An inline 
+can be used inline and to create a real binding. An inline 
 use of this to produce \Src{document{\linebreak}.getElementById("id")} would look like this: 
 \begin{Code}
 object "document" # invoke "getElementById" "id"
