@@ -6,8 +6,8 @@ The imperative nature and side-effects of JavaScript are
 modeled through the \JS-monad. It resembles the \IO-monad, 
 but has an extra phantom argument~\cite{Leijen:99:Phantom} 
 to decide which threading model is used. 
-For now we can ignore this extra argument. It will be
-discussed in \SecRef{sec:threading-models}.
+(For now we can ignore this extra phantom argument; it will be
+discussed in \SecRef{sec:threading-models}.)
 
 The basic idea is that a binding in the \JS-monad becomes an
 assignment to a fresh variable in JavaScript. 
@@ -23,19 +23,20 @@ fully polymorphic over \Src{a}.
 \begin{Code}
 (>>=) :: JS t a -> (a -> JS t b) -> JS t b
 \end{Code}
-Thus we do not know how to create a value of type \Src{a}. What we want is:
+Thus we do not know how to create a value of type \Src{a}. To reify the
+monad itself, we want a constraint on \Src{a}:
 \begin{Code}
 (>>=) :: (Sunroof a) => JS t a -> (a -> JS t b) -> JS t b
 \end{Code}
 where \Src{Sunroof} constrains the bind to
 arguments for which we can generate a variable.
-It turns out that a specific form of normalization allows 
+Fortunately, it turns out that a specific form of normalization allows 
 the type \Src{a} to be constrained and \JS~to 
 be an instance of the standard monad class~\cite{Sculthorpe:13:ConstrainedMonads}.
 Through this keyhole of {\em monadic reification},
 the entire Sunroof language is realized. 
 
-The normalization is done through Operational 
+The normalization is done using Operational 
 \cite{Apfelmus:10:Operational,Hackage:10:Operational}.
 It provides the \Src{Program}-monad that
 can be equipped with custom primitives.
@@ -59,8 +60,7 @@ data JSI :: T -> * -> * where
 \caption{Parts of the JavaScript instruction data type (\JSI).}
 \label{fig:jsi-definition}
 \end{figure}
-The parameter \Src{t} in \Src{JSI t a} again represents 
-the threading model and can be ignored up to \SecRef{sec:threading-models}. 
+The parameter \Src{t} in \Src{JSI t a} again represents the threading model.
 The type \Src{a} represents the primitive's return value. 
 \Src{JS\_Invoke} calls a function that has been created with \Src{JS\_Function}.
 Branches are represented with \Src{JS\_Branch}. Assignments to a variable
@@ -78,7 +78,7 @@ data JS :: T -> * -> * where
   JS :: ((a -> Program (JSI t) ()) -> Program (JSI t) ()) -> JS t a
   ...
 \end{Code}
-The monad instance used is the standard implementation of 
+Thus, the internal monad instance used is the standard implementation of 
 a continuation monad.
 %\cite{Wadler:90:ComprehendingMonads,Wadler:94:MonadsComposableContinuations}.
 %\TODO{Both of these cites do not seem right, but they were the best I could find.
