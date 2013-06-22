@@ -3,14 +3,15 @@
 \label{sec:functions-continuations}
 
 Functions are first class values in Haskell and JavaScript.
-Sunroof represents functions with the type 
+Sunroof represents function objects with the type 
 \Src{JSFunction $\alpha$ $\beta$}, which resembles 
 a function $\alpha \rightarrow \beta$ in JavaScript. 
-Since partial application is questionable in
-the context of JavaScript, we only permit uncurried functions.
-Thus a \Src{Sunroof $\alpha$} constraint would prohibit 
-functions to take more than one argument.
-We introduced \Src{SunroofArgument} to constrain the 
+Rather than directly support partial application,
+and transliterate curryed Haskell into uncurryed JavaScript,
+we only permit uncurryed functions.
+Like JavaScript, currying can be encoded if needed.
+We introduced \Src{SunroofArgument},
+a superclass of \Src{Sunroof}, to constrain the 
 types that may be used as arguments for functions.
 \begin{Code}
 class SunroofArgument args where
@@ -18,7 +19,7 @@ class SunroofArgument args where
   jsValue  :: (UniqM m) => m args
   ...
 \end{Code}
-It converts each argument into its expression
+This class supports converting each argument into its expression
 through \Src{jsArgs} to supply the
 arguments to a function call. \Src{jsValue} generates
 unique names for each argument, which is needed when compiling
@@ -35,7 +36,7 @@ Remember that each \Src{Sunroof} value already has to be
 a \Src{SunroofArgument}, which enables us to pass a single argument
 to a function. 
 
-We can create functions with the \Src{function} combinator.
+We can create function objects with the \Src{function} combinator.
 \begin{Code}
 function :: (SunroofArgument a, Sunroof b) 
          => (a -> JS A b)  -> JS t (JSFunction a b)
@@ -59,7 +60,7 @@ and \Src{JS\_Invoke} instructions introduced in
 It was introduced to work with continuations in Sunroof. 
 Technically they are only
 specializations of functions, but
-restricted to the second threading model. Continuations
+restricted to a specific threading model. Continuations
 are meant to be a representation of side-effects -- 
 ongoing computations inside the \JS-monad -- and may  
 not terminate, so they do not return a value. As with functions, 
@@ -76,8 +77,8 @@ It calls a continuation,
 as \Src{apply} calls functions.
 The difference is that a call to \Src{goto} will never
 return, as it executes the given continuation and abandons the 
-current one. This allows \Src{goto} to be fully polymorphic
-on its result.
+current one. This means \Src{goto} is fully polymorphic
+on its (unused and unusable) result.
 
 Access to the current continuations is given through
 the powerful call-with-current-continuation 
@@ -153,7 +154,7 @@ not return anything.
 because all JS objects are parameters but pairs of them are not 
 JS objects.
 \item Introduce \Src{SunroofArgument}.
-\item So function in JS are not curried (partial application is questionable in JS)
+\item So function in JS are not curryed (partial application is questionable in JS)
 \item Create a function with \Src{function} combinator.
 \item Function creation is a monadic effect for the same reason 
 a record creation (\Src{JSTuple}). It represents observable
