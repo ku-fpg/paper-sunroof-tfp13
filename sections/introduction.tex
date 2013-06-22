@@ -3,7 +3,7 @@
 
 % Simon: Describe the problem
 JavaScript is an imperative language with access to a wide range
-of established and useful services, e.g. graphical canvases and event
+of established and useful services like graphical canvases and event
 handling. It also provides features that are associated with 
 functional languages, such as first-class functions. 
 We want to express JavaScript in Haskell, adding use
@@ -11,7 +11,7 @@ of Haskell's static typing, and gaining access to JavaScript services
 in the browser from Haskell.
 
 % Simon: State your contributions
-Sunroof was developed to tackle this goal.
+Sunroof was developed to tackle the goal of generating JavaScript.
 The small example in \FigRef{fig:code-example} 
 shows how Sunroof feels.
 % Simon: An illustrative example
@@ -42,9 +42,9 @@ alert("Your name: " + v0);
 \vspace{0.5cm}%
 \end{figure}
 % Simon: Why is this useful?
-The expected JavaScript output is shown on the right. But what makes 
-this useful? We produced code that is shorter 
-than the Sunroof code on the left and can easily be written by hand.
+The expected JavaScript output is shown on the right. 
+The JavaScript is shorter than the Sunroof code, raising
+the question of why generate JavaScript from Haskell.
 
 % Simon: List of contributions
 Sunroof's approach has several advantages. 
