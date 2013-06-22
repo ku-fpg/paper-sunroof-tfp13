@@ -34,8 +34,6 @@ your server application within Haskell. In our example, all code
 for the server and client is in Haskell. The control logic 
 for the client side is provided through the server.
 This leads to a tight coupling between both sides. 
-It forces both sides to work together
-correctly because they share types and interfaces. 
 This also shows how Sunroof blurs the border between the server 
 and client side. You are not restricted by an interface or language 
 barrier. If you need the client to do something, you can just 
@@ -83,14 +81,4 @@ libraries. Sunroof is intended to deliver a foundation for
 this purpose.
 
 The rest of our code to parse the arithmetic expression and calculate 
-result is classical Haskell code. 
-
-We have a lot of boilerplate code for data conversion
-that has potential to be generated.
-The transliteration of JavaScript into Sunroof has an overhead and
-tends to be verbose. This problem can be hidden through 
-higher-level libraries using Sunroof as a backend. 
-We can see that Sunroof has the potential to be a low-level interface
-to the browser's capabilities. It offers a solid and robust foundation to build
-more advanced systems that want to utilize the browser.
-
+results is classical Haskell code. 
