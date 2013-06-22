@@ -54,7 +54,7 @@ JS_Branch :: (SunroofThread t, SunroofArgument a, Sunroof bool)
 %Aside from the fact that branches may return \Src{SunroofArgument}s
 %instead of just \Src{Sunroof} values, the translation seems to 
 %be straightforward (\FigRef{fig:branch-translation}).
-\begin{figure}[h]
+\begin{figure}[t]
 \begin{Code}
 eval (JS_Branch b c1 c2 :>>= k) = do
   (src0, res0) <- compileExpr (unbox b)
