@@ -89,7 +89,7 @@ extractProgramJS k m = unJS (m >>= k) return
 After the compilation of both branches, we translate the 
 rest and create the list of statements in a canonical fashion.
 
-This works perfectly if we are in the atomic threading model,
+This compilation strategy works perfectly if we are in the atomic threading model,
 but can fail when inside the blocking model. 
 In the blocking model either branch 
 may involve continuations. Each 
