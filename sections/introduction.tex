@@ -42,17 +42,16 @@ alert("Your name: " + v0);
 \vspace{0.5cm}%
 \end{figure}
 % Simon: Why is this useful?
-The expected JavaScript output is shown on the right. 
-The JavaScript is shorter than the Sunroof code, raising
-the question of why generate JavaScript from Haskell.
+%The expected JavaScript output is shown on the right. 
+%The JavaScript is shorter than the Sunroof code, raising
+%the question of why generate JavaScript from Haskell.
 
 % Simon: List of contributions
 Sunroof's approach has several advantages. 
-It introduces a threading model and abstraction similar
-to Haskell's. This allows programmers to use common Haskell 
-techniques when writing JavaScript.
+Sunroof introduces a threading model and abstraction similar
+to Haskell's. 
 We also utilize the static type system to support us when 
-writing code, e.g. the functions
+writing code. For example, the functions
 in \FigRef{fig:code-example} have the following signatures:
 \begin{Code}
 prompt :: JSString -> JSString -> JS t JSObject
@@ -60,11 +59,11 @@ alert  :: JSString -> JS t ()
 \end{Code}
 This allows the type checker to detect a wide class
 of malformed JavaScript programs.
-Using a deep embedding gives opportunity 
+Further, using a deep embedding gives opportunity 
 for optimizations when producing the actual JavaScript.
 At the same time, Sunroof offers an interface that is 
 close to actual JavaScript making it easy to use.
-The interface is easily extendable through
+Finally, the interface is easily extendable through
 a foreign-function interface.
 We use a monad \cite{Moggi:91:ComputationMonads} 
 to reflect the imperative nature of JavaScript.
