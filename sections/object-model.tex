@@ -3,7 +3,7 @@
 \label{sec:object-model}
 
 One goal of Sunroof is to use Haskell's type system to
-increase the correctness of expressed JavaScript.
+increase the confidence of the expressed JavaScript.
 At the same time we cannot characterize 
 all different types of objects in JavaScript, since 
 users can create their own objects. Thus our 
@@ -49,7 +49,7 @@ provide specific functionality for each distinct type.
 Our example type \Src{JSString} has a \Src{Monoid} and an 
 \Src{IsString} instance that are not provided for other 
 wrappers, e.g. \Src{JSBool} or \Src{JSNumber}.
-This approach was first introduced by 
+This is the same approach used by
 Svenningsson \cite{Svenningsson:12:CombiningEmbedding}.
 
 \TabRef{tab:sunroof-types} gives a summary of the 
@@ -127,10 +127,10 @@ are not identical, because in this case reference equality is checked
 instead of value equality. We call this observable allocation and handle 
 it as a side-effect which may only occur in the \JS-monad. 
 
-This approach ensures to bind a new value to a variable,
-instead of creating copies of that value everywhere
-it is used. This resolves some unwanted macro behavior 
-of Sunroof.
+%This approach ensures to bind a new value to a variable,
+%instead of creating copies of that value everywhere
+%it is used. This resolves some unwanted macro behavior 
+%of Sunroof.
 
 % JSTuple is not a major selling point nor is it essential to sunroof.
 \begin{comment}
