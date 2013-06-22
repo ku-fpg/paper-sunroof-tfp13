@@ -19,7 +19,7 @@ code that can be cleanly called from native JavaScript.
 Both choices had poor consequences.
 
 We decided to explicitly support both,
-and make both first-class threading strategies in Sunroof.
+and make both first-class threading {\em strategies\/} in Sunroof.
 In terms of user-interface, we parameterize the \JS-monad
 with a phantom type that represents the threading model used, 
 with \Src{A} for \Src{A}tomic,
@@ -55,7 +55,7 @@ yield       :: JS B ()
 \end{Code}
 They can all be seen as analogues of their \IO~counterparts.
 \Src{forkJS} resembles \Src{forkIO}.
-It registers the continuation of the given computation as a callback. 
+It registers the given computation as a callback. 
 \Src{yield} suspends the current thread by 
 registering the current continuation as a callback,
 giving other threads time to run.
@@ -84,15 +84,18 @@ newChan   :: (SunroofArgument a) => JS t (JSChan a)
 writeChan :: (SunroofArgument a) => a -> JSChan a -> JS t ()
 readChan  :: (SunroofArgument a) => JSChan a -> JS B a
 \end{Code}
-Both implementations use arrays to store the waiting readers and
-writers in the form of continuations. Note that all functions
-are able to handle \Src{SunroofArgument}s, not just \Src{Sunroof}
-types. This is possible, because the computations themselves
-(their current continuation) are
-stored in the lists through \Src{callcc}.
-When arguments are written, either the waiting
-continuation is called with those arguments or a new continuation 
-that applies an incoming one with those arguments is created.
+Note that the types reflect if a specific operation can block.
+For example, \Src{writeChan} can never block, so can use either threading model,
+but \Src{readChan} may block, so uses the \Src{B} threading model.
+
+%Both implementations use JavaScript arrays to store the waiting readers and
+%writers in the form of continuation objects.
+%Because of this, all functions
+%are able to handle \Src{SunroofArgument}s, not just \Src{Sunroof}
+%types. 
+%When arguments are written, either the waiting
+%continuation is called with those arguments or a new continuation 
+%that applies an incoming continuation with those arguments is created.
 
 \begin{comment}
 \subsubsection{RESOURCES - REMOVE WHEN FINISHED}
