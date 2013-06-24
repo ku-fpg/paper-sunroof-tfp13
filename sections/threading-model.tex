@@ -85,7 +85,7 @@ writeChan :: (SunroofArgument a) => a -> JSChan a -> JS t ()
 readChan  :: (SunroofArgument a) => JSChan a -> JS B a
 \end{Code}
 Note that the types reflect if a specific operation can block.
-For example, \Src{writeChan} can never block, so can use either threading model,
+For example, \Src{writeChan} can never block, so you can use either threading model,
 but \Src{readChan} may block, so uses the \Src{B} threading model.
 
 %Both implementations use JavaScript arrays to store the waiting readers and
