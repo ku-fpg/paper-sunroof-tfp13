@@ -35,7 +35,7 @@ Second, we also utilize the static type system to support us when
 writing code. For example, the functions
 in our example above have the following signatures:
 \begin{Code}
-prompt :: JSString -> JS t JSObject
+prompt :: JSString -> JS t JSString
 alert  :: JSString -> JS t ()
 \end{Code}
 This allows the type checker to detect a wide class
