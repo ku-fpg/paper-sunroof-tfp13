@@ -37,6 +37,8 @@ arguments for which we can generate a variable.
 Fortunately, it turns out that a specific form of normalization allows 
 the type \Src{a} to be constrained and \JS~to 
 be an instance of the standard monad class~\cite{Sculthorpe:13:ConstrainedMonads}.
+To summarize the technique, a deep embedding a monad is normalized using the monad laws,
+and as a consequence, constraints, like the ability to reify, can be internalized.
 Through this keyhole of {\em monadic reification},
 the entire Sunroof language is realized.
 
