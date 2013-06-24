@@ -9,64 +9,44 @@ functional languages, such as first-class functions.
 We want to express JavaScript in Haskell, adding use
 of Haskell's static typing, and gaining access to JavaScript services
 in the browser from Haskell.
-
+%
 % Simon: State your contributions
-Sunroof was developed to tackle the goal of generating JavaScript.
-The small example in \FigRef{fig:code-example} 
-shows how Sunroof feels.
-% Simon: An illustrative example
-\begin{figure}
-%\vspace{-0.5cm}
-\centering
-\begin{subfigure}{0.45\textwidth}%
+Sunroof has the look and feel of monadic~\cite{Moggi:91:ComputationMonads} Haskell code. As an example,
+consider this Haskell program, and the generated JavaScript:
+
+%       \vspace{0.05in}
+\noindent
 \begin{Code}
- jsCode :: JS t ()
- jsCode = do
-   name <- prompt "Your name?"
-   alert ("Your name: " <> name)
-\end{Code}%
-\end{subfigure}%
-\hfill%
-\begin{subfigure}{0.45\textwidth}
-\vspace{0.25cm}%
-\begin{Code}
-  
-  
-var v0 = prompt("Your name?"); 
-alert("Your name: " + v0);
-\end{Code}%
-\end{subfigure}% 
-%\vspace{-0.2cm}%
-\caption{Sunroof program and the expected JavaScript on the left.}%
-\label{fig:code-example}%
-\vspace{0.5cm}%
-\end{figure}
-% Simon: Why is this useful?
-%The expected JavaScript output is shown on the right. 
-%The JavaScript is shorter than the Sunroof code, raising
-%the question of why generate JavaScript from Haskell.
+-- Haskell / Sunroof                 // JavaScript
+jsCode :: JS t ()
+jsCode = do
+   name <- prompt "Your name?"       var v0 = prompt("Your name?"); 
+   alert ("Your name: " <> name)     alert("Your name: " + v0);
+\end{Code}%     
+%\noindent 
+As can be seen, Sunroof code is monadic, and the JavaScript is a transliteration.
 
 % Simon: List of contributions
 Sunroof's approach has several advantages. 
+First,
 Sunroof introduces a threading model and abstraction similar
 to Haskell's. 
-We also utilize the static type system to support us when 
+Second, we also utilize the static type system to support us when 
 writing code. For example, the functions
-in \FigRef{fig:code-example} have the following signatures:
+in our example above have the following signatures:
 \begin{Code}
-prompt :: JSString -> JSString -> JS t JSObject
+prompt :: JSString -> JS t JSObject
 alert  :: JSString -> JS t ()
 \end{Code}
 This allows the type checker to detect a wide class
 of malformed JavaScript programs.
-Further, using a deep embedding gives opportunity 
+Third, using a deep embedding gives opportunity 
 for optimizations when producing the actual JavaScript.
 At the same time, Sunroof offers an interface that is 
 close to actual JavaScript making it easy to use.
 Finally, the interface is easily extendable through
 a foreign-function interface.
-We use a monad \cite{Moggi:91:ComputationMonads} 
-to reflect the imperative nature of JavaScript.
+%We use a monad to reflect the imperative nature of JavaScript.
 
 % The scope of this paper is to show how Sunroof achieves these goals.
 % It will cover the most important parts of Sunroof and how they are 
