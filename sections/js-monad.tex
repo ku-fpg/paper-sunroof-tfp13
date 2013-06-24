@@ -13,18 +13,22 @@ The basic idea is that a binding in the \JS-monad becomes an
 assignment to a fresh variable in JavaScript. 
 This allows the results of previous computations to be passed on to 
 later ones.
-\FigRef{fig:code-example} gives an example.
+Consider again the example from our introduction.
+%\FigRef{fig:code-example} gives an example.
 The binding \Src{name} is translated to the freshly generated
 variable \Src{v0}.
+But this simple example displays a challenging problem. Where does
+\Src{v0} come from? Even though \Src{prompt} can return a deep embedding 
+expression, we want to reify the monad itself.
 
-This simple example displays a challenging problem. Where does
-\Src{v0} come from? The bind inside the monadic \Src{do} is
+The bind inside the monadic \Src{do} is
 fully polymorphic over \Src{a}.
 \begin{Code}
 (>>=) :: JS t a -> (a -> JS t b) -> JS t b
 \end{Code}
-Thus we do not know how to create a value of type \Src{a}. To reify the
-monad itself, we want a constraint on \Src{a}:
+Thus we do not know how to create values of type \Src{a},
+that can be reified.
+To reify the monad itself, we want a constraint on \Src{a}:
 \begin{Code}
 (>>=) :: (Sunroof a) => JS t a -> (a -> JS t b) -> JS t b
 \end{Code}
@@ -34,9 +38,9 @@ Fortunately, it turns out that a specific form of normalization allows
 the type \Src{a} to be constrained and \JS~to 
 be an instance of the standard monad class~\cite{Sculthorpe:13:ConstrainedMonads}.
 Through this keyhole of {\em monadic reification},
-the entire Sunroof language is realized. 
+the entire Sunroof language is realized.
 
-The normalization is done using Operational 
+The Sunroof normalization is done using Operational 
 \cite{Apfelmus:10:Operational,Hackage:10:Operational}.
 It provides the \Src{Program}-monad that
 can be equipped with custom primitives.
