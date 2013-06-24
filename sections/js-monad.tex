@@ -37,7 +37,7 @@ arguments for which we can generate a variable.
 Fortunately, it turns out that a specific form of normalization allows 
 the type \Src{a} to be constrained and \JS~to 
 be an instance of the standard monad class~\cite{Sculthorpe:13:ConstrainedMonads}.
-To summarize the technique, a deep embedding a monad is normalized using the monad laws,
+To summarize the technique, a deep embedding of a monad is normalized using the monad laws,
 and as a consequence, constraints, like the ability to reify, can be internalized.
 Through this keyhole of {\em monadic reification},
 the entire Sunroof language is realized.
@@ -66,7 +66,7 @@ data JSI :: T -> * -> * where
 \caption{Parts of the JavaScript instruction data type (\JSI).}
 \label{fig:jsi-definition}
 \end{figure}
-The parameter \Src{t} in \Src{JSI t a} again represents the threading model.
+The parameter \Src{t} in \Src{JSI t a} represents the threading model.
 The type \Src{a} represents the primitive's return value. 
 \Src{JS\_Invoke} calls a function that has been created with \Src{JS\_Function}.
 Branches are represented with \Src{JS\_Branch}. Assignments to a variable
