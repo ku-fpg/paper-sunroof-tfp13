@@ -10,5 +10,11 @@ example-app/dist
 simple-app/Main
 simple-app/dist
 simple-app/main.js
+slides/tmp
+slides/highlight.js
+tmp/
+zip/
 *.hi
 *.o
+*~
+*toc
