@@ -2,15 +2,145 @@
 \section{Introduction}
 
 % Simon: Describe the problem
+There are many reasons to want to program in a functional language:
+efficiency of development cost, informally reasoning, high-level 
+control- and concurrency-structures, like monads~\cite{...}.
+However, mainstream languages often have better environmental support
+than what is provided by functional languages,
+for example the Objective C and the iOS eco-structure, or JavaScript and HTML5
+web browsers.
+This paper examines the challenges of providing
+an intentionally blurred interface between Haskell
+and JavaScript, to support the development of web-based applications.
+
+% Simon: State your contributions
 JavaScript is an imperative language with access to a wide range
 of established and useful services like graphical canvases and event
-handling. It also provides features that are associated with 
-functional languages, such as first-class functions. 
+handling of browser events. 
 We want to express JavaScript in Haskell, adding use
 of Haskell's static typing, and gaining access to JavaScript services
-in the browser from Haskell.
-%
-% Simon: State your contributions
+in the browser directly in Haskell.
+
+In general, there are a number of ways of providing access to non-native services,
+such as the JavaScript canvas.
+\begin{enumerate}
+\item The first approach is to use Haskell to generate JavaScript from
+an abstract syntax tree of the JavaScript code. There have
+been a number of attempt to have DSLs that do the in other spaces,
+and functional languages have good support for generating trees.
+However, this approach works well for data-flow, for example
+as use in Lava. When describing control-flow,
+as would be typically in a JavaScript program,  writing such an AST always
+feels forced, primarily because there is a mismatch between
+bindings in the native language (Haskell) and the non-native
+generated code (JavaScript variable names).
+
+\item A second approach is to provide, in Haskell, 
+foreign function ``hooks'' to key JavaScript functionality.
+Haskell already provides many similar hooks into the RTS,
+so why not into the JavaScript engine?
+For this to work efficiently, the compiler
+needs to target JavaScript. There are already a
+number is systems doing this~\cite{...}.
+Though if executed well, this would be ideal,
+there are shortcomings: many standard libraries
+are not supported directly, the generated
+code is not as efficiently executed as native Haskell,
+and the compilers are still immature and incomplete.
+
+\item An third approach is to keep the 
+foreign function ``hooks'' to key JavaScript functionality,
+but instead run Haskell as a server that JavaScript
+and the browser interacts with.
+Unfortunately, every JavaScript call becomes an expensive proposition: an RPC call
+to a browser.
+Though some straight-line calls can be batched together --
+our own blank-canvas hackage package~\cite{..} was built in this idea --
+the granularity of JavaScript call is just too fine for
+this idea to scale well.
+\end{enumerate}
+
+This paper investigate the expansion of scope of the third option,
+specifically adding binding to the Haskell code
+that can be batch together and send to the JavaScript engine.
+Binding is done using regular monadic binding, and fits naturally
+into what we expect from a monadic API. Until recently,
+it was thought that it was impossible to use a regular
+Haskell monad for this purpose.
+Building on this capability, we also investigate providing
+JavaScript control flow and function abstraction mechanisms
+to the Haskell programmer interested in using the browser API.
+Though for technical reasons we can not compile the transitional
+pattern matching and let-binding to JavaScript without committing
+to a full compiler Haskell to JavaScript compiler, both
+control flow and function abstraction can be provided.
+
+With these three capabilities, a programmer can start programming
+using the provided JavaScript API directly, and refine
+their program to migrate more and more computation
+from the server into the browser. In a real sense,
+this blurs the distention between an RPC approach (3),
+and a full Haskell to JavaScript compiler (2),
+built using existing infrastructure, and not needing
+the full compiler.
+
+We present our investigations in the following order.
+First
+
+
+\section{Calling JavaScript from Haskell}
+
+
+
+\section{Monad Reification}
+
+
+This paper can be considered a case study on 
+a practical use of monad reification.
+
+The basic idea is that a binding in the \JS-monad becomes an
+assignment to a fresh variable in JavaScript. 
+This allows the results of previous computations to be passed on to 
+later ones.
+Consider again the example from our introduction.
+%\FigRef{fig:code-example} gives an example.
+The binding \Src{name} is translated to the freshly generated
+variable \Src{v0}.
+But this simple example displays a challenging problem. Where does
+\Src{v0} come from? Even though \Src{prompt} can return a deep embedding 
+expression, we want to reify the monad itself.
+
+The bind inside the monadic \Src{do} is
+fully polymorphic over \Src{a}.
+\begin{Code}
+(>>=) :: JS t a -> (a -> JS t b) -> JS t b
+\end{Code}
+Thus we do not know how to create values of type \Src{a},
+that can be reified.
+To reify the monad itself, we want a constraint on \Src{a}:
+\begin{Code}
+(>>=) :: (Sunroof a) => JS t a -> (a -> JS t b) -> JS t b
+\end{Code}
+where \Src{Sunroof} constrains the bind to
+arguments for which we can generate a variable.
+Fortunately, it turns out that a specific form of normalization allows 
+the type \Src{a} to be constrained and \JS~to 
+be an instance of the standard monad class~\cite{Sculthorpe:13:ConstrainedMonads}.
+To summarize the technique, a deep embedding of a monad is normalized using the monad laws,
+and as a consequence, constraints, like the ability to reify, can be internalized.
+Through this keyhole of {\em monadic reification},
+the entire Sunroof language is realized.
+
+
+The second mechansim i
+
+\begin{itemize}
+\item We could compile Haskell to JavaScript.
+\item We could use Generation of code
+\item We could provide 
+
+\end{itemize}
+
 Sunroof has the look and feel of monadic~\cite{Moggi:91:ComputationMonads} Haskell code. As an example,
 consider this Haskell program, and the generated JavaScript:
 
