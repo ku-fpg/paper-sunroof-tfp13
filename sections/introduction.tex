@@ -24,7 +24,31 @@ in the browser directly in Haskell.
 In general, there are a number of ways of providing access to non-native services,
 such as the JavaScript canvas.
 \begin{enumerate}
-\item The first approach is to use Haskell to generate JavaScript from
+\item A first approach is to provide, in Haskell, 
+foreign function ``hooks'' to key JavaScript functionality.
+Haskell already provides many similar hooks into the RTS,
+so why not into the JavaScript engine?
+For this to work efficiently, the compiler
+needs to target JavaScript. There are already a
+number is systems doing this~\cite{...}.
+If executed well, this would be ideal,
+there are shortcomings: many standard libraries
+are not supported directly, the generated
+code is not as efficiently executed as native Haskell,
+and the compilers are still immature and incomplete.
+
+\item An second approach is to keep the 
+foreign function ``hooks'' to key JavaScript functionality,
+but instead run Haskell as a server that JavaScript
+and the browser interacts with.
+Unfortunately, every JavaScript call becomes an expensive proposition: an RPC call
+to a browser.
+Though some straight-line calls can be batched together --
+our own blank-canvas hackage package~\cite{..} was built on this idea --
+the granularity of interaction through JavaScript call is just too fine for
+this idea to scale well.
+
+\item A first, alternative approach is to use Haskell to generate JavaScript from
 an abstract syntax tree of the JavaScript code. There have
 been a number of attempt to have DSLs that do the in other spaces,
 and functional languages have good support for generating trees.
@@ -35,226 +59,36 @@ feels forced, primarily because there is a mismatch between
 bindings in the native language (Haskell) and the non-native
 generated code (JavaScript variable names).
 
-\item A second approach is to provide, in Haskell, 
-foreign function ``hooks'' to key JavaScript functionality.
-Haskell already provides many similar hooks into the RTS,
-so why not into the JavaScript engine?
-For this to work efficiently, the compiler
-needs to target JavaScript. There are already a
-number is systems doing this~\cite{...}.
-Though if executed well, this would be ideal,
-there are shortcomings: many standard libraries
-are not supported directly, the generated
-code is not as efficiently executed as native Haskell,
-and the compilers are still immature and incomplete.
-
-\item An third approach is to keep the 
-foreign function ``hooks'' to key JavaScript functionality,
-but instead run Haskell as a server that JavaScript
-and the browser interacts with.
-Unfortunately, every JavaScript call becomes an expensive proposition: an RPC call
-to a browser.
-Though some straight-line calls can be batched together --
-our own blank-canvas hackage package~\cite{..} was built in this idea --
-the granularity of JavaScript call is just too fine for
-this idea to scale well.
 \end{enumerate}
 
-This paper investigate the expansion of scope of the third option,
+This paper investigate the expansion of scope of the second option,
 specifically adding binding to the Haskell code
-that can be batch together and send to the JavaScript engine.
-Binding is done using regular monadic binding, and fits naturally
+that can be batch together and send to the JavaScript engine,
+and then scaling the language to support larger examples.
+Binding is done using regular Haskell monadic binding, and fits naturally
 into what we expect from a monadic API. Until recently,
 it was thought that it was impossible to use a regular
-Haskell monad for this purpose.
-Building on this capability, we also investigate providing
+Haskell monad for this purpose. In a previous paper,
+we show that such a construction is possible~\cite{..}
+In this paper, we expand on this observation,
+and show that this form of reification is useful in practice.
+
+Further building on this capability, we also investigate providing
 JavaScript control flow and function abstraction mechanisms
 to the Haskell programmer interested in using the browser API.
 Though for technical reasons we can not compile the transitional
 pattern matching and let-binding to JavaScript without committing
 to a full compiler Haskell to JavaScript compiler, both
-control flow and function abstraction can be provided.
+control flow and function abstraction can be provided
+with a small syntactical overhead.
 
 With these three capabilities, a programmer can start programming
 using the provided JavaScript API directly, and refine
 their program to migrate more and more computation
 from the server into the browser. In a real sense,
-this blurs the distention between an RPC approach (3),
-and a full Haskell to JavaScript compiler (2),
+this blurs the distention between an RPC approach (2),
+and a full Haskell to JavaScript compiler (1),
 built using existing infrastructure, and not needing
 the full compiler.
-
-We present our investigations in the following order.
-First
-
-
-\section{Calling JavaScript from Haskell}
-
-
-
-\section{Monad Reification}
-
-
-This paper can be considered a case study on 
-a practical use of monad reification.
-
-The basic idea is that a binding in the \JS-monad becomes an
-assignment to a fresh variable in JavaScript. 
-This allows the results of previous computations to be passed on to 
-later ones.
-Consider again the example from our introduction.
-%\FigRef{fig:code-example} gives an example.
-The binding \Src{name} is translated to the freshly generated
-variable \Src{v0}.
-But this simple example displays a challenging problem. Where does
-\Src{v0} come from? Even though \Src{prompt} can return a deep embedding 
-expression, we want to reify the monad itself.
-
-The bind inside the monadic \Src{do} is
-fully polymorphic over \Src{a}.
-\begin{Code}
-(>>=) :: JS t a -> (a -> JS t b) -> JS t b
-\end{Code}
-Thus we do not know how to create values of type \Src{a},
-that can be reified.
-To reify the monad itself, we want a constraint on \Src{a}:
-\begin{Code}
-(>>=) :: (Sunroof a) => JS t a -> (a -> JS t b) -> JS t b
-\end{Code}
-where \Src{Sunroof} constrains the bind to
-arguments for which we can generate a variable.
-Fortunately, it turns out that a specific form of normalization allows 
-the type \Src{a} to be constrained and \JS~to 
-be an instance of the standard monad class~\cite{Sculthorpe:13:ConstrainedMonads}.
-To summarize the technique, a deep embedding of a monad is normalized using the monad laws,
-and as a consequence, constraints, like the ability to reify, can be internalized.
-Through this keyhole of {\em monadic reification},
-the entire Sunroof language is realized.
-
-
-The second mechansim i
-
-\begin{itemize}
-\item We could compile Haskell to JavaScript.
-\item We could use Generation of code
-\item We could provide 
-
-\end{itemize}
-
-Sunroof has the look and feel of monadic~\cite{Moggi:91:ComputationMonads} Haskell code. As an example,
-consider this Haskell program, and the generated JavaScript:
-
-%       \vspace{0.05in}
-\noindent
-\begin{Code}
--- Haskell / Sunroof                 // JavaScript
-jsCode :: JS t ()
-jsCode = do
-   name <- prompt "Your name?"       var v0 = prompt("Your name?"); 
-   alert ("Your name: " <> name)     alert("Your name: " + v0);
-\end{Code}%     
-%\noindent 
-As can be seen, Sunroof code is monadic, and the JavaScript is a transliteration.
-
-% Simon: List of contributions
-Sunroof's approach has several advantages. 
-First,
-Sunroof introduces a threading model and abstraction similar
-to Haskell's. 
-Second, we also utilize the static type system to support us when 
-writing code. For example, the functions
-in our example above have the following signatures:
-\begin{Code}
-prompt :: JSString -> JS t JSString
-alert  :: JSString -> JS t ()
-\end{Code}
-This allows the type checker to detect a wide class
-of malformed JavaScript programs.
-Third, using a deep embedding gives opportunity 
-for optimizations when producing the actual JavaScript.
-At the same time, Sunroof offers an interface that is 
-close to actual JavaScript making it easy to use.
-Finally, the interface is easily extendable through
-a foreign-function interface.
-%We use a monad to reflect the imperative nature of JavaScript.
-
-% The scope of this paper is to show how Sunroof achieves these goals.
-% It will cover the most important parts of Sunroof and how they are 
-% implemented.
-\Figure%
-{fig:structure}%
-{figures/sunroof-structure.pdf}%
-{The structure of Sunroof.}
-
-\FigRef{fig:structure} shows Sunroof's structure.
-We will cover each of the layers throughout the paper:
-\begin{itemize}
-\item
-\SecRef{sec:object-model} will discuss how we annotate 
-JavaScript objects with types using wrappers 
-and offer the possibility to add custom types later on.
-\item
-The semantics and implementation of the \JS-monad is explained 
-in \SecRef{sec:js-monad}.
-\item
-The special role of functions, continuations and
-how we model them as first-class values in Haskell and JavaScript
-will be covered in \SecRef{sec:functions-continuations}.
-\item
-The two threading models offered by Sunroof are explained 
-in \SecRef{sec:threading-models}.
-\item
-\SecRef{sec:ffi} introduces Sunroof's foreign-function interface.
-\item
-Translation of Sunroof to JavaScript is handled in 
-\SecRef{sec:compiler}. We will explain the 
-compilation of selected language constructs. This is 
-especially interesting in the light of our use of continuations
-and their translation to JavaScript.
-\item
-The ability to interleave Haskell and JavaScript computations as needed
-through the Sunroof server will be highlighted in \SecRef{sec:server}.
-\item
-\SecRef{sec:extended-example} will cover a small application 
-written in Sunroof to survey how usable Sunroof is in the 
-context of application development. 
-%It shows how Sunroof can be used to utilize the 
-%display capabilities of a browser, while still using Haskell when needed
-%and where it is strong.
-\end{itemize}
-
-\begin{comment}
-\subsubsection{RESOURCES - REMOVE WHEN FINISHED}
-
-\begin{itemize}
-\item Give an example of Sunroof 
-\item Explain the example
-\item Talk about the general structure of Sunroof
-\item Relate each part of the structure to a specific section:
-  \begin{itemize}
-  \item \JSA\ /\ \JSB: \JS-monad in \SecRef{sec:js-monad};
-  together with \JSI\ and contiuations used by the \JS-monad.
-  \item Type Wrappers / Expr: Discussed in \SecRef{sec:object-model}
-  \end{itemize}
-\item Details about functions and continuations are given in \SecRef{sec:functions-continuations}
-\item 
-Sunroof was first documented in our previous 
-workshop paper~\cite{Farmer:12:WebDSLs},
-where the possibility of monadic reification was observed.
-In this paper, we raised an unresolved issue:
-
-Threading Model: Built on top of \JS-monad (\SecRef{sec:threading-models})
-\item Explain how the compiler works and what it does \SecRef{sec:compiler}
-\item In \SecRef{sec:server} we will look at the sunroof server 
-\item Extended example in \SecRef{sec:extended-example}
-
-\end{itemize}
-
-We want to use the Javascript API. Fast interpreters,
-running in a browser advantage, 
-
-We do not want to program in Javascript.
-
-\end{comment}
 
 

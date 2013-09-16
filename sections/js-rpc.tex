@@ -1,0 +1,51 @@
+\section{Calling JavaScript from Haskell}
+\label{sec:js-rpc}
+
+From a programmers' point of view, calling JavaScript functions
+appears straightforward. We, as a community know how to reflect an
+API into Haskell, using the IO monad. Furthermore, objects in
+the target API become handles in Haskell. 
+
+As a first example, consider this simplified example of Sunroof code, and corresponding JavaScript.
+\noindent
+\begin{Code}
+-- Haskell                          // JavaScript
+ioCode :: IO ()
+ioCode = send jsCode
+
+jsCode :: JS ()
+jsCode = do                        function jsCode() {
+   name <- prompt "Your name?"       var v0 = prompt("Your name?"); 
+   alert ("Your name: " <> name)     alert("Your name: " + v0); 
+                                   }
+\end{Code}%     
+%\noindent 
+
+Here, we use a new monad, the \Src{JS} monad, our JavaScript
+analog to the \Src{IO} monad,
+and an explicit \Src{send} command that sends the JavaScript to the browser.
+This reversal of control, where the
+server sends the clients commands is called the Ajax Comet~\cite{..},
+or simply long polling.
+This interface also bundles the \Src{prompt} and \Src{alert} commands
+into one interaction transaction.
+It is this flavor of interface we want to support in our Sunroof compiler
+and web server.  
+
+To make Sunroof a viable interface to JavaScript, we need to
+resolve the following issues:
+\begin{itemize}
+\item JavaScript is an object-based dynamically typed language.
+Haskell is a function-based statically typed language.
+Specifically how do these two worlds map onto each other.
+%
+In section~\ref{sec:object-model}, we discuss the chosen object model.
+%
+\item We need to provide a foreign function interface,
+to allow us to call specific functions in JavaScript,
+like \Src{prompt} and \Src{alert}. 
+%
+In section~\ref{se:ffi} we present this interface.
+%
+\end{itemize}
+

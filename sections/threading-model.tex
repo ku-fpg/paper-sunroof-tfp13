@@ -2,11 +2,11 @@
 \section{Threading Models}
 \label{sec:threading-models}
 
-JavaScript uses a callback centric model of computation. There
-is no concurrency, only a central loop that executes callbacks
-when events occur.
+JavaScript uses a callback-centric model of computation. There
+is no concurrency, only a single central loop that executes
+callbacks as non-blocking computations when events occur.
 
-In contrast, Haskell has real concurrency and wide-spread 
+In contrast, Haskell has robust concurrency and wide-spread 
 abstractions for synchronization, e.g. \Src{MVar}s and \Src{Chan}s
 \cite{Jones:96:ConcurrentHaskell}.
 So the question arises: do we generate atomic JavaScript code, 
@@ -16,10 +16,15 @@ and allow for blocking primitives and
 cooperative concurrency. The latter, though more powerful, 
 precluded using the compiler to generate
 code that can be cleanly called from native JavaScript.
-Both choices had poor consequences.
+In our earlier work~\cite{...}, we prototyped both models
+of computation, and observed that both choices had poor consequences
+when mapping Haskell to JavaScript.
 
-We decided to explicitly support both,
+When scaling up Sunroof, we decided to explicitly support both,
 and make both first-class threading {\em strategies\/} in Sunroof.
+This means that the programmer can choose what model fits
+the idiom being coded.
+
 In terms of user-interface, we parameterize the \JS-monad
 with a phantom type that represents the threading model used, 
 with \Src{A} for \Src{A}tomic,

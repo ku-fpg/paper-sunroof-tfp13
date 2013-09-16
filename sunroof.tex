@@ -49,9 +49,13 @@
 \newcommand{\SecRef}[1]{Section~\ref{#1}}
 \newcommand{\TabRef}[1]{Table~\ref{#1}}
 
+% intentional for the referee's copy
+\pagestyle{plain}
+\newcommand{\CURSOR}{\noindent\rule{\textwidth}{4pt}}
+
 \begin{document}
 %
-\title{Sunroof: A Monadic DSL to Generate JavaScript}
+\title{Sunroof: A Monadic DSL for Generating JavaScript}
 %\subtitle{}
 %
 \titlerunning{Sunroof}  % abbreviated title (for running head)
@@ -92,13 +96,17 @@ Perhaps bouncing ball.
 Perhaps drawing line.
 \end{comment}
 
+\input{sections/js-rpc}
+
 \input{sections/object-model}
+
+\input{sections/threading-model}
 
 \input{sections/js-monad}
 
 \input{sections/functions-continuations}
 
-\input{sections/threading-model}
+%
 
 \input{sections/ffi}
 

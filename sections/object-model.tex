@@ -2,6 +2,76 @@
 \section{JavaScript Object Model}
 \label{sec:object-model}
 
+In our JavaScript object model, there are a family of core types, all prefixed with JS.
+Each one corresponds to a specific JavaScript type.
+There is support for booleans, strings, numbers, functions,
+object and arrays, and other common programming structures.
+The use of \Src{JSNumber}, rather than (say) \Src{Double},
+explicitly reminds us of the enforced diminished capabilities of
+being within an embedded language.
+All of the \Src{JS}-types are representable in our target language.
+
+Using the \Src{JS}-types, we can give types to \Src{alert} and \Src{prompt}.
+\begin{Code}
+alert :: JSString -> JS ()
+prompt :: JSString -> JS String
+\end{Code}
+In reality, JavaScript overloads \Src{alert} and \Src{prompt},
+so this is providing type-safe access to a sub-set of what
+alert can do.
+
+There are two primary Haskell classes represent things that can
+be passed to and returned from JavaScript functions.
+Instances of the \Src{Sunroof} class 
+are values that are returned from JavaScript functions,
+and represent all basic JavaScript values.
+Instances of the \Src{SunroofArgument} class
+are values that be passed to JavaScript functions,
+including tuples of values which are used for representing multi-argument 
+function calls.
+The asymmetry here is a reflection of the JavaScript
+asymmetry inherited from C: you can pass multiple arguments
+to a function, but only get a single thing back.
+Finally, there is a third class, \Src{SunroofKey}, which is
+is a JavaScript version of the Haskell \Src{Show} class,
+but specifically for generating JavaScript object keys.
+
+Table~\ref{tab:sunroof-types} enumerates major \Src{JS} types,
+and any restrictions on the type arguments enforced by containers,
+like \Src{JSArray}. What can be seen from this is that we
+enforce a Hindley–Milner style thinking to our containers,
+which is distinct from JavaScript dynamic typing.
+The thinking in Sunroof is that we enforce a stronger typing
+than JavaScript itself would, but also provide an explicit \Src{cast},
+for use where the type-systems differ.
+\begin{Code}
+cast :: (Sunroof a, Sunroof b) => a -> b
+\end{Code}
+From experience with using Sunroof,
+the mis-match in typing between Haskell and Sunroof/JavaScript
+is not large problem in practice,
+many programs translate from Sunroof to JavaScript
+maintaining the stronger typing.
+Casts are typically used in the same way \Src{show} is used
+to map numbers to strings in the context of building
+string values that contain numbers. We also provide
+some variants of \Src{cast} with more specific types
+to help alleviate some of the dynamic typing.
+Overall, we maintain the mantra of ``static type where you can,
+use a cast if you need it''.
+
+\CURSOR{}
+
+{\em About how we provide the API in Haskell}
+
+Transliterations.
+
+Key functions.
+
+Key types.
+
+
+
 One goal of Sunroof is to use Haskell's type system to
 increase the confidence of the expressed JavaScript.
 At the same time we cannot characterize 
