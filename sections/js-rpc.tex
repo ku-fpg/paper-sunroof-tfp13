@@ -38,14 +38,26 @@ resolve the following issues:
 \item JavaScript is an object-based dynamically typed language.
 Haskell is a function-based statically typed language.
 Specifically how do these two worlds map onto each other.
-%
 In section~\ref{sec:object-model}, we discuss the chosen object model.
 %
+\item We need to provide an imperative and therefor effectful interface,
+including control flow, into our target language of JavaScript.
+We do this via the \Src{JS} monad, which we discuss
+in section~\ref{sec:js-monad}.
+\item We choice to provide a way of defining functions
+in Sunroof in a way that they are first-class functions
+in JavaScript. This uses our \Src{JS} monad, and
+is discussed in section~\ref{sec:functions-continuations}.
+%
 \item We need to provide a foreign function interface,
-to allow us to call specific functions in JavaScript,
-like \Src{prompt} and \Src{alert}. 
+to allow us to call specific JavaScript-native functions,
+like \Src{prompt} and \Src{alert}.
+In section~\ref{sec:ffi} we present this interface.
 %
-In section~\ref{se:ffi} we present this interface.
-%
+\item Critically, we need to be able to compile our Sunroof DSL
+into JavaScript. We look at this in section~\ref{sec:compiler}.
+\item To enable the compiled code to dynamically interact with
+a web browser, we provide an expansion of the \Src{send} idea above,
+which we discuss in section~\ref{sec:server}.
 \end{itemize}
 

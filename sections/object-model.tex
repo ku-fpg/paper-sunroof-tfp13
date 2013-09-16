@@ -36,96 +36,9 @@ Finally, there is a third class, \Src{SunroofKey}, which is
 is a JavaScript version of the Haskell \Src{Show} class,
 but specifically for generating JavaScript object keys.
 
-Table~\ref{tab:sunroof-types} enumerates major \Src{JS} types,
-and any restrictions on the type arguments enforced by containers,
-like \Src{JSArray}. What can be seen from this is that we
-enforce a Hindley–Milner style thinking to our containers,
-which is distinct from JavaScript dynamic typing.
-The thinking in Sunroof is that we enforce a stronger typing
-than JavaScript itself would, but also provide an explicit \Src{cast},
-for use where the type-systems differ.
-\begin{Code}
-cast :: (Sunroof a, Sunroof b) => a -> b
-\end{Code}
-From experience with using Sunroof,
-the mis-match in typing between Haskell and Sunroof/JavaScript
-is not large problem in practice,
-many programs translate from Sunroof to JavaScript
-maintaining the stronger typing.
-Casts are typically used in the same way \Src{show} is used
-to map numbers to strings in the context of building
-string values that contain numbers. We also provide
-some variants of \Src{cast} with more specific types
-to help alleviate some of the dynamic typing.
-Overall, we maintain the mantra of ``static type where you can,
-use a cast if you need it''.
-
-\CURSOR{}
-
-{\em About how we provide the API in Haskell}
-
-Transliterations.
-
-Key functions.
-
-Key types.
 
 
-
-One goal of Sunroof is to use Haskell's type system to
-increase the confidence of the expressed JavaScript.
-At the same time we cannot characterize 
-all different types of objects in JavaScript, since 
-users can create their own objects. Thus our 
-system to type JavaScript needs to be extensible.
-
-Our solution is to provide a basic \Src{Expr}ession
-language to construct JavaScript expressions 
-that have no associated type information. Simplified slightly, we have:
-\begin{Code}
-data Expr 
-  = Lit String        -- Precompiled (atomic) JavaScript literal
-  | Var Id            -- Variable
-  | Apply Expr [Expr] -- Function application
-  ...
-\end{Code}
-In reality, we abstract \Src{Expr} over the recursive type,
-to facilitate the usage of observable sharing \cite{Gill:09:TypeSafeReification}
-and allow sub-expression computations to be shared.
-
-This core expression type 
-is then wrapped to represent a more specific type. 
-Each of these wrappers implements the \Src{Sunroof} type class.
-\begin{Code}
-class SunroofArgument a => Sunroof a where
-  box   :: Expr -> a
-  unbox :: a -> Expr
-  ...
-\end{Code}
-It marks these types as possible values in JavaScript.
-The \Src{SunroofArgument} prerequisite permits them 
-to be function arguments (\SecRef{sec:functions-continuations}).
-
-An example of this is \Src{JSString}, the representation
-of JavaScript strings.
-\begin{Code}
-data JSString = JSString Expr
-instance Sunroof JSString where
-  box                = JSString
-  unbox (JSString e) = e
-\end{Code}
-But what do we gain through a wrapper? We can
-provide specific functionality for each distinct type.
-Our example type \Src{JSString} has a \Src{Monoid} and an 
-\Src{IsString} instance that are not provided for other 
-wrappers, e.g. \Src{JSBool} or \Src{JSNumber}.
-This is the same approach used by
-Svenningsson \cite{Svenningsson:12:CombiningEmbedding}.
-
-\TabRef{tab:sunroof-types} gives a summary of the 
-prominent Sunroof types. Some types involve 
-phantom types to give more type safety \cite{Cheney:03:FirstClassPhantomTypes}.
-\begin{table}
+\begin{table}[t]
 \begin{center}
 \begin{tabular}{r@{\quad}l@{\quad}l@{\quad}c}
 \hline\rule{0pt}{12pt}%
@@ -171,8 +84,34 @@ phantom types to give more type safety \cite{Cheney:03:FirstClassPhantomTypes}.
 \caption{Sunroof types and their Haskell pendant.}
 \label{tab:sunroof-types}
 \end{table} 
+
+
+Table~\ref{tab:sunroof-types} enumerates major \Src{JS} types,
+and any restrictions on the type arguments enforced by containers,
+like \Src{JSArray}. What can be seen from this is that we
+enforce a Hindley–Milner style thinking to our containers,
+which is distinct from JavaScript dynamic typing.
+Some types involve 
+phantom types to give more type safety \cite{Cheney:03:FirstClassPhantomTypes}.
 The smooth embedding of booleans and numbers is done through
 the Boolean package \cite{project:boolean}.
+
+One design decision in Sunroof is that we enforce a stronger typing
+than JavaScript itself would, but also provide an explicit \Src{cast},
+for use where the type-systems differ.
+\begin{Code}
+cast :: (Sunroof a, Sunroof b) => a -> b
+\end{Code}
+From experience with using Sunroof,
+the mis-match in typing between Haskell and Sunroof/JavaScript
+is not large problem in practice,
+many programs translate from Sunroof to JavaScript
+maintaining the stronger typing.
+Casts are typically used in the same way \Src{show} is used
+to map numbers to strings in the context of building
+string values that contain numbers. We also provide
+some variants of \Src{cast} with more specific types
+to help alleviate some of the dynamic typing.
 
 \TabRef{tab:sunroof-types} shows that most basic 
 Haskell types have counterparts in
@@ -189,13 +128,8 @@ provides the corresponding Sunroof type.
 \Src{js} converts a value from Haskell to Sunroof. 
 By design \Src{SunroofValue} 
 only provides instances for values that can be converted in a pure
-manner. Some types in JavaScript are referentially 
-transparent according to \Src{==}, while others, like general objects,
-are not. As an example, if you call \Src{new Object()}, twice you get two 
-equivalent empty objects, but when compared by \Src{==} they are different. They
-are not identical, because in this case reference equality is checked
-instead of value equality. We call this observable allocation and handle 
-it as a side-effect which may only occur in the \JS-monad. 
+manner. 
+
 
 %This approach ensures to bind a new value to a variable,
 %instead of creating copies of that value everywhere
@@ -203,29 +137,6 @@ it as a side-effect which may only occur in the \JS-monad.
 %of Sunroof.
 
 % JSTuple is not a major selling point nor is it essential to sunroof.
-\begin{comment}
-Sunroof also offers the ability to work with record like data structures.
-For this purpose Sunroof offers the \Src{JSTuple} type class.
-\begin{Code}
-class Sunroof o => JSTuple o where
-  type Internals o
-  match :: (Sunroof o) => o -> Internals o
-  tuple :: Internals o -> JS t o
-\end{Code}
-If you have a record of Sunroof data that you want to
-encode as a JavaScript object you can provide this ability 
-by implementing \Src{JSTuple}. The \Src{Internals} type function
-delivers your record type. Encoding that record as a \Src{Sunroof}
-value is done through \Src{tuple}. 
-Because of the observable allocation issue, we have to be 
-inside the \JS-monad to do this.
-Decomposing the encoding is done with \Src{match}. Because the
-\Src{JSTuple} idiom is meant to represent immutable data structures, this 
-can be done in a pure manner although there are ways to mutate 
-values referenced by the decomposed record, since they are only 
-references to the actual data in JavaScript.
-\end{comment}
-
 \begin{comment}
 \subsubsection{RESOURCES - REMOVE WHEN FINISHED}
 
