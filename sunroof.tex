@@ -285,40 +285,100 @@ which we discuss in section~\ref{sec:server}.
 \section{JavaScript Object Model}
 \label{sec:object-model}
 
-In our JavaScript object model, there are a family of core types, all prefixed with JS.
-Each one corresponds to a specific JavaScript type.
+The building block of object-oriented programing is calling an object's method.
+This is almost universally done using the dot (\Src{.}) operator. JavaScript, or target language, 
+follows this trend, with the method-call syntax being as follows:
+\begin{Code}
+  // JavaScript
+  object.method(arguments)
+\end{Code}
+For our Sunroof object model, we want to model this as close as possible.
+We, by convention, have our method calls take the object as the {\em last\/} argument,
+and use a monad, called the \Src{JS} monad, for the result because method calls are effectful.
+\begin{Code}
+// Sunroof pattern
+method :: Arguments -> (Object -> JS Result)
+\end{Code}
+A neat way of writing method calls in Haskell is transcribing the JavaScript dot, which is already use
+for both namespace resolution and function composition in Haskell, with the \Src{\#} combinator~cite{Shields:01:Babel}
+The \Src{\#} combinator simply applies the second argument to the first (object) argument.
+\begin{Code}
+// Sunroof        
+(#) :: a -> (a -> JS b) -> JS b
+(#) obj act = act obj
+\end{Code}
+
+\noindent
+This gives the follow fragment for a Sunroof call to \Src{method} on \Src{object}.
+\begin{Code}
+  object # method (arguments)
+\end{Code}
+In this way, JavaScript can be transliterated into Haskell where needed,
+native JavaScript call idioms can be used,
+while other Haskell abstraction mechanisms can be used for the interface that calls Sunroof code.
+
+\CURSOR{}
+
+In JavaScript, there are a small number of core types, such as \Src{Object}, \Src{Array}, and \Src{String}.
+In our JavaScript object model, there is a reflection of this family of core types, all prefixed with \Src{JS}.
 There is support for booleans, strings, numbers, functions,
 object and arrays, and other common programming structures.
 The use of \Src{JSNumber}, rather than (say) \Src{Double},
 explicitly reminds us of the enforced diminished capabilities of
-being within an embedded language.
-All of the \Src{JS}-types are representable in our target language.
+being within an embedded language, 
+and all of the \Src{JS}-types are representable in our target language.
 
-Using the \Src{JS}-types, we can give types to \Src{alert} and \Src{prompt}.
-\begin{Code}
-alert :: JSString -> JS ()
-prompt :: JSString -> JS String
-\end{Code}
-In reality, JavaScript overloads \Src{alert} and \Src{prompt},
-so this is providing type-safe access to a sub-set of what
-alert can do.
+Our core types are brought together with a \Src{Sunroof} class.
+If a type is an instance of \Src{Sunroof}, then that type can be realized inside JavaScript.
+All the core types are instances of \Src{Sunroof}. Table~\ref{tab:sunroof-classes}
+enumerates the major Haskell classes in Sunroof, and their instances and purpose.
 
-There are two primary Haskell classes represent things that can
-be passed to and returned from JavaScript functions.
-Instances of the \Src{Sunroof} class 
-are values that are returned from JavaScript functions,
-and represent all basic JavaScript values.
-Instances of the \Src{SunroofArgument} class
-are values that be passed to JavaScript functions,
-including tuples of values which are used for representing multi-argument 
-function calls.
-The asymmetry here is a reflection of the JavaScript
-asymmetry inherited from C: you can pass multiple arguments
-to a function, but only get a single thing back.
-Finally, there is a third class, \Src{SunroofKey}, which is
-is a JavaScript version of the Haskell \Src{Show} class,
-but specifically for generating JavaScript object keys.
-
+\begin{table}[t]
+\begin{center}
+\begin{tabular}{r@{\quad}l@{\quad}l@{\quad}c}
+\hline\rule{0pt}{12pt}%
+  Constraint
+  & Sunroof Type $\tau$
+  & Haskell Analog \HaskellAnalog{$\tau$}
+  & \Src{js} \\ \hline\rule{0pt}{12pt}%
+  
+  & \Src{()}       & \Src{()}     & $\checkmark$ \\
+  & \Src{JSBool}   & \Src{Bool}   & $\checkmark$ \\
+  & \Src{JSNumber} & \Src{Double} & $\checkmark$ \\
+  & \Src{JSString} & \Src{String} & $\checkmark$ \\
+  
+  \Src{Sunroof $\alpha$}
+  & \Src{JSArray $\alpha$} 
+  & \Src{[$\HaskellAnalog{\alpha}$]}
+  & \\
+  
+  \Src{SunroofKey $\alpha$}
+  & \Src{JSMap $\alpha$ $\beta$}
+  & \Src{Map $\HaskellAnalog{\alpha}$ $\HaskellAnalog{\beta}$}
+  & \\
+  \Src{Sunroof $\beta$} \\
+  
+  \Src{SunroofArgument $\alpha$}
+  & \Src{JSFunction $\alpha$ $\beta$ }
+  & \Src{$\HaskellAnalog{\alpha}$ $\rightarrow$ JS$_\Src{A}$ $\HaskellAnalog{\beta}$} 
+  & \\
+  \Src{Sunroof $\beta$} \\
+  
+  \Src{SunroofArgument $\alpha$}
+  & \Src{JSMVar $\alpha$}
+  & \Src{MVar $\HaskellAnalog{\alpha}$}
+  & \\
+  
+  \Src{SunroofArgument $\alpha$}
+  & \Src{JSChan $\alpha$}
+  & \Src{Chan $\HaskellAnalog{\alpha}$}
+  & \\[2pt]
+\hline
+\end{tabular}
+\end{center}
+\caption{Sunroof types and their Haskell pendant.}
+\label{tab:sunroof-classes}
+\end{table} 
 
 
 \begin{table}[t]
@@ -379,15 +439,18 @@ phantom types to give more type safety \cite{Cheney:03:FirstClassPhantomTypes}.
 The smooth embedding of booleans and numbers is done through
 the Boolean package \cite{project:boolean}.
 
-One design decision in Sunroof is that we enforce a stronger typing
-than JavaScript itself would, but also provide an explicit \Src{cast},
+One design decision in Sunroof is that we enforce a stronger typing than JavaScript itself would.
+From experience with using Sunroof,
+the mis-match in typing between Haskell and Sunroof/JavaScript
+is not large problem in practice.
+We also provide an explicit \Src{cast},
 for use where the type-systems differ.
 \begin{Code}
 cast :: (Sunroof a, Sunroof b) => a -> b
 \end{Code}
-From experience with using Sunroof,
-the mis-match in typing between Haskell and Sunroof/JavaScript
-is not large problem in practice,
+
+
+
 many programs translate from Sunroof to JavaScript
 maintaining the stronger typing.
 Casts are typically used in the same way \Src{show} is used
