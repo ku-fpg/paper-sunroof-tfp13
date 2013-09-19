@@ -35,10 +35,11 @@ and web server.
 To make Sunroof a viable interface to JavaScript, we need to
 resolve the following issues:
 \begin{itemize}
-\item JavaScript is an object-based dynamically typed language.
-Haskell is a function-based statically typed language.
+\item JavaScript is an object-based, imperative, dynamically typed language.
+Haskell is a pure, function-based, statically typed language.
 Specifically how do these two worlds map onto each other.
-In section~\ref{sec:object-model}, we discuss the chosen object model.
+In section~\ref{sec:object-model}, we discuss the chosen object model
+and our JS monad.
 %
 \item We need to provide an imperative and therefor effectful interface,
 including control flow, into our target language of JavaScript.
