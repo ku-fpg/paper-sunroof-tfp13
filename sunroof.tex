@@ -481,24 +481,33 @@ build on top of Sunroof primitives, allows the following statement:
 \label{sec:threading-models}
 
 JavaScript uses a callback-centric model of computation. There
-is no concurrency, only a single central loop that executes
-callbacks as non-blocking computations when events occur.
-
+is no support for concurrency, only a single central loop that executes
+callbacks, which should be non-blocking, as events occur.
 In contrast, Haskell has robust concurrency and wide-spread 
 abstractions for synchronization, e.g. \Src{MVar}s and \Src{Chan}s
 \cite{Jones:96:ConcurrentHaskell}.
 So the question arises: do we generate atomic JavaScript code, 
-and keep the callback centric model, or generate JavaScript
-using CPS \cite{Claessen:99:PoorMansConcurrencyMonad}, 
-and allow for blocking primitives and
-cooperative concurrency. The latter, though more powerful, 
-precluded using the compiler to generate
-code that can be cleanly called from native JavaScript.
+and keep the callback centric model, or do we add concurrency
+support as value-added of our transliteration to JavaScript?
+
 In our earlier work~\cite{...}, we prototyped both models
 of computation, and observed that both choices had poor consequences
 when mapping Haskell to JavaScript.
-
-When scaling up Sunroof, we decided to explicitly support both,
+\begin{itemize}
+\item Existing JavaScript API assume atomic, non-blocking
+semantics. Therefore, if we compile a higher-order function
+for a callback, it must not block. 
+Further, if this higher-order function returns a result, 
+the function must respect this non-blocking requirement.
+\item The lure of threads, and the abstractions they allow, 
+is strong. The code is -- from experience -- cleaner if such abstraction
+are used, rather that being faked in JavaScript itself.
+There are new libraries in JavaScript that encode
+concurrency~\cite{...}; Sunroof is a chance to
+perform the a cooperative concurrency translation
+when generating JavaScript.
+\end{itemize}
+In Sunroof, we decided to explicitly support both,
 and make both first-class threading {\em strategies\/} in Sunroof.
 This means that the programmer can choose what model fits
 the idiom being coded.
@@ -533,12 +542,16 @@ because a not terminating or suspending thread will keep others from running.
 There are three main primitives for the blocking model:
 \begin{Code}
 forkJS      :: SunroofThread t1 => JS t1 () -> JS t2 ()
-threadDelay :: JSNumber -> JS B ()
 yield       :: JS B ()
+threadDelay :: JSNumber -> JS B ()
 \end{Code}
 They can all be seen as analogues of their \IO~counterparts.
 \Src{forkJS} resembles \Src{forkIO}.
 It registers the given computation as a callback. 
+In \Src{forkJS}, the \Src{SunroofThread} constrain allows the compiler
+to know if this callback should be blocking or non-blocking,
+based on the type of \Src{t1}. Both blocking and non-blocking
+threads can fork new threads, so \Src{t2} is unconstrained.
 \Src{yield} suspends the current thread by 
 registering the current continuation as a callback,
 giving other threads time to run.
@@ -547,16 +560,8 @@ the callback to be called after a certain amount of time.
 We rely on the JavaScript function \Src{window.setTimeout} 
 \cite{whatwg:timers} to register our callbacks.
 
-The class \Src{SunroofThread} offers functions to retrieve the 
-current threading model (\Src{evalStyle}) and to create a possible
-blocking computation (\Src{blockableJS}).
-\begin{Code}
-class SunroofThread (t :: T) where
-  evalStyle   :: ThreadProxy t -> T
-  blockableJS :: (Sunroof a) => JS t a -> JS B a
-\end{Code}
 Based on these primitive combinators, we also offer a Sunroof 
-version of \Src{MVar} and \Src{Chan}: \Src{JSMVar} and \Src{JSChan}.
+version of Haskell's \Src{MVar} and \Src{Chan}: \Src{JSMVar} and \Src{JSChan}.
 \begin{Code}
 newMVar      :: (SunroofArgument a) => a -> JS t (JSMVar a)
 newEmptyMVar :: (SunroofArgument a) => JS t (JSMVar a)
@@ -572,10 +577,17 @@ For example, \Src{writeChan} can never block, so you can use either threading mo
 but \Src{readChan} may block, so uses the \Src{B} threading model.
 
 
+This parameterization of \Src{JS} allows us to use types capture
+the blocking or non-blocking semantics of our primitives.
+Furthermore, the Haskell type system automatically propagates
+the thread semantics. In this way, Sunroof can offer concurrency
+an additional, first class, abstraction.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
