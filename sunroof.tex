@@ -253,13 +253,15 @@ resolve the following issues:
 \item JavaScript is an object-based, imperative, dynamically typed language.
 Haskell is a pure, function-based, statically typed language.
 Specifically how do these two worlds map onto each other.
-In section~\ref{sec:object-model}, we discuss the chosen object model
-and our JS monad.
+In section~\ref{sec:object-model}, we introduce expressions and statements
+in Sunroof, and how they jointly form an object model.
 %
-\item We need to provide an imperative and therefor effectful interface,
-including control flow, into our target language of JavaScript.
-We do this via the \Src{JS} monad, which we discuss
-in section~\ref{sec:js-monad}.
+\item We need to select a concurrent model for Sunroof.
+JavaScript natively only supports non-blocking threads.
+In section~\ref{sec:threading-models}, we give the
+Sunroof interface for providing both non-blocking and blocking cooperative threads,
+using the type system to delimit the two concurrency models.
+%
 \item We choice to provide a way of defining functions
 in Sunroof in a way that they are first-class functions
 in JavaScript. This uses our \Src{JS} monad, and
@@ -276,6 +278,8 @@ into JavaScript. We look at this in section~\ref{sec:compiler}.
 a web browser, we provide an expansion of the \Src{send} idea above,
 which we discuss in section~\ref{sec:server}.
 \end{itemize}
+
+We close with Sunroof examples, related work, and our conclusions.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -587,6 +591,121 @@ an additional, first class, abstraction.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+\section{Functions and Continuations}
+\label{sec:functions-continuations}
+
+Functions are first class values in Haskell and JavaScript.
+Sunroof represents function {\em objects\/} with the type 
+\Src{JSFunction $\alpha$ $\beta$}, which resembles 
+a function $\alpha \rightarrow \beta$ in JavaScript.
+
+
+Rather than directly support partial application,
+and transliterate curryed Haskell into uncurryed JavaScript,
+we only permit uncurryed functions.
+Like JavaScript, currying can be encoded if needed.
+We introduced \Src{SunroofArgument},
+a superclass of \Src{Sunroof}, to constrain the 
+types that may be used as arguments for functions.
+\begin{Code}
+class SunroofArgument args where
+  jsArgs   :: args -> [Expr]
+  jsValue  :: (UniqM m) => m args
+  ...
+\end{Code}
+This class supports converting each argument into its expression
+through \Src{jsArgs} to supply the
+arguments to a function call. \Src{jsValue} generates
+unique names for each argument, which is needed when compiling
+the function itself to a value. 
+
+Now we can provide more then one argument
+by providing \Src{SunroofArgument} instances for tuples of Sunroof values.
+\begin{Code}
+instance (Sunroof a, Sunroof b) => SunroofArgument (a,b) where
+  jsArgs (a,b) = [unbox a, unbox b]
+  jsValue = liftM2 (,) jsVar jsVar
+\end{Code}
+Remember that each \Src{Sunroof} value already has to be 
+a \Src{SunroofArgument}, which enables us to pass a single argument
+to a function. 
+
+We can create function objects with the \Src{function} combinator.
+\begin{Code}
+function :: (SunroofArgument a, Sunroof b) 
+         => (a -> JS A b)  -> JS t (JSFunction a b)
+\end{Code}
+As a function can have side-effects, its computation and result have to be 
+expressed in the \JS-monad. The creation of a function is considered 
+a side-effect, due to observable allocation.
+
+Function application is done through 
+the \Src{apply} or \Src{\$\$} combinator, they are synonyms.
+Functions can only be applied in the \JS-monad, since they can have side-effects.
+\begin{Code}
+apply, ($$) :: (SunroofArgument a, Sunroof b) 
+            => JSFunction args ret -> args -> JS t ret
+\end{Code}
+Creation and application are implemented using the \Src{JS\_Function}
+and \Src{JS\_Invoke} instructions introduced in 
+\FigRef{fig:jsi-definition}.
+
+\Src{JSContinuation $\alpha$} is used to model continuations in the \JS-monad. 
+It was introduced to work with continuations in Sunroof. 
+Technically they are only
+specializations of functions, but
+restricted to a specific threading model. Continuations
+are meant to be a representation of side-effects -- 
+ongoing computations inside the \JS-monad -- and may  
+not terminate, so they do not return a value. As with functions, 
+there is a combinator to create and apply a continuation.
+\begin{Code}
+continuation :: (SunroofArgument a) 
+             => (a -> JS B ()) -> JS t (JSContinuation a)
+goto         :: (SunroofArgument a) 
+             => JSContinuation a -> a -> JS t b
+\end{Code}
+The presented \Src{goto} should not be considered 
+harmful \cite{Dijkstra:68:GotoConsideredHarmful}.
+It calls a continuation,
+as \Src{apply} calls functions.
+The difference is that a call to \Src{goto} will never
+return, as it executes the given continuation and abandons the 
+current one. This means \Src{goto} is fully polymorphic
+on its (unused and unusable) result.
+
+Access to the current continuations is given through
+the powerful call-with-current-continuation 
+combinator \Src{callcc}.
+\begin{Code}
+callcc :: SunroofArgument a 
+       => (JSContinuation a -> JS B a) -> JS B a
+\end{Code}
+The current continuation models everything that 
+would usually happen after the call to \Src{callcc}. 
+\begin{Code}
+callcc f = JS $ \ k -> unJS 
+    (continuation (\a -> JS $ \ _ -> k a) >>= f) k
+
+unJS :: JS t a -> (a -> Program (JSI t) ()) -> Program (JSI t) ()
+\end{Code}
+The implementation of \Src{callcc} is interesting,
+because it shows how the \Src{Program}-continuation is translated 
+into a \Src{JSContinuation} that is passed to the given function \Src{f}.
+\SecRef{sec:threading-models} will show why this function
+is important for Sunroof and what it is used for.
+
+Functions and continuations are similar and connected 
+to each other, as can be seen in \FigRef{fig:func-cont}.
+\Figure%
+{fig:func-cont}%
+{figures/sunroof-func-cont.pdf}%
+{How functions and continuations relate between the Haskell and Sunroof domain.}%
+We can go back and forth between the Haskell and the Sunroof
+representation of a function or continuation. But once a function
+is specialized to a continuation, it is not possible to go back,
+because continuations only model the side-effect, but do 
+not return anything.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -594,9 +713,6 @@ an additional, first class, abstraction.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %\input{sections/js-monad}
-
-%\input{sections/functions-continuations}
-%\input{sections/threading-model}
 
 %\input{sections/ffi}
 %
