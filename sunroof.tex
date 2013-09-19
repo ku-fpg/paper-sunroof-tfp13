@@ -80,12 +80,125 @@ Christian-Albrechts-Universit{\"a}t, Kiel, Germany}
 \maketitle
 
 \begin{abstract}        
-\input{sections/abstract}
+Sunroof is a Haskell-hosted Domain Specific Language (DSL) for generating JavaScript.
+Sunroof is built on top of the JavaScript monad, which, like the Haskell \IO-monad, allows 
+access to external resources, but specifically JavaScript
+resources. As such, Sunroof is primarily a feature-rich 
+foreign-function API to the browser's JavaScript engine, and all the browser-specific
+functionality, including HTML-based rendering, event handling, and 
+drawing to the HTML5 canvas. 
+
+In this paper, we give the design and implementation of Sunroof.
+Using monadic reification, we generate JavaScript from
+a deep embedding of the JavaScript monad.
+The Sunroof DSL has the feel of native Haskell, with a simple
+Haskell-based type schema to guide the Sunroof programmer.
+Furthermore, because we are generating code,
+we can offer Haskell-style concurrency patterns, such as MVars and Channels.
+In combination with a web-services package,
+the Sunroof compiler offers a robust platform to build interactive web applications.
+
 \keywords{DSLs, JavaScript, Web Technologies, Cloud Computing}
 \end{abstract}
 %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\input{sections/introduction}
+\section{Introduction}\label{sec:intro}
+
+% Simon: Describe the problem
+There are many reasons to want to program in a functional language:
+efficiency of development cost, informally reasoning, high-level 
+control- and concurrency-structures, like monads~\cite{...}.
+However, mainstream languages often have better environmental support
+than what is provided by functional languages,
+for example the Objective C and the iOS eco-structure, or JavaScript and HTML5
+web browsers.
+This paper examines the challenges of providing
+an intentionally blurred interface between Haskell
+and JavaScript, to support the development of web-based applications.
+
+% Simon: State your contributions
+JavaScript is an imperative language with access to a wide range
+of established and useful services like graphical canvases and event
+handling of browser events. 
+We want to express JavaScript in Haskell, adding use
+of Haskell's static typing, and gaining access to JavaScript services
+in the browser directly in Haskell.
+
+In general, there are a number of ways of providing access to non-native services,
+such as the JavaScript canvas.
+\begin{enumerate}
+\item A first approach is to provide, in Haskell, 
+foreign function ``hooks'' to key JavaScript functionality.
+Haskell already provides many similar hooks into the RTS,
+so why not into the JavaScript engine?
+For this to work efficiently, the compiler
+needs to target JavaScript. There are already a
+number is systems doing this~\cite{...}.
+If executed well, this would be ideal,
+there are shortcomings: many standard libraries
+are not supported directly, the generated
+code is not as efficiently executed as native Haskell,
+and the compilers are still immature and incomplete.
+
+\item An second approach is to keep the 
+foreign function ``hooks'' to key JavaScript functionality,
+but instead run Haskell as a server that JavaScript
+and the browser interacts with.
+Unfortunately, every JavaScript call becomes an expensive proposition: an RPC call
+to a browser.
+Though some straight-line calls can be batched together --
+our own blank-canvas hackage package~\cite{..} was built on this idea --
+the granularity of interaction through JavaScript call is just too fine for
+this idea to scale well.
+
+\item A first, alternative approach is to use Haskell to generate JavaScript from
+an abstract syntax tree of the JavaScript code. There have
+been a number of attempt to have DSLs that do the in other spaces,
+and functional languages have good support for generating trees.
+However, this approach works well for data-flow, for example
+as use in Lava. When describing control-flow,
+as would be typically in a JavaScript program,  writing such an AST always
+feels forced, primarily because there is a mismatch between
+bindings in the native language (Haskell) and the non-native
+generated code (JavaScript variable names).
+
+\end{enumerate}
+
+This paper investigate the expansion of scope of the second option,
+specifically adding binding to the Haskell code
+that can be batch together and send to the JavaScript engine,
+and then scaling the language to support larger examples.
+Binding is done using regular Haskell monadic binding, and fits naturally
+into what we expect from a monadic API. Until recently,
+it was thought that it was impossible to use a regular
+Haskell monad for this purpose. In a previous paper,
+we show that such a construction is possible~\cite{..}
+In this paper, we expand on this observation,
+and show that this form of reification is useful in practice.
+
+Further building on this capability, we also investigate providing
+JavaScript control flow and function abstraction mechanisms
+to the Haskell programmer interested in using the browser API.
+Though for technical reasons we can not compile the transitional
+pattern matching and let-binding to JavaScript without committing
+to a full compiler Haskell to JavaScript compiler, both
+control flow and function abstraction can be provided
+with a small syntactical overhead.
+
+With these three capabilities, a programmer can start programming
+using the provided JavaScript API directly, and refine
+their program to migrate more and more computation
+from the server into the browser. In a real sense,
+this blurs the distention between an RPC approach (2),
+and a full Haskell to JavaScript compiler (1),
+built using existing infrastructure, and not needing
+the full compiler.
+
+
+
 
 \begin{comment}
 \section{Example Sunroof Program}
@@ -96,96 +209,252 @@ Perhaps bouncing ball.
 Perhaps drawing line.
 \end{comment}
 
-\input{sections/js-rpc}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\input{sections/object-model}
+\section{Calling JavaScript from Haskell}
+\label{sec:js-rpc}
 
-\input{sections/js-monad}
+From a programmers' point of view, calling JavaScript functions
+appears straightforward. We, as a community know how to reflect an
+API into Haskell, using the IO monad. Furthermore, objects in
+the target API become handles in Haskell. 
 
-\input{sections/functions-continuations}
+As a first example, consider this simplified example of Sunroof code, and corresponding JavaScript.
+\noindent
+\begin{Code}
+-- Haskell                          // JavaScript
+ioCode :: IO ()
+ioCode = send jsCode
+
+jsCode :: JS ()
+jsCode = do                        function jsCode() {
+   name <- prompt "Your name?"       var v0 = prompt("Your name?"); 
+   alert ("Your name: " <> name)     alert("Your name: " + v0); 
+                                   }
+\end{Code}%     
+%\noindent 
+
+Here, we use a new monad, the \Src{JS} monad, our JavaScript
+analog to the \Src{IO} monad,
+and an explicit \Src{send} command that sends the JavaScript to the browser.
+This reversal of control, where the
+server sends the clients commands is called the Ajax Comet~\cite{..},
+or simply long polling.
+This interface also bundles the \Src{prompt} and \Src{alert} commands
+into one interaction transaction.
+It is this flavor of interface we want to support in our Sunroof compiler
+and web server.  
+
+To make Sunroof a viable interface to JavaScript, we need to
+resolve the following issues:
+\begin{itemize}
+\item JavaScript is an object-based, imperative, dynamically typed language.
+Haskell is a pure, function-based, statically typed language.
+Specifically how do these two worlds map onto each other.
+In section~\ref{sec:object-model}, we discuss the chosen object model
+and our JS monad.
+%
+\item We need to provide an imperative and therefor effectful interface,
+including control flow, into our target language of JavaScript.
+We do this via the \Src{JS} monad, which we discuss
+in section~\ref{sec:js-monad}.
+\item We choice to provide a way of defining functions
+in Sunroof in a way that they are first-class functions
+in JavaScript. This uses our \Src{JS} monad, and
+is discussed in section~\ref{sec:functions-continuations}.
+%
+\item We need to provide a foreign function interface,
+to allow us to call specific JavaScript-native functions,
+like \Src{prompt} and \Src{alert}.
+In section~\ref{sec:ffi} we present this interface.
+%
+\item Critically, we need to be able to compile our Sunroof DSL
+into JavaScript. We look at this in section~\ref{sec:compiler}.
+\item To enable the compiled code to dynamically interact with
+a web browser, we provide an expansion of the \Src{send} idea above,
+which we discuss in section~\ref{sec:server}.
+\end{itemize}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\section{JavaScript Object Model}
+\label{sec:object-model}
+
+In our JavaScript object model, there are a family of core types, all prefixed with JS.
+Each one corresponds to a specific JavaScript type.
+There is support for booleans, strings, numbers, functions,
+object and arrays, and other common programming structures.
+The use of \Src{JSNumber}, rather than (say) \Src{Double},
+explicitly reminds us of the enforced diminished capabilities of
+being within an embedded language.
+All of the \Src{JS}-types are representable in our target language.
+
+Using the \Src{JS}-types, we can give types to \Src{alert} and \Src{prompt}.
+\begin{Code}
+alert :: JSString -> JS ()
+prompt :: JSString -> JS String
+\end{Code}
+In reality, JavaScript overloads \Src{alert} and \Src{prompt},
+so this is providing type-safe access to a sub-set of what
+alert can do.
+
+There are two primary Haskell classes represent things that can
+be passed to and returned from JavaScript functions.
+Instances of the \Src{Sunroof} class 
+are values that are returned from JavaScript functions,
+and represent all basic JavaScript values.
+Instances of the \Src{SunroofArgument} class
+are values that be passed to JavaScript functions,
+including tuples of values which are used for representing multi-argument 
+function calls.
+The asymmetry here is a reflection of the JavaScript
+asymmetry inherited from C: you can pass multiple arguments
+to a function, but only get a single thing back.
+Finally, there is a third class, \Src{SunroofKey}, which is
+is a JavaScript version of the Haskell \Src{Show} class,
+but specifically for generating JavaScript object keys.
+
+
+
+\begin{table}[t]
+\begin{center}
+\begin{tabular}{r@{\quad}l@{\quad}l@{\quad}c}
+\hline\rule{0pt}{12pt}%
+  Constraint
+  & Sunroof Type $\tau$
+  & Haskell Analog \HaskellAnalog{$\tau$}
+  & \Src{js} \\ \hline\rule{0pt}{12pt}%
+  
+  & \Src{()}       & \Src{()}     & $\checkmark$ \\
+  & \Src{JSBool}   & \Src{Bool}   & $\checkmark$ \\
+  & \Src{JSNumber} & \Src{Double} & $\checkmark$ \\
+  & \Src{JSString} & \Src{String} & $\checkmark$ \\
+  
+  \Src{Sunroof $\alpha$}
+  & \Src{JSArray $\alpha$} 
+  & \Src{[$\HaskellAnalog{\alpha}$]}
+  & \\
+  
+  \Src{SunroofKey $\alpha$}
+  & \Src{JSMap $\alpha$ $\beta$}
+  & \Src{Map $\HaskellAnalog{\alpha}$ $\HaskellAnalog{\beta}$}
+  & \\
+  \Src{Sunroof $\beta$} \\
+  
+  \Src{SunroofArgument $\alpha$}
+  & \Src{JSFunction $\alpha$ $\beta$ }
+  & \Src{$\HaskellAnalog{\alpha}$ $\rightarrow$ JS$_\Src{A}$ $\HaskellAnalog{\beta}$} 
+  & \\
+  \Src{Sunroof $\beta$} \\
+  
+  \Src{SunroofArgument $\alpha$}
+  & \Src{JSMVar $\alpha$}
+  & \Src{MVar $\HaskellAnalog{\alpha}$}
+  & \\
+  
+  \Src{SunroofArgument $\alpha$}
+  & \Src{JSChan $\alpha$}
+  & \Src{Chan $\HaskellAnalog{\alpha}$}
+  & \\[2pt]
+\hline
+\end{tabular}
+\end{center}
+\caption{Sunroof types and their Haskell pendant.}
+\label{tab:sunroof-types}
+\end{table} 
+
+
+Table~\ref{tab:sunroof-types} enumerates major \Src{JS} types,
+and any restrictions on the type arguments enforced by containers,
+like \Src{JSArray}. What can be seen from this is that we
+enforce a Hindley–Milner style thinking to our containers,
+which is distinct from JavaScript dynamic typing.
+Some types involve 
+phantom types to give more type safety \cite{Cheney:03:FirstClassPhantomTypes}.
+The smooth embedding of booleans and numbers is done through
+the Boolean package \cite{project:boolean}.
+
+One design decision in Sunroof is that we enforce a stronger typing
+than JavaScript itself would, but also provide an explicit \Src{cast},
+for use where the type-systems differ.
+\begin{Code}
+cast :: (Sunroof a, Sunroof b) => a -> b
+\end{Code}
+From experience with using Sunroof,
+the mis-match in typing between Haskell and Sunroof/JavaScript
+is not large problem in practice,
+many programs translate from Sunroof to JavaScript
+maintaining the stronger typing.
+Casts are typically used in the same way \Src{show} is used
+to map numbers to strings in the context of building
+string values that contain numbers. We also provide
+some variants of \Src{cast} with more specific types
+to help alleviate some of the dynamic typing.
+
+\TabRef{tab:sunroof-types} shows that most basic 
+Haskell types have counterparts in
+Sunroof. To convert Haskell values into their 
+counterparts, we provide the \Src{SunroofValue} class.
+\begin{Code}
+class SunroofValue a where
+  type ValueOf a :: *
+  js :: (Sunroof (ValueOf a)) => a -> ValueOf a
+\end{Code}
+The type function
+\Src{ValueOf} \cite{Chakravarty:05:AssociatedTypeSynonyms} 
+provides the corresponding Sunroof type.
+\Src{js} converts a value from Haskell to Sunroof. 
+By design \Src{SunroofValue} 
+only provides instances for values that can be converted in a pure
+manner. 
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%\input{sections/object-model}
+
+%\input{sections/js-monad}
+
+%\input{sections/functions-continuations}
 %\input{sections/threading-model}
 
-\input{sections/ffi}
+%\input{sections/ffi}
 %
 
-\input{sections/compiler}
+%\input{sections/compiler}
 
-\input{sections/server}
+%\input{sections/server}
 
-\input{sections/extended-example}
+%\input{sections/extended-example}
 
 %\TODO{Should we add the discussion why we choose a deep embedding somewhere?}
-\begin{comment}
-\section{Background - RESOURCE COLLECTION}
-\label{sec:background}
 
-We chose to implement Sunroof as deep embedded DSL for different
-reasons. Porting a compiler, like GHC, to Javascript would have
-cost a lot of effort. There is no clear way to port the existing
-API and there are many language features that would be difficult to
-translate. Providing a foreign function interface would 
-introduce the cost of translating back- and forward. 
-\TODO{Not even sure how this would work or where cost comes in.}
-Another possibility would be to develop a custom language. 
-Besides that people would need to learn a third language for this 
-approach, it would involve effort similar to porting a compiler.
-As a deep embedded DSL people only have to know Haskell to learn
-the new language. The cost of developing the DSL remains light, 
-because we can build upon a mature language and its features.
+%\input{sections/related-work}
 
-Choices when compiling to Javascript
-\begin{itemize}
-\item Port a compiler to Javascript - issues, mismatching API, other efforts.
-\item Provide an FFI - back and forward cost.
-\item Compile a custom, cut down FP language. - example
-\item DSL, restrictive, syntactically, how do we handle binding?
-\end{itemize}
+%\input{sections/conclusion-discussion}
 
-\subsection{Basic Idea}
+\section{Acknowledgment}
 
-As we have seen in the previous example application Sunroof uses a 
-monad to model computations that can be translated to Javascript.
-A binding operation is thought to be an assignment to 
-a fresh variable in the reified language.
-
-
-
-Design objectives and contributions.
-\begin{itemize}
-\item 
-Specifically, we want to explore how similar to a native Haskell monad,
-like the IO or STM monads, can we make the JS monad feel to Sunroof users.
-\item We want to reflect objects. (easy)
-
-\item We want also investigate the relationship between Haskell functions
-and Javascript functions. In particular, there is an isomorphism
-between monadic functions in Haskell, with the type \verb|a -> JS b|,
-and Javascript functions, which we will notate using \verb|JSFunction|.
-This relationship is more interesting than a Haskell synonym;
-it reflects the reification options for capturing functions.
-\end{itemize}
-
-Highlights
-\begin{itemize}
-\item function / continuation
-\item implementing wait \& fork
-\end{itemize}
-
-Up to this point, Sunroof is academically interesting, but in a real sense
-we are writing Javascript using Haskell syntax, so why not just write
-Javascript? There are three things we have bought by using our DSL.
-\begin{itemize}
-\item Typing -- We have a simple monomorphic type system that helps development of Sunroof code.
-\item Haskell Abstractions --
-\item Dynamic Generation -- 
-\end{itemize}
-\end{comment}
-
-\input{sections/related-work}
-
-\input{sections/conclusion-discussion}
-
-\input{sections/acknowledgement}
+We want to thank Conal Elliott for his support in adapting 
+the Boolean package \cite{project:boolean} and helping us to
+extend it with support for deeply embedded numbers.
 
 %
 % ---- Bibliography ----
