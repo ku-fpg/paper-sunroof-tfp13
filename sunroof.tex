@@ -266,6 +266,7 @@ a web browser, we provide an expansion of the \Src{send} idea above,
 which we discuss in Section~\ref{sec:server}.
 \end{itemize}
 
+\noindent
 We close with a small case study, related work, and our conclusions.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -273,7 +274,7 @@ We close with a small case study, related work, and our conclusions.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-\section{Sunroof Values} % TODO: rename
+\section{Sunroof Expressions and Statements} % TODO: rename
 \label{sec:object-model}
 
 JavaScript makes a distinction between expressions and statements.
@@ -282,15 +283,6 @@ make this distinction, and does so using Haskell types.
 
 \subsection{Sunroof Expressions}
 
-In JavaScript, there are a small number of core types, such as \Src{object}, \Src{array}, and \Src{string}.
-In our JavaScript object model, there is a reflection of this family of core types, all prefixed with \Src{JS}.
-There is support for booleans, strings, numbers, functions,
-object and arrays, and other common programming structures.
-The use of \Src{JSNumber}, rather than (say) \Src{Double},
-explicitly reminds us of the enforced diminished capabilities of
-being within an embedded language,
-and all of the \Src{JS}-types are representable in our target language.
-Table~\ref{tab:sunroof-types} enumerates the major \Src{JS} types used in Sunroof.
 
 \begin{table}[t]
 \begin{center}
@@ -344,6 +336,16 @@ Table~\ref{tab:sunroof-types} enumerates the major \Src{JS} types used in Sunroo
 \label{tab:sunroof-types}
 \end{table} 
 
+In JavaScript, there are a small number of core types, such as \Src{object}, \Src{array}, and \Src{string}.
+In our JavaScript object model, there is a reflection of this family of core types, all prefixed with \Src{JS}.
+There is support for booleans, strings, numbers, functions,
+arrays, and other common programming structures.
+The use of \Src{JSNumber}, rather than (say) \Src{Double},
+explicitly reminds us of the enforced diminished capabilities of
+being within an embedded language,
+and all of the \Src{JS}-types are representable in our target language.
+Table~\ref{tab:sunroof-types} enumerates the major \Src{JS} types used in Sunroof.
+%
 The left-hand column of Table~\ref{tab:sunroof-types} gives constraints,
 implemented via Haskell type classes.
 \begin{itemize}
