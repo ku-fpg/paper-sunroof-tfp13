@@ -249,10 +249,10 @@ In section~\ref{sec:threading-models}, we give the
 Sunroof interface for providing both non-blocking and blocking cooperative threads,
 using the type system to delimit the two concurrency models.
 %
-\item We choice to provide a way of defining functions
+\item We choose to provide a way of defining functions
 in Sunroof such that they are first-class functions
 in JavaScript. In section~\ref{sec:functions-continuations},
-we should how we supporting both functions and continuations.
+we show how we support both functions and continuations.
 %
 \item We need to provide a foreign function interface,
 to allow us to call specific JavaScript-native functions,
@@ -350,7 +350,7 @@ If a type is an instance of \Src{Sunroof}, then that type can be realized inside
 All the \Src{JS} types are instances of \Src{Sunroof}.
 
 \item Instances of the \Src{SunroofArgument} class
-are values that be passed to JavaScript functions and methods,
+are values that can be passed to JavaScript functions and methods,
 including tuples of values which are used for representing multi-argument 
 function calls.
 The asymmetry here is a reflection of the JavaScript
@@ -390,7 +390,7 @@ which is distinct from JavaScript dynamic typing.
 Some types involve
 phantom types to give imposed type safety \cite{Cheney:03:FirstClassPhantomTypes}.
 Thus, \Src{JSArray} is a restricted type of JavaScript \Src{array}, that, like Haskell,
-support collections of the same type.
+only support collections of the same type.
 
 From experience with using Sunroof,
 the mis-match in typing between Haskell and Sunroof/JavaScript
@@ -417,7 +417,7 @@ We, by convention, have our method calls take the object as the {\em last\/} arg
 and use a monad, called the \Src{JS} monad, for the result because method calls are effectful.
 \begin{Code}
 // Shape of a Sunroof method
-(SunroofArgument args, Sunroof res) => args -> (Object -> JS res)
+(SunroofArgument args, Sunroof res) => args -> (JSObject -> JS res)
 \end{Code}
 A neat way of writing method calls in Haskell is transcribing the JavaScript dot, which is already use
 for both namespace resolution and function composition in Haskell, with the \Src{\#} combinator~\cite{Shields:01:Babel}.
@@ -463,7 +463,7 @@ all updating of objects requires the monad.
 This is a design decision we may return to in the future.
 
 The net effect is that assignments to fields can be neatly expressed,
-in a syntax is this close to JavaScript itself. Our HTML5 canvas library,
+with a syntax close to JavaScript itself. Our HTML5 canvas library,
 build on top of Sunroof primitives, allows the following transliteration
 from textbook JavaScript into Sunroof:
 
