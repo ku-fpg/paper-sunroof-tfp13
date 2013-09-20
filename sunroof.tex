@@ -383,15 +383,15 @@ js :: (SunroofValue a, Sunroof (ValueOf a)) => a -> ValueOf a
 Putting the expression-building capability together, 
 along with a show function called \Src{string}, we can write:
 \begin{Code}
-  alert ("n=" <> js (n::Int) <> " m=" <> string (m::JSNumber))
+  alert ("n=" <> js (n::Int) <> " m=" <> toString (m::JSNumber))
 \end{Code}
 Here, \Src{n} is a Haskell \Src{Int}, and \Src{m} is a Sunroof number,
 presumably the result of a previous computation. Given that we are 
 bundling expressions to send to a browser for execution, \Src{n}
 is a static value, and \Src{m} is a dynamic value, unobservable until inside our browser's execution.
-\Src{string} has type:
+\Src{toString} has type:
 \begin{Code}
-string :: Sunroof a => a -> JSString
+toString :: Sunroof a => a -> JSString
 \end{Code}
 
 One design decision in Sunroof is that we enforce a stronger typing than JavaScript itself would.
@@ -504,7 +504,7 @@ abstractions for synchronization, e.g. \Src{MVar}s and \Src{Chan}s
 \cite{Jones:96:ConcurrentHaskell}.
 So the question arises: do we generate atomic JavaScript code, 
 and keep the callback centric model, or do we add concurrency
-support as value-added of our transliteration to JavaScript?
+support as value-added by our transliteration to JavaScript?
 
 In our earlier work~\cite{...}, we prototyped both models
 of computation, and observed that both choices had poor consequences
@@ -523,9 +523,10 @@ concurrency~\cite{...}; Sunroof is a chance to
 perform the a cooperative concurrency translation
 when generating JavaScript.
 \end{itemize}
-In Sunroof, we decided to explicitly support both,
-and make both first-class threading {\em strategies\/} in Sunroof.
-This means that the programmer can choose what model fits
+In Sunroof, we decided to explicitly support both blocking
+and not-blocking threads,and use types to denote which
+threading {\em strategies\/} should be used.
+This means that the programmer can choose what concurrency model fits
 the idiom being coded.
 
 In terms of user-interface, we parameterize the \JS-monad
@@ -561,10 +562,10 @@ forkJS      :: SunroofThread t1 => JS t1 () -> JS t2 ()
 yield       :: JS B ()
 threadDelay :: JSNumber -> JS B ()
 \end{Code}
-They can all be seen as analogues of their \IO~counterparts.
+They can all be seen as analogs of their \IO~counterparts.
 \Src{forkJS} resembles \Src{forkIO}.
 It registers the given computation as a callback. 
-In \Src{forkJS}, the \Src{SunroofThread} constrain allows the compiler
+In \Src{forkJS}, the \Src{SunroofThread} constraint allows the compiler
 to know if this callback should be blocking or non-blocking,
 based on the type of \Src{t1}. Both blocking and non-blocking
 threads can fork new threads, so \Src{t2} is unconstrained.
