@@ -760,7 +760,7 @@ Our domain specific language, embedded in Haskell, is useless unless
 we can actually compile it to JavaScript. We apply four main techniques.
 
 \paragraph{Expression Reification:}
-The first technique is we use is capturing Sunroof expressions as expression trees. 
+The first technique we use is capturing Sunroof expressions as expression trees. 
 This is a classical use of an deeply-embedded language. Every expression/\Src{JS}-type
 is a Haskell \Src{newtype} wrapper around an expression syntax tree.
 This internal expression syntax is simple, with only five constructors:
