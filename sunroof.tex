@@ -576,11 +576,11 @@ the callback to be called after a certain amount of time.
 We rely on the JavaScript function \Src{window.setTimeout} 
 \cite{whatwg:timers} to register our callbacks.
 
-This parameterization of \Src{JS} allows us to use types capture
+This parameterization of \Src{JS} allows us to use types to capture
 the blocking or non-blocking semantics of our primitives.
 Furthermore, the Haskell type system automatically propagates
 the thread semantics. In this way, Sunroof can offer concurrency
-an additional, first class, abstraction.
+as an additional, first class, abstraction.
 
 As an example of what is possible, and based on these primitive
 threading combinators, is the Sunroof
@@ -592,7 +592,7 @@ writeChan :: (SunroofArgument a) => a -> JSChan a -> JS t ()
 readChan  :: (SunroofArgument a) => JSChan a -> JS B a
 \end{Code}
 Note that the types reflect if a specific operation can block.
-Both\Src{newChan} and \Src{writeChan} can never block, so you can use either threading model,
+Both \Src{newChan} and \Src{writeChan} can never block, so you can use either threading model,
 but \Src{readChan} may block, so uses the \Src{B} threading model.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -604,7 +604,7 @@ but \Src{readChan} may block, so uses the \Src{B} threading model.
 
 Functions are first class values in Haskell and JavaScript.
 Sunroof represents function {\em objects\/} with the type 
-\Src{JSFunction $\alpha$ $\beta$}, which reifies are
+\Src{JSFunction $\alpha$ $\beta$}, which reifies
 a function $\alpha \rightarrow \beta$ in JavaScript.
 In this section, we exam the problem of building function
 in Sunroof.
@@ -623,7 +623,7 @@ the \Src{apply}/\Src{\$\$} combinator; they are synonyms.
 Functions can only be applied in the \JS-monad, since they can have side-effects.
 \begin{Code}
 apply, ($$) :: (SunroofArgument a, Sunroof b) 
-            => JSFunction args ret -> args -> JS t ret
+            => JSFunction a b -> a -> JS t b
 \end{Code}
 Together, \Src{function} and \Src{apply} give a way of getting into and
 back from the abstract \Src{JSFunction} object. 
@@ -657,7 +657,7 @@ Note that the `\Src{fib}' type here is a JSFunction object,
 and we also need to use the \Src{JS} monad, because JavaScript
 functions are effectful, but the function is expressible in Sunroof.
 
-Continuations are functions that never return. JavaScript uses then; 
+Continuations are functions that never return. JavaScript uses them; 
 for example some callbacks are actually continuations. We can express
 continuation objects (continuation functions on object form),
 using the type \Src{JSContinuation $\alpha$}.
