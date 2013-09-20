@@ -217,8 +217,8 @@ ioCode = send jsCode
 
 jsCode :: JS ()
 jsCode = do                        function jsCode() {
-   name <- prompt "Your name?"       var v0 = prompt("Your name?"); 
-   alert ("Your name: " <> name)     alert("Your name: " + v0); 
+   name <- prompt "Your name?"       var name = prompt("Your name?"); 
+   alert ("Your name: " <> name)     alert("Your name: " + name); 
                                    }
 \end{Code}%     
 %\noindent 
@@ -227,8 +227,8 @@ Here, we use a new monad, the \Src{JS} monad, our JavaScript
 analog to the \Src{IO} monad,
 and an explicit \Src{send} command that sends the JavaScript to the browser.
 This reversal of control, where the
-server sends the clients commands is called the Ajax Comet~\cite{..},
-or simply long polling.
+server sends the client commands is called the Ajax Comet~\cite{..},
+or simply {\em long polling\/}.
 This interface also bundles the \Src{prompt} and \Src{alert} commands
 into one interaction transaction.
 It is this flavor of interface we want to support in our Sunroof compiler
@@ -239,31 +239,31 @@ resolve the following issues:
 \begin{itemize}
 \item JavaScript is an object-based, imperative, dynamically typed language.
 Haskell is a pure, function-based, statically typed language.
-In section~\ref{sec:object-model}, we introduce expressions and statements
+In Section~\ref{sec:object-model}, we introduce expressions and statements
 in Sunroof, and how they jointly form an object model,
-mapping these two worlds map together.
+mapping these two worlds together.
 %
 \item We need to select a concurrent model for Sunroof.
 JavaScript natively only supports non-blocking threads.
-In section~\ref{sec:threading-models}, we give the
+In Section~\ref{sec:threading-models}, we give the
 Sunroof interface for providing both non-blocking and blocking cooperative threads,
 using the type system to delimit the two concurrency models.
 %
 \item We choose to provide a way of defining functions
 in Sunroof such that they are first-class functions
-in JavaScript. In section~\ref{sec:functions-continuations},
+in JavaScript. In Section~\ref{sec:functions-continuations},
 we show how we support both functions and continuations.
 %
 \item We need to provide a foreign function interface,
 to allow us to call specific JavaScript-native functions,
 like \Src{prompt} and \Src{alert}.
-In section~\ref{sec:ffi} we present this interface.
+In Section~\ref{sec:ffi} we present this interface.
 %
 \item Critically, we need to be able to compile our Sunroof DSL
-into JavaScript. We examine this in section~\ref{sec:compiler}.
+into JavaScript. We examine this in Section~\ref{sec:compiler}.
 \item To enable the compiled code to dynamically interact with
 a web browser, we provide an expansion of the \Src{send} idea above,
-which we discuss in section~\ref{sec:server}.
+which we discuss in Section~\ref{sec:server}.
 \end{itemize}
 
 We close with a small case study, related work, and our conclusions.
