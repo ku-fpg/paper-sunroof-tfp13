@@ -39,7 +39,6 @@
 \end{center}%
 \caption{#3}%
 \label{#1}%
-\vspace{-0.5cm}%
 \end{figure}%
 }
 
@@ -240,9 +239,9 @@ resolve the following issues:
 \begin{itemize}
 \item JavaScript is an object-based, imperative, dynamically typed language.
 Haskell is a pure, function-based, statically typed language.
-Specifically how do these two worlds map onto each other.
 In section~\ref{sec:object-model}, we introduce expressions and statements
-in Sunroof, and how they jointly form an object model.
+in Sunroof, and how they jointly form an object model,
+mapping these two worlds map together.
 %
 \item We need to select a concurrent model for Sunroof.
 JavaScript natively only supports non-blocking threads.
@@ -251,9 +250,9 @@ Sunroof interface for providing both non-blocking and blocking cooperative threa
 using the type system to delimit the two concurrency models.
 %
 \item We choice to provide a way of defining functions
-in Sunroof in a way that they are first-class functions
-in JavaScript. This uses our \Src{JS} monad, and
-is discussed in section~\ref{sec:functions-continuations}.
+in Sunroof such that they are first-class functions
+in JavaScript. In section~\ref{sec:functions-continuations},
+we should how we supporting both functions and continuations.
 %
 \item We need to provide a foreign function interface,
 to allow us to call specific JavaScript-native functions,
@@ -261,13 +260,13 @@ like \Src{prompt} and \Src{alert}.
 In section~\ref{sec:ffi} we present this interface.
 %
 \item Critically, we need to be able to compile our Sunroof DSL
-into JavaScript. We look at this in section~\ref{sec:compiler}.
+into JavaScript. We examine this in section~\ref{sec:compiler}.
 \item To enable the compiled code to dynamically interact with
 a web browser, we provide an expansion of the \Src{send} idea above,
 which we discuss in section~\ref{sec:server}.
 \end{itemize}
 
-We close with Sunroof examples, related work, and our conclusions.
+We close with a small case study, related work, and our conclusions.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -281,7 +280,7 @@ In the Sunroof DSL, like Haskell itself, we make a distinction between expressio
 
 \subsection{Sunroof Expressions}
 
-In JavaScript, there are a small number of core types, such as \Src{Object}, \Src{Array}, and \Src{String}.
+In JavaScript, there are a small number of core types, such as \Src{object}, \Src{array}, and \Src{string}.
 In our JavaScript object model, there is a reflection of this family of core types, all prefixed with \Src{JS}.
 There is support for booleans, strings, numbers, functions,
 object and arrays, and other common programming structures.
@@ -321,6 +320,11 @@ Table~\ref{tab:sunroof-types} enumerates major \Src{JS} types used in Sunroof.
   & \Src{$\HaskellAnalog{\alpha}$ $\rightarrow$ JS$_\Src{A}$ $\HaskellAnalog{\beta}$} 
   & \\
   \Src{Sunroof $\beta$} \\
+
+  \Src{SunroofArgument $\alpha$}
+  & \Src{JSContinuation $\alpha$}
+  & \Src{$\HaskellAnalog{\alpha}$ $\rightarrow$ JS$_\Src{B}$ $\beta$} 
+  & \\
   
   \Src{SunroofArgument $\alpha$}
   & \Src{JSMVar $\alpha$}
@@ -334,7 +338,7 @@ Table~\ref{tab:sunroof-types} enumerates major \Src{JS} types used in Sunroof.
 \hline
 \end{tabular}
 \end{center}
-\caption{Sunroof types and their Haskell pendant.}
+\caption{Sunroof types and their Haskell analogs.}
 \label{tab:sunroof-types}
 \end{table} 
 
@@ -385,13 +389,14 @@ enforce a Hindley–Milner style thinking to our containers,
 which is distinct from JavaScript dynamic typing.
 Some types involve
 phantom types to give imposed type safety \cite{Cheney:03:FirstClassPhantomTypes}.
-Thus, \Src{JSArray} is a restricted type of JavaScript Array, that, like Haskell,
+Thus, \Src{JSArray} is a restricted type of JavaScript \Src{array}, that, like Haskell,
 support collections of the same type.
 
 From experience with using Sunroof,
 the mis-match in typing between Haskell and Sunroof/JavaScript
 is not large problem in practice.
-We also provide an explicit dynamic \Src{cast},
+However, sometime casting between types, which is implicit in JavaScript,
+is needed. So we provide an explicit dynamic \Src{cast},
 for use where the type-systems differ,
 and both sides of the \Src{cast} are instances of \Src{Sunroof}.
 \begin{Code}
@@ -446,23 +451,26 @@ We do so using a typed \Src{JSSelector}.
 \begin{Code}
 label :: JSString -> JSSelector a
 (!)   :: (Sunroof o, Sunroof a) => o -> JSSelector a -> a
-(:=)  :: (Sunroof a, Sunroof o) => JSSelector a -> a -> (o -> JS t ())
+(:=)  :: (Sunroof a, Sunroof o) 
+      => JSSelector a -> a -> (o -> JS t ())
 \end{Code}
 We can build a selector (\Src{label}), use a selector to access a attribute in a specific
 object (\Src{!}), or update an attribute in a specific object (\Src{:=}).
 The update is in our object-normal-form, that is the object is the final argument.
 Sunroof is, in essence, a strict functional language, with monads for effect.
 We choose to support direct (non-monadic) reading of attributes, but
-all writing of an 
+all updating of objects requires the monad.
 This is a design decision we may return to in the future.
 
 The net effect is that assignments to fields can be neatly expressed,
 in a syntax is this close to JavaScript itself. Our HTML5 canvas library,
-build on top of Sunroof primitives, allows the following statement:
-\begin{Code}
-  c # color := "red"
-\end{Code}
+build on top of Sunroof primitives, allows the following transliteration
+from textbook JavaScript into Sunroof:
 
+\begin{Code}
+  // JavaScript                         // Sunroof
+  c.fillStyle = "red";                  c # fillStyle := "red"
+\end{Code}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -558,6 +566,19 @@ Furthermore, the Haskell type system automatically propagates
 the thread semantics. In this way, Sunroof can offer concurrency
 an additional, first class, abstraction.
 
+As an example of what is possible, and based on these primitive
+threading combinators, is the Sunroof
+version of Haskell's \Src{MVar} and \Src{Chan}: \Src{JSMVar} and \Src{JSChan}.
+Here is the Sunroof API for \Src{JSChan}.
+\begin{Code}
+newChan   :: (SunroofArgument a) => JS t (JSChan a)
+writeChan :: (SunroofArgument a) => a -> JSChan a -> JS t ()
+readChan  :: (SunroofArgument a) => JSChan a -> JS B a
+\end{Code}
+Note that the types reflect if a specific operation can block.
+Both\Src{newChan} and \Src{writeChan} can never block, so you can use either threading model,
+but \Src{readChan} may block, so uses the \Src{B} threading model.
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -591,6 +612,7 @@ apply, ($$) :: (SunroofArgument a, Sunroof b)
 Together, \Src{function} and \Src{apply} give a way of getting into and
 back from the abstract \Src{JSFunction} object. 
 
+\newpage\noindent
 To see an example of usage, consider defining a \Src{double} function.
 \begin{Code}
   double <- function $ \ (n :: JSNumber) -> return (n + n)
@@ -651,8 +673,8 @@ combinator \Src{callcc}.
 callcc :: SunroofArgument a 
        => (JSContinuation a -> JS B a) -> JS B a
 \end{Code}
-The current continuation models everything that 
-would usually happen after the call to \Src{callcc}. 
+%The current continuation models everything that 
+%would usually happen after the call to \Src{callcc}. 
 
 Functions and continuations, and their \Src{JS}-analogs,
 are connected  to each other, as can be seen in \FigRef{fig:func-cont}.
@@ -667,23 +689,6 @@ because continuations only model the side-effect, but do
 not return anything. \Src{kast} is just a specialized version of \Src{cast}.
 
 % include discussion about one examp;e.
-
-As an example of what is possible 
-Based on these primitive combinators, we also offer a Sunroof 
-version of Haskell's \Src{MVar} and \Src{Chan}: \Src{JSMVar} and \Src{JSChan}.
-\begin{Code}
-newMVar      :: (SunroofArgument a) => a -> JS t (JSMVar a)
-newEmptyMVar :: (SunroofArgument a) => JS t (JSMVar a)
-putMVar      :: (SunroofArgument a) => a -> JSMVar a -> JS B ()
-takeMVar     :: (SunroofArgument a) => JSMVar a -> JS B a
-
-newChan   :: (SunroofArgument a) => JS t (JSChan a)
-writeChan :: (SunroofArgument a) => a -> JSChan a -> JS t ()
-readChan  :: (SunroofArgument a) => JSChan a -> JS B a
-\end{Code}
-Note that the types reflect if a specific operation can block.
-For example, \Src{writeChan} can never block, so you can use either threading model,
-but \Src{readChan} may block, so uses the \Src{B} threading model.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -722,11 +727,13 @@ object you would call \Src{new "Object" ()}.
 
 We can call methods of objects through \Src{invoke}. Again, this 
 can be used inline and to create a real binding. An inline 
-use of this to produce \Src{document{\linebreak}.getElementById("id")} would look like this: 
+use of this to produce \linebreak\Src{document.getElementById("id")} would look like this: 
 \begin{Code}
-object "document" # invoke "getElementById" "id"
+  object "document" # invoke "getElementById" "id"
 \end{Code}
-where \Src{\#} is just a flipped function application. To provide a binding 
+
+\newpage\noindent
+To provide a binding 
 to the \Src{getElementById} method, one can write:
 \begin{Code}
 getElementById :: JSString -> JSObject -> JS t JSObject
@@ -736,7 +743,7 @@ getElementById s = invoke "getElementById" s
 Providing actual bindings ensures that
 everything is typed correctly and prevents the need to resolve ambiguities 
 through large type annotations inside of code.
-
+%
 The current release of Sunroof on hackage provides bindings for most of the 
 core browser API, the HTML5 canvas element, and some of the JQuery API.
 
@@ -986,10 +993,10 @@ waiting for a return value. In contrast to that,
 then sends the result back to the server. It
 is converted into a Haskell value that can be processed further. 
 Values that can be converted to a Haskell type after a synchronous
-call implement the \Src{SunroofResult} class. It maps the 
-Sunroof type to a corresponding Haskell type through a type function 
-and provides a function to convert the data to that type.
-
+call use the type function~\cite{..}~\Src{ResultOf} to
+allow \Src{JSString} to return a Haskell \Src{String}, 
+\Src{JSNumber} to return \Src{Double} (as per the specification
+of JavaScript numbers), and \Src{()} to return \Src{()}.
 
 \section{Case Study - A Small Calculator}
 \label{sec:extended-example}
@@ -1002,11 +1009,15 @@ and the results of our computation. Haskell will be used to parse the
 arithmetic expressions and calculate the result. The Sunroof server 
 will be used to implement this JavaScript/Haskell hybrid.
 
-\FigureS%
-{fig:example-application}%
-{figures/example-application.png}%
-{The example application running on the Sunroof server.}%
-{scale=0.6}
+\begin{figure}[t]%
+%\vspace{-0.5cm}%
+\begin{center}%
+\includegraphics[scale=0.5]{figures/example-application.png}%
+\end{center}%
+\caption{The example application running on the Sunroof server.}%
+\label{fig:example-application}
+\end{figure}
+
 
 The classical approach to develop an application like this would have 
 been to write a server that provides a RESTful interface and replies 
@@ -1015,10 +1026,15 @@ The client side of that application would have been written in JavaScript
 directly.
 This can be seen in \FigRef{fig:example-structure}.
 
-\Figure%
-{fig:example-structure}%
-{figures/example-structure.pdf}%
-{Classical structure and Sunroof structure of a web application.}
+\begin{figure}[h]%
+%\vspace{-0.5cm}%
+\begin{center}%
+\includegraphics[scale=0.45,clip=true,trim=0.45cm 0.45cm 0.45cm 0.45cm]{figures/example-structure.pdf}%
+\end{center}%
+\caption{Classical structure and Sunroof structure of a web application.}%
+\label{fig:example-structure}
+\end{figure}
+
 
 How does Sunroof improve or change this classical structure?
 First of all, in Sunroof you write the client-side code together with
@@ -1030,7 +1046,7 @@ This also shows how Sunroof blurs the border between the server
 and client side. You are not restricted by an interface or language 
 barrier. If you need the client to do something, you can just 
 send arbitrary Sunroof code to execute in the client.
-
+%
 \TabRef{tab:example-statistics} contains a few statistics 
 about the size of the code in each part of the client.
 
@@ -1038,33 +1054,37 @@ The client-server response loop shuffles new input to the server
 and executes the response in the client.
 %
 Data conversion is needed, because pure Haskell data types
-cannot be handled in Sunroof and vice versa. There still
-exists a language barrier between JavaScript and Haskell. 
-Code to convert between two essentially equal data structures on 
-each side must be written, as well as representations of Haskell 
-structures in Sunroof. However, there is great potential in automatically 
+cannot be handled in Sunroof and vice versa -- there still
+exists this language barrier between JavaScript and Haskell. 
+Data-structure definitions must be written
+to allow conversion between two essentially equal data structures.
+However, there is great potential in automatically 
 generating this code using techniques such as template Haskell
 \cite{Sheard:02:TemplateMetaProgrammingHaskell}.
+Furthermore, this results in surprisingly readable JavaScript,
+because these definitions are written to allow object fields
+in the generated code to be used in the same way a native JavaScript
+programer might.
 
 The code for displaying the results is basically a 
 transliteration of the JavaScript that you would write for this 
 purpose.
-The transliteration used here is not very appealing. 
+The transliteration used here is not especially appealing. 
 In the future, this code can be generated through higher-level 
 libraries. Sunroof is intended to deliver a foundation for
 this purpose.
-
 The rest of our code to parse the arithmetic expression and calculate 
 results is classical Haskell code. 
 
 \begin{table}[t]
 \begin{center}
+\vspace{0.1in}
 \begin{tabular}{l@{\quad}r@{\quad}r}
 \hline\rule{0pt}{12pt}%
 Part of Application & Lines of Code & Percentage \\[2pt]
 \hline\rule{0pt}{12pt}%
 Response loop & 25 & 6.5\% \\[2pt]
-Data conversion & 85 & 22.0\% \\[2pt]
+Data-structure Descriptions & 85 & 22.0\% \\[2pt]
 Rendering & 190 & 49.5\% \\[2pt]
 Parsing and interpretation & 85 & 22.0\% \\[2pt]
 \hline
@@ -1074,6 +1094,11 @@ Parsing and interpretation & 85 & 22.0\% \\[2pt]
 \label{tab:example-statistics}
 \vspace{-0.5cm}
 \end{table} 
+
+Overall, we were pleased with how our case study went.
+It was possible to write an entire (small) application
+in Sunroof, and use native JavaScript APIs, and have
+the entire application compile to JavaScript. 
 
 \section{Related Work}
 
