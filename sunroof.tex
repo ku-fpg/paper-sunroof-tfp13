@@ -757,8 +757,7 @@ core browser API, the HTML5 canvas element, and some of the JQuery API.
 \label{sec:compiler}
 
 Our domain specific language, embedded in Haskell, is useless unless
-we can actually compile it to JavaScript. We apply four main techniques
-to allow compilation.
+we can actually compile it to JavaScript. We apply four main techniques.
 
 \paragraph{Expression Reification:}
 The first technique is we use is capturing Sunroof expressions as expression trees. 
@@ -786,7 +785,7 @@ f x = x `Plus` (Lit 1)
 
 We can reify \Src{f} by applying it to \Src{(Var "x")}, where \Src{"x"} is a fresh name,
 giving~\Src{Plus (Var "x") (Lit 1)}. By overloading the literals and arithmetic -- 
-a common trick -- we can write a clean Haskell function that can still be reify:
+a common trick -- we can write a clean Haskell function that can still be reified:
 \begin{Code}
 f  x = x + 1
 \end{Code}
@@ -794,13 +793,29 @@ f  x = x + 1
 The Sunroof \Src{function} combinator reifies functions in exactly this way.
 The type of the argument is constrained by the \Src{SunroofArgument} class,
 and each instance of the class has a mechanism for generating a prototypical
-argument, like \Src{(Var "x")} above. 
+argument, like \Src{(Var "x")} above. For example, a 2-tuple argument
+would generate \Src{(Var "x",Var "y")} as the template argument.
 
 \paragraph{Monadic Reification:}
 
-\paragraph{Optional CPS translation:}
+Monadic reification is the capture of monadic statements, including the bindings,
+as an abstract syntax tree. This is straightforward, {\bf if\/} the monadic bind
+can be constrained.
+\begin{Code}
+(>>=) :: Sunroof a => JS t a -> (a -> JS t b) -> JS t b
+\end{Code}
+A deep embedding of the monadic operations (bind, return), and the primitives
+(method call, etc.), allow 
 
+((( TODO BE WRITTEN )))
 
+\paragraph{CPS translation:}
+
+Finally, we compile \Src{JS A} and \Src{JS B} differently with respect to control flow.
+The compilation of \Src{JA A} is straightforward, and a transliteration.
+The compilation of \Src{JS B} uses CPS internally, to give CPS-style JavaScript for
+control flow. This compilation, though involved in the presence of the other
+generalizations in Sunroof, is straightforward.
 
 The compiler offers two functions to compile either threading 
 model:
