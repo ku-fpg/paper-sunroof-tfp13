@@ -109,7 +109,7 @@ the Sunroof compiler offers a robust platform to build interactive web applicati
 % Simon: Describe the problem
 There are many reasons to want to program in a functional language:
 efficiency of development cost, informally reasoning, high-level 
-control- and concurrency-structures, like monads~\cite{...}.
+control- and concurrency-structures, such as monads~\cite{...}.
 However, mainstream languages often have better environmental support
 than what is provided by functional languages,
 for example the Objective C and the iOS ecostructure, or JavaScript and HTML5
@@ -137,11 +137,11 @@ so why not into a JavaScript?
 There are already a number of systems attempting this~\cite{...}.
 If executed well, this would be ideal,
 but there are engineering shortcomings: 
-many standard libraries and hackage packages are not supported directly,
-the generated code is not as efficiently executed as native Haskell,
+many standard libraries and Hackage packages are not supported directly,
+the generated code is not as efficiently executed as native Haskell, and
 the runtime system is often incomplete. These compilers will continue
 to improve, and with initiatives like asm.js~\cite{...},
-the efficiency gap many be possible to close.
+the efficiency gap is likely get smaller over time.
 
 Rather than rewrite the compiler and runtime system,
 an alternative approach is to keep the existing
@@ -149,7 +149,7 @@ runtime system, and provide the same
 foreign function ``hooks'' to key JavaScript functionality,
 but instead the executed Haskell becomes a server that JavaScript,
 and the browser, interact with.
-Unfortunately, every JavaScript call becomes an expensive proposition: an RPC call
+Unfortunately, every JavaScript call becomes an expensive proposition: a Remote Procedure Call (RPC)
 to a browser.
 Though some straight-line calls can be batched together --
 our own blank-canvas hackage package~\cite{Hackage:11:blank-canvas} was built on this idea --
@@ -173,10 +173,10 @@ and the non-native generated code (JavaScript variable names),
 reflected through to the usage of the DSL.
 
 This paper uses the recently discovered capability to have monadic-binding
-in the DSL to be translated into
+in a DSL to be translated into
 bindings in a target language, and then scaling the DSL to support larger examples.
-With binding done using regular Haskell monadic binding, 
-the language fits naturally with what we would expect from a monadic API. 
+With Sunrooof bindings being regular Haskell monadic binding, 
+the language fits with what we would expect from a monadic API. 
 In a previous paper, we showed, using a prototype,
 that reification of a JavaScript-like language is possible~\cite{Farmer:12:WebDSLs}.
 In this paper, we expand on this observation,
