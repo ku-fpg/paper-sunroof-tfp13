@@ -113,7 +113,7 @@ efficiency of development cost, informally reasoning, high-level
 control- and concurrency-structures, like monads~\cite{...}.
 However, mainstream languages often have better environmental support
 than what is provided by functional languages,
-for example the Objective C and the iOS eco-structure, or JavaScript and HTML5
+for example the Objective C and the iOS ecostructure, or JavaScript and HTML5
 web browsers.
 This paper examines the challenges of providing
 an intentionally blurred interface between Haskell
@@ -127,87 +127,75 @@ We want to express JavaScript in Haskell, adding use
 of Haskell's static typing, and gaining access to JavaScript services
 in the browser directly in Haskell.
 
-In general, there are a number of ways of providing access to non-native services,
-such as the JavaScript canvas.
-\begin{enumerate}
-\item A first approach is to provide, in Haskell, 
-foreign function ``hooks'' to key JavaScript functionality.
-Haskell already provides many similar hooks into the RTS,
-so why not into the JavaScript engine?
-For this to work efficiently, the compiler
-needs to target JavaScript. There are already a
-number is systems doing this~\cite{...}.
-If executed well, this would be ideal,
-there are shortcomings: many standard libraries
-are not supported directly, the generated
-code is not as efficiently executed as native Haskell,
-and the compilers are still immature and incomplete.
 
-\item An second approach is to keep the 
+One way of providing access to non-native services,
+such as the JavaScript HTML5 canvas, is to provide, in Haskell, 
 foreign function ``hooks'' to key JavaScript functionality,
-but instead run Haskell as a server that JavaScript
-and the browser interacts with.
+and compile Haskell to JavaScript by rewriting the
+compiler backend.
+Haskell already provides many similar hooks into the C RTS,
+so why not into a JavaScript?
+There are already a number is systems already attempting this~\cite{...}.
+If executed well, this would be ideal,
+but there are engineering shortcomings: 
+many standard libraries and hackage packages are not supported directly,
+the generated code is not as efficiently executed as native Haskell,
+the runtime system is often incomplete. These compilers will continue
+to improve, and with initiatives like asm.js~\cite{...},
+the efficiency gap many be possible to close.
+
+Rather than rewrite the compiler and runtime system,
+an alternative approach is to keep the existing
+runtime system, and provide the same 
+foreign function ``hooks'' to key JavaScript functionality,
+but instead the executed Haskell becomes as a server that JavaScript,
+and the browser, interacts with.
 Unfortunately, every JavaScript call becomes an expensive proposition: an RPC call
 to a browser.
 Though some straight-line calls can be batched together --
-our own blank-canvas hackage package~\cite{..} was built on this idea --
+our own blank-canvas hackage package~\cite{Hackage:11:blank-canvas} was built on this idea --
 the granularity of interaction through JavaScript call is just too fine for
 this idea to scale well.
 
-\item A first, alternative approach is to use Haskell to generate JavaScript from
-an abstract syntax tree of the JavaScript code. There have
-been a number of attempt to have DSLs that do the in other spaces,
-and functional languages have good support for generating trees.
-However, this approach works well for data-flow, for example
-as use in Lava. When describing control-flow,
-as would be typically in a JavaScript program,  writing such an AST always
-feels forced, primarily because there is a mismatch between
-bindings in the native language (Haskell) and the non-native
-generated code (JavaScript variable names).
+Another approach, and the one we investigate,
+is to use a deeply embedded Domain Specific Language (DSL), and
+monad reification~\cite{..,..}.
+A Haskell-hosted deeply embedded DSL is where Haskell combinators 
+are used to build syntactical forms in the target language,
+in this case JavaScript.
+Monad reification is where binding in a monad can be represented
+in a way that they can be captured, and translated into bindings
+in a target language.
+Historically, these embeddings have worked will for 
+data-flow, for example generating combinatorial hardware,
+but had serious challenges with capturing binding and control flow.
+The mismatch between bindings in the native language (Haskell) 
+and the non-native generated code (JavaScript variable names),
+reflected through to the usage of the DSL.
 
-\end{enumerate}
-
-This paper investigate the expansion of scope of the second option,
-specifically adding binding to the Haskell code
-that can be batch together and send to the JavaScript engine,
-and then scaling the language to support larger examples.
-Binding is done using regular Haskell monadic binding, and fits naturally
-into what we expect from a monadic API. Until recently,
-it was thought that it was impossible to use a regular
-Haskell monad for this purpose. In a previous paper,
-we show that such a construction is possible~\cite{..}
+This paper uses the recently discovered capability to have monadic-binding
+in the DSL to be translated into
+bindings in target language, and then scaling the DSL to support larger examples.
+With binding is done using regular Haskell monadic binding, 
+the language fit naturally with what we would expect from a monadic API. 
+In a previous paper, we showed, using a prototype,
+that reification of a JavaScript-like language is possible~\cite{Farmer:12:WebDSLs}.
 In this paper, we expand on this observation,
-and show that this form of reification is useful in practice.
+and show that monadic-reification is useful in practice.
 
-Further building on this capability, we also investigate providing
+Building on this DSL, we also investigate providing
 JavaScript control flow and function abstraction mechanisms
 to the Haskell programmer interested in using the browser API.
-Though for technical reasons we can not compile the transitional
+Though for technical reasons we can not directly compile
 pattern matching and let-binding to JavaScript without committing
 to a full compiler Haskell to JavaScript compiler, both
 control flow and function abstraction can be provided
-with a small syntactical overhead.
-
-With these three capabilities, a programmer can start programming
+with a small syntactical overhead, and reifiable fix-points 
+with a modest syntactical overhead.
+With these capabilities, a programmer can start programming
 using the provided JavaScript API directly, and refine
 their program to migrate more and more computation
-from the server into the browser. In a real sense,
-this blurs the distention between an RPC approach (2),
-and a full Haskell to JavaScript compiler (1),
-built using existing infrastructure, and not needing
-the full compiler.
-
-
-
-
-\begin{comment}
-\section{Example Sunroof Program}
-\label{sec:simple-example}
-
-A simple drawing program, that we build up step by step.
-Perhaps bouncing ball.
-Perhaps drawing line.
-\end{comment}
+from the server into the browser. 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -610,8 +598,10 @@ To see an example of usage, consider defining a \Src{double} function.
 Now \Src{double}, which has type \Src{JSFunction JSNumber JSNumber}, can
 be stored in structures, passed to JavaScript functions, and enjoys
 all the privileges of first-class JavaScript function objects.
+\Src{function} acts as a staging combinator, converting  
+monadic Haskell function into a JavaScript-level function.
 
-Sunroof also can translate recursive functions, using a version
+Sunroof also can express recursive functions, using a version
 of the fixpoint combinator.
 \begin{Code}
 fixJS :: (SunroofArgument a) => (a -> JS A a) -> JS t a
@@ -619,12 +609,13 @@ fixJS :: (SunroofArgument a) => (a -> JS A a) -> JS t a
 There is a self-imposed restriction that the higher-order function be
 atomic, but the usage of \Src{fixJS} is verbose but straightforward.
 \begin{Code}
-  fib <- fixJS $ \ fib -> function $ \ (n :: JSNumber) -> do
+  fib <- fixJS $ \ (fib :: JSFunction JSNumber JSNumber) -> 
+         function $ \ (n :: JSNumber) -> 
            ifB (n <* 2)
-               (return (1 :: JSNumber))
+               (return 1)
                (liftM2 (+) (fib $$ (n - 1)) (fib $$ (n - 2)))
 \end{Code}
-Note that the `\Src{a}' type here is a JSFunction object,
+Note that the `\Src{fib}' type here is a JSFunction object,
 and we also need to use the \Src{JS} monad, because JavaScript
 functions are effectful, but the function is expressible in Sunroof.
 
