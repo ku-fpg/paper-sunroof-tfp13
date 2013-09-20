@@ -273,7 +273,7 @@ We close with a small case study, related work, and our conclusions.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-\section{Sunroof Values}
+\section{Sunroof Values} % TODO: rename
 \label{sec:object-model}
 
 JavaScript makes a distinction between expressions and statements.
@@ -756,206 +756,51 @@ core browser API, the HTML5 canvas element, and some of the JQuery API.
 \section{Compiling Sunroof}
 \label{sec:compiler}
 
-This Domain specific language, embedded in Haskell, is useless unless
-we can actually compile it to JavaScript.
+Our domain specific language, embedded in Haskell, is useless unless
+we can actually compile it to JavaScript. We apply four main techniques
+to allow compilation.
 
-How do we compile Sunroof?
-Through the \JS-monad we produce a \Src{Program (JSI t) ()} instance. We 
-translate such a program into a list of statements (\Src{Stmt}) by matching over 
-the \JSI~constructors.
-\begin{Code}
-data Stmt = AssignStmt Rhs Expr       -- Assignment
-          | ExprStmt Expr             -- Expression as statement
-          | ReturnStmt Expr           -- Return statement
-          | IfStmt Expr [Stmt] [Stmt] -- If-Then-Else statement
-          ...
-\end{Code}
-The constructors of \Src{Stmt} directly represent the 
-different statements you can write in JavaScript.
-%
-Operationals \cite{Apfelmus:10:Operational,Hackage:10:Operational} 
-\Src{Program} type is abstract and has to be converted 
-to a \Src{ProgramView} instance to work with.
-It provides the \Src{:>>=} and \Src{Return} constructors 
-to pattern match on and translate the instructions inside.
-\begin{Code}
-compile :: Program (JSI t) () -> CompM [Stmt]
-compile p = eval (view p)
-  where eval :: ProgramView (JSI t) () -> CompM [Stmt]
-        ...
-\end{Code}
-The \Src{CompM} state monad provides the compiler options and fresh variables.
+\paragraph{Expression Reification:}
+The first technique is we use is capturing Sunroof expressions as expression trees. 
+This is a classical use of an deeply-embedded language. Every expression/\Src{JS}-type
+is a Haskell \Src{newtype} wrapper around an expression syntax tree.
+This internal expression syntax is simple, with only five constructors:
+literals, variable names, JavaScript `dot', application, and anonymous functions.
+When compiling expressions, we use IO-based observable sharing~\cite{...} internally.
+We preserve a simple and monomorphic representation of our expression
+type to allow our generated code to optionally contain types in comments -
+this was useful for debugging.
+Over, this aspect of the Sunroof compiler is straightforward and unsurprising.
 
-To get started, \Src{JS\_Assign\_} is translated in the following manner. 
-Recall from 
-\FigRef{fig:jsi-definition} that it takes a variable name 
-and the value to assign as arguments. %The result is the unit type.
+\paragraph{Function Reification:}
+The second technique is we use is capturing functions, as delimited
+by the \Src{function} combinator. Again, existing techniques can be used.
+Consider this simple example: \Src{`Plus`} is the infix application of
+the \Src{Plus} combinator.
 \begin{Code}
-eval (JS_Assign_ v a :>>= k) = do
-  (stmts0,val) <- compileExpr (unbox a) -- Expr -> CompM ([Stmt], Expr)
-  stmts1       <- compile (k ())
-  return ( stmts0 ++ [AssignStmt (VarRhs v) val] ++ stmts1)
-\end{Code}
-First, we compile the expression \Src{a} to assign into a series of 
-statements that compute it together with the result value \Src{val}.
-Next, we compile what happens after the assignment. Since 
-the assignment produces unit, we can pass that to \Src{k}.
-In the end, we concatenate all statements with the assignment in between. 
+data Expr = Plus Expr Expr | Lit Int | Var String
 
-Now we will look into the translation of branches.
-Recall the \JSI~constructor for branches from \FigRef{fig:jsi-definition}:
-\begin{Code}
-JS_Branch :: (SunroofThread t, SunroofArgument a, Sunroof bool) 
-          => bool -> JS t a -> JS t a  -> JSI t a
-\end{Code}
-%Aside from the fact that branches may return \Src{SunroofArgument}s
-%instead of just \Src{Sunroof} values, the translation seems to 
-%be straightforward (\FigRef{fig:branch-translation}).
-\begin{figure}[t]
-\begin{Code}
-eval (JS_Branch b c1 c2 :>>= k) = do
-  (src0, res0) <- compileExpr (unbox b)
-  res :: a <- jsValue
-  let bindResults :: a -> JS t ()
-      bindResults res' =
-        sequence_ [ single $ JS_Assign_ v (box $ e :: JSObject)
-                  | (Var v, e) <- jsArgs res `zip` jsArgs res' ]
-  src1 <- compile $ extractProgramJS bindResults c1
-  src2 <- compile $ extractProgramJS bindResults c2
-  rest <- compile (k res)
-  return (src0 ++ [ IfStmt res0 src1 src2 ] ++ rest)
-\end{Code}
-\caption{Naive translation of branches in Sunroof.}
-\label{fig:branch-translation}
-\end{figure}
-\FigRef{fig:branch-translation} shows how to compile a \Src{JS\_Branch}.
-We generate the statements for the branching condition.
-Then we generate unique variables for each of the returned values in 
-either branch and use \Src{bindResults} to assign them to the 
-new variables. The function \Src{extractProgramJS} 
-passes the result of a computation \Src{m} 
-into the function \Src{f} and
-closes the continuation in \JS~with \Src{return}.
-The result is a \Src{Program} containing
-all instructions of \Src{m >>= k}.
-\begin{Code}
-extractProgramJS :: (a -> JS t ()) -> JS t a -> Program (JSI t) ()
-extractProgramJS k m = unJS (m >>= k) return
+f :: Expr -> Expr
+f x = x `Plus` (Lit 1)
 \end{Code}
 
-After the compilation of both branches, we translate the 
-rest and create the list of statements in a canonical fashion.
+We can reify \Src{f} by applying it to \Src{(Var "x")}, where \Src{"x"} is a fresh name,
+giving~\Src{Plus (Var "x") (Lit 1)}. By overloading the literals and arithmetic -- 
+a common trick -- we can write a clean Haskell function that can still be reify:
+\begin{Code}
+f  x = x + 1
+\end{Code}
 
-This compilation strategy works perfectly if we are in the atomic threading model,
-but can fail when inside the blocking model. 
-In the blocking model either branch 
-may involve continuations. Each 
-continuation describes the rest of the computation up
-to the end of that branch. It also captures the 
-assignments at the end of the branch. 
-Assignments captured inside a continuation
-are not visible outside of 
-it. That means the variables are not visible 
-after the branch and the code inside of \Src{rest} refers to them
-although they are not defined in that scope.
+The Sunroof \Src{function} combinator reifies functions in exactly this way.
+The type of the argument is constrained by the \Src{SunroofArgument} class,
+and each instance of the class has a mechanism for generating a prototypical
+argument, like \Src{(Var "x")} above. 
 
-\begin{comment}
-To 
-see what can go wrong lets look at a small example.
-\begin{Code}
-branchFail = do
-  b <- ifB (true :: JSBool)
-           (callcc $ \k -> do comment "True Case"
-                              goto k true :: JSB JSBool)
-           (callcc $ \k -> do comment "False Case"
-                              goto k false :: JSB JSBool)
-  fun "CallAfterIf" $$ b
-\end{Code}
-In either case of the initial branch we want to do something
-with our current continuation. We insert a comment for 
-our orientation and then call our current continuation to 
-proceed with a boolean value that depends on the branch.
-After our branch we call a function with the returned boolean value.
-\TODO{Is there a simpler example that demonstrates the problem?}
-What will this be translated to?
-\begin{Code}
-var v8 = function() {
-  if(true){
-    var v2 = function(v1) { var v0 = v1; };
-    /* True Case */
-    v2(true);
-  } else {
-    var v5 = function(v4) { var v0 = v4; };
-    /* False Case */
-    v5(false);
-  }
-  CallAfterIf(v0);
-};
-v8();
-\end{Code}
-We can see the branching statement and the function call afterwards.
-Inside each branch we can also see a function definition the inserted 
-comment and a call to the defined function. The function definitions 
-\Src{v2} and \Src{v5} correspond to the continuations \Src{k} in 
-our \Src{callcc} calls. So we can see that the current continuations 
-captured the assignments that have to be done at the end of either branch 
-to pass on the result value. But the assignments are hidden inside 
-the scope of the continuations and, because of that, \Src{v0} is 
-not defined when \Src{CallAfterIf} is applied to it.
-\end{comment}
+\paragraph{Monadic Reification:}
 
-Therefore, within the blocking 
-threading model, we have to handle branches differently:
-\begin{Code}
-eval (JS_Branch b c1 c2 :>>= k) = 
-  case evalStyle (ThreadProxy :: ThreadProxy t) of
-    A -> compileBranch_A b c1 c2 k
-    B -> compileBranch_B b c1 c2 k
-\end{Code}
-The call to \Src{compileBranch\_A}
-executes our naive definition from \FigRef{fig:branch-translation}.
-\begin{Code}
-compileBranch_B b c1 c2 k = do
-  fn_e <- compileContinuation $
-            \a -> blockableJS $ JS $ \k2 -> k a >>= k2
-  fn <- newVar
-  (src0, res0) <- compileExpr (unbox b)
-  src1 <- compile $ extractProgramJS (apply (var fn)) c1
-  src2 <- compile $ extractProgramJS (apply (var fn)) c2
-  return ( [mkVarStmt fn fn_e] ++ src0 ++ [ IfStmt res0 src1 src2 ])
-\end{Code}
-We can see that the rest of our computation is captured in the
-continuation \Src{fn\_e}. It takes the results of a branch
-as arguments. A new variable \Src{fn} is used to share
-the continuation in both branches.
-The key difference is the parameter to \Src{extractProgramJS}. Instead
-of creating bindings to variables, we apply the produced
-continuation to the returned values. That passes them to the 
-ongoing computation.
-\begin{comment}
-\begin{Code}
-var v11 = function() {
-  var v2 = function(v0) { CallAfterIf(v0); };
-  if(true){
-    var v5 = function(v3) { v2(v3); };
-    /* True Case */
-    v5(true);
-  } else {
-    var v9 = function(v7) { v2(v7); };
-    /* False Case */
-    v9(false);
-  }
-};
-v11();
-\end{Code}
-We can see that the function call after the branch is captured by the 
-continuation \Src{v2} and that continuation is called with the 
-return values as parameters inside each branch.
-\end{comment}
-%
-Of course, we could compile every branch with the 
-continuation variant, but this would unnecessarily
-obfuscate the produced code. % and lead to indirections.
+\paragraph{Optional CPS translation:}
+
+
 
 The compiler offers two functions to compile either threading 
 model:
