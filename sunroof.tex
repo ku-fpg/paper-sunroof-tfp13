@@ -134,7 +134,7 @@ and compile Haskell to JavaScript by rewriting the
 compiler backend.
 Haskell already provides many similar hooks into the C RTS,
 so why not into a JavaScript?
-There are already a number is systems already attempting this~\cite{...}.
+There are already a number of systems attempting this~\cite{...}.
 If executed well, this would be ideal,
 but there are engineering shortcomings: 
 many standard libraries and hackage packages are not supported directly,
@@ -147,8 +147,8 @@ Rather than rewrite the compiler and runtime system,
 an alternative approach is to keep the existing
 runtime system, and provide the same 
 foreign function ``hooks'' to key JavaScript functionality,
-but instead the executed Haskell becomes as a server that JavaScript,
-and the browser, interacts with.
+but instead the executed Haskell becomes a server that JavaScript,
+and the browser, interact with.
 Unfortunately, every JavaScript call becomes an expensive proposition: an RPC call
 to a browser.
 Though some straight-line calls can be batched together --
@@ -165,7 +165,7 @@ in this case JavaScript.
 Monad reification is where binding in a monad can be represented
 in a way that they can be captured, and translated into bindings
 in a target language.
-Historically, these embeddings have worked will for 
+Historically, these embeddings have worked well for 
 data-flow, for example generating combinatorial hardware,
 but had serious challenges with capturing binding and control flow.
 The mismatch between bindings in the native language (Haskell) 
@@ -174,9 +174,9 @@ reflected through to the usage of the DSL.
 
 This paper uses the recently discovered capability to have monadic-binding
 in the DSL to be translated into
-bindings in target language, and then scaling the DSL to support larger examples.
-With binding is done using regular Haskell monadic binding, 
-the language fit naturally with what we would expect from a monadic API. 
+bindings in a target language, and then scaling the DSL to support larger examples.
+With binding done using regular Haskell monadic binding, 
+the language fits naturally with what we would expect from a monadic API. 
 In a previous paper, we showed, using a prototype,
 that reification of a JavaScript-like language is possible~\cite{Farmer:12:WebDSLs}.
 In this paper, we expand on this observation,
@@ -187,7 +187,7 @@ JavaScript control flow and function abstraction mechanisms
 to the Haskell programmer interested in using the browser API.
 Though for technical reasons we can not directly compile
 pattern matching and let-binding to JavaScript without committing
-to a full compiler Haskell to JavaScript compiler, both
+to a full Haskell to JavaScript compiler, both
 control flow and function abstraction can be provided
 with a small syntactical overhead, and reifiable fix-points 
 with a modest syntactical overhead.
@@ -249,10 +249,10 @@ In section~\ref{sec:threading-models}, we give the
 Sunroof interface for providing both non-blocking and blocking cooperative threads,
 using the type system to delimit the two concurrency models.
 %
-\item We choice to provide a way of defining functions
+\item We choose to provide a way of defining functions
 in Sunroof such that they are first-class functions
 in JavaScript. In section~\ref{sec:functions-continuations},
-we should how we supporting both functions and continuations.
+we show how we support both functions and continuations.
 %
 \item We need to provide a foreign function interface,
 to allow us to call specific JavaScript-native functions,
@@ -352,7 +352,7 @@ If a type is an instance of \Src{Sunroof}, then that type can be realized inside
 All the \Src{JS} types are instances of \Src{Sunroof}.
 
 \item Instances of the \Src{SunroofArgument} class
-are values that be passed to JavaScript functions and methods,
+are values that can be passed to JavaScript functions and methods,
 including tuples of values which are used for representing multi-argument 
 function calls.
 The asymmetry here is a reflection of the JavaScript
@@ -392,7 +392,7 @@ which is distinct from JavaScript dynamic typing.
 Some types involve
 phantom types to give imposed type safety \cite{Cheney:03:FirstClassPhantomTypes}.
 Thus, \Src{JSArray} is a restricted type of JavaScript \Src{array}, that, like Haskell,
-support collections of the same type.
+only support collections of the same type.
 
 From experience with using Sunroof,
 the mis-match in typing between Haskell and Sunroof/JavaScript
@@ -419,7 +419,7 @@ We, by convention, have our method calls take the object as the {\em last\/} arg
 and use a monad, called the \Src{JS} monad, for the result because method calls are effectful.
 \begin{Code}
 // Shape of a Sunroof method
-(SunroofArgument args, Sunroof res) => args -> (Object -> JS res)
+(SunroofArgument args, Sunroof res) => args -> (JSObject -> JS res)
 \end{Code}
 A neat way of writing method calls in Haskell is transcribing the JavaScript dot, which is already use
 for both namespace resolution and function composition in Haskell, with the \Src{\#} combinator~\cite{Shields:01:Babel}.
@@ -465,7 +465,7 @@ all updating of objects requires the monad.
 This is a design decision we may return to in the future.
 
 The net effect is that assignments to fields can be neatly expressed,
-in a syntax is this close to JavaScript itself. Our HTML5 canvas library,
+with a syntax close to JavaScript itself. Our HTML5 canvas library,
 build on top of Sunroof primitives, allows the following transliteration
 from textbook JavaScript into Sunroof:
 
