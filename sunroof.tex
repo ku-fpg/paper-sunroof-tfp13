@@ -631,7 +631,7 @@ apply, ($$) :: (SunroofArgument a, Sunroof b)
 Together, \Src{function} and \Src{apply} give a way of getting into and
 back from the abstract \Src{JSFunction} object. 
 
-\newpage\noindent
+%\newpage\noindent
 To see an example of usage, consider defining a \Src{double} function.
 \begin{Code}
   double <- function $ \ (n :: JSNumber) -> return (n + n)
@@ -751,7 +751,7 @@ use of this to produce \linebreak\Src{document.getElementById("id")} would look 
   object "document" # invoke "getElementById" "id"
 \end{Code}
 
-\newpage\noindent
+%\newpage\noindent
 To provide a binding 
 to the \Src{getElementById} method, one can write:
 \begin{Code}
@@ -907,20 +907,8 @@ been to write a server that provides a RESTful interface and replies
 through a JSON data structure. 
 The client side of that application would have been written in JavaScript
 directly.
-This can be seen in \FigRef{fig:example-structure}.
-
-\begin{figure}[h]%
-%\vspace{-0.5cm}%
-\begin{center}%
-\includegraphics[scale=0.45,clip=true,trim=0.45cm 0.45cm 0.45cm 0.45cm]{figures/example-structure.pdf}%
-\end{center}%
-\caption{Classical structure and Sunroof structure of a web application.}%
-\label{fig:example-structure}
-\end{figure}
-
-
-How does Sunroof improve or change this classical structure?
-First of all, in Sunroof you write the client-side code together with
+Sunroof blurs this client/server distinction.
+In Sunroof you can write the client-side code together with
 your server application within Haskell. In our example, all code 
 for the server and client is in Haskell. The control logic 
 for the client side is provided through the server.
