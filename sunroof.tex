@@ -85,7 +85,7 @@ access to external resources, but specifically JavaScript
 resources. As such, Sunroof is primarily a feature-rich 
 foreign-function API to the browser's JavaScript engine, and all the browser-specific
 functionality, including HTML-based rendering, event handling, and 
-drawing to the HTML5 canvas. 
+drawing to the HTML5 {\tt canvas} element. 
 
 In this paper, we give the design and implementation of Sunroof.
 Using monadic reification, we generate JavaScript from
@@ -108,10 +108,10 @@ the Sunroof compiler offers a robust platform to build interactive web applicati
 
 % Simon: Describe the problem
 There are many reasons to want to program in a functional language:
-efficiency of development cost, formal and informal reasoning, and high-level 
+efficiency of development, formal and informal reasoning, and high-level 
 control- and concurrency-structures, such as monads~\cite{...}.
 However, mainstream languages often have better environmental support
-than what is provided by functional language compliers,
+than what is provided by functional language compilers,
 for example the Objective C and the iOS ecosystem, or JavaScript and HTML5
 web browsers.
 This paper examines the challenges of providing
@@ -133,7 +133,7 @@ foreign function ``hooks'' to key JavaScript functionality,
 and compile Haskell to JavaScript by rewriting the
 compiler backend.
 Haskell already provides many similar hooks into the C RTS,
-so why not into a JavaScript?
+so why not into JavaScript?
 There are already a number of systems attempting this~\cite{...}.
 If executed well, this would be ideal,
 but there are engineering shortcomings: 
@@ -167,11 +167,11 @@ data-flow, for example generating combinatorial hardware,
 but had serious challenges with capturing binding and control flow.
 Monad reification, where the monad itself is representable in the deep embedding,
 partially mitigates this shortcoming, allowing statements and
-effectful bindings to be directly express.
+effectful bindings to be expressed directly.
 
 Sunroof is an exercise in scaling up the use of monad reification,
-and other domain specific language techniques, to a full-scale JavaScript DSL
-With Sunrooof bindings being regular Haskell monadic binding, 
+and other domain specific language techniques, to a full-scale JavaScript DSL.
+With Sunroof bindings being regular Haskell monadic bindings, 
 the language fits with what would be expected from a monadic API. 
 In a previous paper, we showed, using a prototype,
 that reification of a JavaScript-like language is possible~\cite{Farmer:12:WebDSLs}.
@@ -186,7 +186,7 @@ pattern matching and let-binding to JavaScript without committing
 to a full Haskell to JavaScript compiler, both
 control flow and function abstraction can be provided
 with a small syntactical overhead, and reifiable fix-points 
-and be provided with a modest syntactical overhead.
+can be provided with a modest syntactical overhead.
 With these capabilities, a programmer can start programming
 using the JavaScript API directly, and refine
 their program to migrate more and more computation
