@@ -644,7 +644,7 @@ of the fixpoint combinator.
 fixJS :: (SunroofArgument a) => (a -> JS A a) -> JS t a
 \end{Code}
 There is a self-imposed restriction that the higher-order function be
-atomic, but the usage of \Src{fixJS} is verbose but straightforward.
+atomic, but the usage of \Src{fixJS} is straightforward, if verbose.
 \begin{Code}
   fib <- fixJS $ \ (fib :: JSFunction JSNumber JSNumber) -> 
          function $ \ (n :: JSNumber) -> 
