@@ -823,7 +823,7 @@ instance Monad (JS t) where
   (Return a) >>= k = k a                        -- left id
   (Bind va h) >>= Bind va (\ a -> h a >>= k)    -- assoc
 \end{Code}  
-Because \Src{Bind} is pre-normalized, constrains from the
+Because \Src{Bind} is pre-normalized, constraints from the
 \Src{JSPrim} GADT (not shown) can discharge the \Src{Sunroof} constraint.
 Simplified, this is the compiler.
 \begin{Code}
@@ -902,21 +902,11 @@ of JavaScript numbers), and \Src{()} to return \Src{()}.
 
 To see how Sunroof works in practice, we will look into the 
 experience we gathered when writing a small calculator
-for arithmetic expressions (\FigRef{fig:example-application}). 
+for arithmetic expressions.
 We use Sunroof to display our interface
 and the results of our computation. Haskell was used to parse the 
 arithmetic expressions and calculate the result. The Sunroof server 
 was used to implement this JavaScript/Haskell hybrid.
-
-\begin{figure}[t]%
-%\vspace{-0.5cm}%
-\begin{center}%
-\includegraphics[scale=0.5]{figures/example-application.png}%
-\end{center}%
-\caption{The example application running on the Sunroof server.}%
-\label{fig:example-application}
-\end{figure}
-
 
 The classical approach to develop an application like this would have 
 been to write a server that provides a RESTful interface and replies 
@@ -1062,6 +1052,10 @@ is reification gives a useful DSL, and we expect many future
 DSLs to re-use this design pattern. The sunroof compiler,
 server, and several examples, including our web-based unit tests,
 are available on \Src{github.com/ku-fpg} and \Src{hackage.haskell.org}.
+We plan to build a number of abstraction on top of Sunroof:
+a port of diagrams~\cite{project:diagrams},
+an animation DSL~\cite{project:active},
+and a simple GUI toolkit for teaching functional programming.
 
 %\input{sections/conclusion-discussion}
 
