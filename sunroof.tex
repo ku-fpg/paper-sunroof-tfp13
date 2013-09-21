@@ -505,24 +505,24 @@ In our earlier work~\cite{...}, we prototyped both models
 of computation, and observed that both choices had poor consequences
 when mapping Haskell to JavaScript.
 \begin{itemize}
-\item Existing JavaScript API assume atomic, non-blocking
+\item Existing JavaScript APIs assume atomic, non-blocking
 semantics. Therefore, if we compile a higher-order function
 for a callback, it must not block. 
 Further, if this higher-order function returns a result, 
 the function must respect this non-blocking requirement.
 \item The lure of threads, and the abstractions they allow, 
-is strong. The code is -- from experience -- cleaner if such abstraction
+is strong. The code is -- from experience -- cleaner if such abstractions
 are used, rather that being faked in JavaScript itself.
 There are new libraries in JavaScript that encode
 concurrency~\cite{...}; Sunroof is a chance to
-perform the a cooperative concurrency translation
+perform a cooperative concurrency translation
 when generating JavaScript.
 \end{itemize}
 In Sunroof, we decided to explicitly support both blocking
-and not-blocking threads,and use types to denote which
+and non-blocking threads, and use types to denote which
 threading {\em strategies\/} should be used.
-This means that the programmer can choose what concurrency model fits
-the idiom being coded.
+This means that the programmer can choose which concurrency model fits
+the given situation.
 
 In terms of user-interface, we parameterize the \JS-monad
 with a phantom type that represents the threading model used, 
@@ -578,9 +578,9 @@ Furthermore, the Haskell type system automatically propagates
 the thread semantics. In this way, Sunroof can offer concurrency
 as an additional, first class, abstraction.
 
-As an example of what is possible, and based on these primitive
-threading combinators, is the Sunroof
-version of Haskell's \Src{MVar} and \Src{Chan}: \Src{JSMVar} and \Src{JSChan}.
+As an example of what is possible, based on these primitive
+threading combinators, consider Sunroof's
+versions of Haskell's \Src{MVar} and \Src{Chan}: \Src{JSMVar} and \Src{JSChan}.
 Here is the Sunroof API for \Src{JSChan}.
 \begin{Code}
 newChan   :: (SunroofArgument a) => JS t (JSChan a)
