@@ -223,10 +223,10 @@ Here, we use a new monad, the \Src{JS} monad, our JavaScript
 analog of the \Src{IO} monad,
 and an explicit \Src{send} command that sends the JavaScript to the browser.
 This reversal of control, where the
-server sends the client commands is called the Ajax Comet~\cite{..},
-or simply {\em long polling\/}.
+server sends the client commands, follows the Comet AJAX application model~\cite{..}.
+In this case, the Comet interaction is implemented by {\em long polling\/} on behalf of the client.
 This interface bundles the \Src{prompt} and \Src{alert} commands
-into one interaction transaction.
+into a single interaction.
 It is this flavor of interface we want to support in our Sunroof compiler
 and web server.  
 
@@ -236,11 +236,11 @@ resolve the following issues:
 \item JavaScript is an object-based, imperative, dynamically typed language.
 Haskell is a pure, function-based, statically typed language.
 In Section~\ref{sec:object-model}, we introduce expressions and statements
-in Sunroof, and how they jointly form an object model,
+in Sunroof, and show how they jointly form an object model,
 mapping these two worlds together.
 %
-\item We need to select a concurrent model for Sunroof.
-JavaScript natively only supports non-blockable threads.
+\item We need to select a concurrency model for Sunroof.
+Natively, JavaScript only supports non-blockable threads.
 In Section~\ref{sec:threading-models}, we give the
 Sunroof interface for providing both non-blocking and blocking cooperative threads,
 using the type system to delimit the two concurrency models.
@@ -506,7 +506,7 @@ of computation, and observed that both choices had poor consequences
 when mapping Haskell to JavaScript (without proposing
 any solution.)
 \begin{itemize}
-\item Existing JavaScript API assume atomic, non-blocking
+\item Existing JavaScript APIs assume atomic, non-blocking
 semantics. Therefore, if we compile a higher-order function
 for a callback, it must not block. 
 Further, if this higher-order function returns a result, 
@@ -516,7 +516,7 @@ is strong. Threaded code is -- from experience -- cleaner if
 directly used, rather that being faked in JavaScript itself.
 There are new libraries in JavaScript that encode
 some cooperative concurrency abstractions, like promises~\cite{...};
-Sunroof is a chance to translate into a cooperative concurrency 
+Sunroof is a chance to translate using cooperative concurrency 
 directly when generating JavaScript.
 \end{itemize}
 In our full-scale implementation of Sunroof,
@@ -524,8 +524,8 @@ we resolved this dilemma by
 decided to explicitly support both blocking
 and not-blocking threads,and use types to denote which
 threading {\em strategies\/} should be used.
-This means that the programmer can choose what concurrency model fits
-the idiom being coded.
+This means that the programmer can choose which concurrency model fits
+the given situation.
 
 In terms of user-interface, we parameterize the \JS-monad
 with a phantom type that represents the threading model used, 
@@ -581,9 +581,9 @@ Furthermore, the Haskell type system automatically propagates
 the thread semantics. In this way, Sunroof can offer concurrency
 as an additional, first class, abstraction.
 
-As an example of what is possible, and based on these primitive
-threading combinators, is the Sunroof
-version of Haskell's \Src{MVar} and \Src{Chan}: \Src{JSMVar} and \Src{JSChan}.
+As an example of what is possible, based on these primitive
+threading combinators, consider Sunroof's
+versions of Haskell's \Src{MVar} and \Src{Chan}: \Src{JSMVar} and \Src{JSChan}.
 Here is the Sunroof API for \Src{JSChan}.
 \begin{Code}
 newChan   :: (SunroofArgument a) => JS t (JSChan a)
