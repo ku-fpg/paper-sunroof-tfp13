@@ -61,7 +61,7 @@
 %                                     also used for the TOC unless
 %                                     \toctitle is used
 %
-\author{Andy Gill\inst{1} and Jan Bracker\inst{2}}
+\author{Jan Bracker\inst{1} and Andy Gill\inst{2}}
 %
 \authorrunning{Jan Bracker \and Andy Gill} % abbreviated author list (for running head)
 %
@@ -69,12 +69,12 @@
 \tocauthor{Andy Gill, Jan Bracker}
 %
 \institute{%
-ITTC / EECS \\
-The University of Kansas, Lawrence, KS 66045\\
+Institut f{\"u}r Informatik\\
+Christian-Albrechts-Universit{\"a}t, Kiel, Germany\\
 ~\\
 \and
-Institut f{\"u}r Informatik\\
-Christian-Albrechts-Universit{\"a}t, Kiel, Germany}
+ITTC / EECS \\
+The University of Kansas, Lawrence, KS 66045}
 
 \maketitle
 
@@ -159,7 +159,7 @@ this idea to scale well.
 
 Another approach, and the one we investigate,
 is to use a deeply embedded Domain Specific Language (DSL), and
-recently discovered monad reification~\cite{Persson:11:GenericMonadicConstructs,Farmer:12:WebDSL,Sculthorpe:13:ConstrainedMonads,Svenningsson:13:CompositionalMonadReification}.
+recently discovered monad reification~\cite{Persson:11:GenericMonadicConstructs,Farmer:12:WebDSLs,Sculthorpe:13:ConstrainedMonads,Svenningsson:13:CompositionalMonadReification}.
 A Haskell-hosted deeply embedded DSL is where Haskell combinators 
 are used to build syntactical forms in the target language,
 in this case JavaScript.
@@ -201,7 +201,7 @@ from the server into the browser.
 \label{sec:js-rpc}
 
 From a programmers' point of view, calling JavaScript functions
-appears straightforward. We, as a community know how to reflect an
+appears straightforward. We, as                                                                                                                      acommunity know how to reflect an
 API into Haskell, using the IO monad. Furthermore, objects in
 the target API become handles in Haskell. 
 
@@ -828,7 +828,7 @@ Simplified, this is the compiler.
 compileJS :: Sunroof a => JS a -> M (JSCode, a)
 compileJS (Return a) = return ("",a) 
 compileJS (Bind jx k) = do
-   (c1,x)  <- compileJSPrim jx -- typechecks, 
+   (c1,x)  <- compileJSPrim jx -- typechecks
    (c2, a) <- compileJS (k x)
    return (c1 ++ c2,a)
 
@@ -892,8 +892,9 @@ is converted into a Haskell value that can be processed further.
 Values that can be converted to a Haskell type after a synchronous
 call use the type function~\Src{ResultOf} to
 allow \Src{JSString} to return a Haskell \Src{String}, 
-\Src{JSNumber} to return \Src{Double} (as per the specification
-of JavaScript numbers), and \Src{()} to return \Src{()}.
+\Src{JSNumber} to return \Src{Double}, etc.
+% (as per the specification
+%of JavaScript numbers), and \Src{()} to return \Src{()}.
 
 \section{Case Study - A Small Calculator}
 \label{sec:extended-example}
@@ -937,9 +938,9 @@ However, there is great potential in automatically
 generating this code using techniques such as Template Haskell
 \cite{Sheard:02:TemplateMetaProgrammingHaskell}.
 Furthermore, this results in surprisingly readable JavaScript,
-because these definitions are written to allow object fields
-in the generated code to be used in the same way a native JavaScript
-programer might.
+because these definitions are written to allow named object properties
+to be used directly in the generated code.
+%in the same way a native JavaScript %programer might.
 
 The code for displaying the results is basically a 
 transliteration of the JavaScript that you would write for this 
@@ -1010,7 +1011,7 @@ Another effort to map a functional embedding to JavaScript is the JavaScript DSL
 embedded inside Scala~\cite{Kossakowski:12:JED}
 Rather than using a deep embedding, they use Lightweight Modular Staging (LMS)~\cite{Rompf:2010:LMS:1868294.1868314}.
 Though the language specific challenges are different,
-the two systems look comparable.
+the two systems are comparable in capability.
 
 The Sunroof server does not have the aim to provide a full-featured 
 web framework, as HAppS, Snap or Yesod do. It only provides 
@@ -1047,13 +1048,15 @@ to JavaScript. This enabled us to build applications
 that use a blocking threading model on top of JavaScript
 that resembles the model already known from Haskell.
 Based on this model and the provided abstraction over continuations,
-we can construct primitives like \Src{forkJS} or \Src{yield},
+we can construct primitives like \Src{forkJS} or \Src{threadDelay},
 and higher-level abstractions like \Src{JSMVar} and \Src{JSChan}.
 
 We believe this is the first Haskell-to-JavaScript DSL that 
 makes use of monadic reification. We think that this form
 is reification gives a useful DSL, and we expect many future
-DSLs to re-use this design pattern. The sunroof compiler,
+DSLs to re-use this design pattern. 
+
+The sunroof compiler,
 server, and several examples, including our web-based unit tests,
 are available on \Src{github.com/ku-fpg} and \Src{hackage.haskell.org}.
 We plan to build a number of abstraction on top of Sunroof:
