@@ -108,11 +108,11 @@ the Sunroof compiler offers a robust platform to build interactive web applicati
 
 % Simon: Describe the problem
 There are many reasons to want to program in a functional language:
-efficiency of development cost, informally reasoning, high-level 
+efficiency of development cost, formal and informal reasoning, and high-level 
 control- and concurrency-structures, such as monads~\cite{...}.
 However, mainstream languages often have better environmental support
-than what is provided by functional languages,
-for example the Objective C and the iOS ecostructure, or JavaScript and HTML5
+than what is provided by functional language compliers,
+for example the Objective C and the iOS ecosystem, or JavaScript and HTML5
 web browsers.
 This paper examines the challenges of providing
 an intentionally blurred interface between Haskell
@@ -124,11 +124,11 @@ of established and useful services like graphical canvases and event
 handling of browser events. 
 We want to express JavaScript in Haskell, adding use
 of Haskell's static typing, and gaining access to JavaScript services
-in the browser directly in Haskell.
+in the browser directly from Haskell.
 
 
 One way of providing access to non-native services,
-such as the JavaScript HTML5 canvas, is to provide, in Haskell, 
+such as the HTML5 canvas, is to provide, in Haskell, 
 foreign function ``hooks'' to key JavaScript functionality,
 and compile Haskell to JavaScript by rewriting the
 compiler backend.
@@ -153,30 +153,26 @@ Unfortunately, every JavaScript call becomes an expensive proposition: a Remote 
 to a browser.
 Though some straight-line calls can be batched together --
 our own blank-canvas Hackage package~\cite{Hackage:11:blank-canvas} was built on this idea --
-the granularity of interaction through JavaScript call is just too fine for
+the granularity of interaction through JavaScript calls is just too fine for
 this idea to scale well.
 
 Another approach, and the one we investigate,
 is to use a deeply embedded Domain Specific Language (DSL), and
-monad reification~\cite{..,..}.
+recently discovered monad reification~\cite{..,..,..}.
 A Haskell-hosted deeply embedded DSL is where Haskell combinators 
 are used to build syntactical forms in the target language,
 in this case JavaScript.
-Monad reification is where binding in a monad can be represented
-in a way that they can be captured, and translated into bindings
-in a target language.
 Historically, these embeddings have worked well for 
 data-flow, for example generating combinatorial hardware,
 but had serious challenges with capturing binding and control flow.
-The mismatch between bindings in the native language (Haskell) 
-and the non-native generated code (JavaScript variable names),
-reflected through to the usage of the DSL.
+Monad reification, where the monad itself is representable in the deep embedding,
+partially mitigates this shortcoming, allowing statements and
+effectful bindings to be directly express.
 
-This paper uses the recently discovered capability to have monadic-binding
-in a DSL to be translated into
-bindings in a target language, and then scaling the DSL to support larger examples.
+Sunroof is an exercise in scaling up the use of monad reification,
+and other domain specific language techniques, to a full-scale JavaScript DSL
 With Sunrooof bindings being regular Haskell monadic binding, 
-the language fits with what we would expect from a monadic API. 
+the language fits with what would be expected from a monadic API. 
 In a previous paper, we showed, using a prototype,
 that reification of a JavaScript-like language is possible~\cite{Farmer:12:WebDSLs}.
 In this paper, we expand on this observation,
@@ -190,9 +186,9 @@ pattern matching and let-binding to JavaScript without committing
 to a full Haskell to JavaScript compiler, both
 control flow and function abstraction can be provided
 with a small syntactical overhead, and reifiable fix-points 
-with a modest syntactical overhead.
+and be provided with a modest syntactical overhead.
 With these capabilities, a programmer can start programming
-using the provided JavaScript API directly, and refine
+using the JavaScript API directly, and refine
 their program to migrate more and more computation
 from the server into the browser. 
 
