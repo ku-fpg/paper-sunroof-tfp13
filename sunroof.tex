@@ -140,8 +140,9 @@ but there are engineering shortcomings:
 many standard libraries and Hackage packages are not supported directly,
 the generated code is not as efficiently executed as native Haskell, and
 the runtime system is often incomplete. These compilers will continue
-to improve, and with initiatives like asm.js~\cite{url:asmjs.org},
-the efficiency gap is likely get smaller over time.
+to improve, and with initiatives like asm.js~\cite{url:asmjs.org}
+and Emscripten~\cite{Kossakowski:12:JED},
+the efficiency gap will close.
 
 Rather than rewrite the compiler and runtime system,
 an alternative approach is to keep the existing
@@ -1056,13 +1057,14 @@ and a simple GUI toolkit for teaching functional programming.
 
 %\input{sections/conclusion-discussion}
 
-\section{Acknowledgments}
-
-We want to thank Conal Elliott for his support in adapting 
-the Boolean package \cite{project:boolean} and helping us to
-extend it with support for deeply embedded numbers. We would
-also like to thank the TFP referees for their useful feedback
-on an earlier version of this paper.
+%\section{Acknowledgments}
+%
+%We want to thank Conal Elliott for his support in adapting 
+%the Boolean package \cite{project:boolean} and helping us to
+%extend it with support for deeply embedded numbers. 
+%We would
+%also like to thank the TFP referees for their useful feedback
+%on an earlier version of this paper.
 
 %
 % ---- Bibliography ----
