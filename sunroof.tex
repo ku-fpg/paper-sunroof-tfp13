@@ -803,13 +803,10 @@ would generate \linebreak\Src{(Var "x",Var "y")} as the template argument.
 \paragraph{Monadic Reification:}
 
 Monadic reification is the capture of monadic statements, including the bindings,
-as an abstract syntax tree. This is straightforward, {\bf if\/} the monadic bind
-can be constrained.
-\begin{Code}
-(>>=) :: Sunroof a => JS t a -> (a -> JS t b) -> JS t b
-\end{Code}
-A deep embedding of the monadic operations (bind, return), and the primitives
-(method call, etc.), allow the capture of the operations.
+as an abstract syntax tree.
+A GADT-based deep embedding of the specific monadic operations (bind, return), and the 
+all the primitives (method call, etc.), 
+allow the capture of the operations as abstract syntax trees.
 The trick is normalizing the monadic
 bind~\cite{Sculthorpe:13:ConstrainedMonads,Svenningsson:13:CompositionalMonadReification},
 both in the GADT, and in a smart instance of the monadic bind.
@@ -852,17 +849,17 @@ The compilation of \Src{JS B} uses CPS internally, to give CPS-style JavaScript 
 control flow. This compilation, though involved in the presence of the other
 generalizations in Sunroof, is straightforward.
 
-The compiler offers two functions to compile either threading 
-model:
-\begin{Code}
-sunroofCompileJSA :: Sunroof a 
-                  => CompilerOpts -> String -> JS A a  -> IO String
-sunroofCompileJSB :: CompilerOpts -> String -> JS B () -> IO String
-\end{Code}
-Notice that for the blocking threading model only unit
-may be returned due to their continuation-based nature. 
-The string argument provides the name of the variable to which to
-bind the computation result.
+%The compiler offers two functions to compile either threading 
+%model:
+%\begin{Code}
+%sunroofCompileJSA :: Sunroof a 
+%                  => CompilerOpts -> String -> JS A a  -> IO String
+%sunroofCompileJSB :: CompilerOpts -> String -> JS B () -> IO String
+%\end{Code}
+%Notice that for the blocking threading model only unit
+%may be returned due to their continuation-based nature. 
+%The string argument provides the name of the variable to which to
+%bind the computation result.
 
 \section{The Sunroof Server}
 \label{sec:server}
