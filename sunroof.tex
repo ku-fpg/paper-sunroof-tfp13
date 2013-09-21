@@ -472,17 +472,14 @@ Sunroof is, in essence, a strict functional language, with monads for effect.
 We choose to support direct (non-monadic) reading of attributes, but
 all updating of objects requires the monad.
 This is a design decision we may return to in the future.
-
-The net effect is that assignments to fields can be neatly expressed,
-with a syntax close to JavaScript itself. Our HTML5 canvas library,
-built on top of Sunroof primitives, allows the following transliteration
-from textbook JavaScript into Sunroof:
-
+The net effect is that assignments to fields can be neatly expressed.
+%with a syntax close to JavaScript itself. Our HTML5 canvas library,
+%built on top of Sunroof primitives, allows the following transliteration
+%from textbook JavaScript into Sunroof:
 \begin{Code}
   // JavaScript                         // Sunroof
   c.fillStyle = "red";                  c # fillStyle := "red"
 \end{Code}
-
 Notice that `\Src{:=}' binds tighter then `\Src{\#}'; the `\Src{fillStyle := "red"}' is
 effectively building and calling a setter method for `\Src{c}', on the fly.
 
