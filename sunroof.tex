@@ -558,8 +558,8 @@ forkJS      :: SunroofThread t1 => JS t1 () -> JS t2 ()
 threadDelay :: JSNumber -> JS B ()
 \end{Code}
 They can both be seen as analogs of their \IO~counterparts.
-\Src{forkJS} resembles \Src{forkIO}.
-It registers the given computation as a callback. 
+\Src{forkJS} resembles \Src{forkIO};
+it registers the given computation as a callback. 
 In \Src{forkJS}, the\linebreak\Src{SunroofThread} constraint allows the compiler
 to know if this callback should be blocking or non-blocking,
 based on the type of \Src{t1}. Both blocking and non-blocking
@@ -643,17 +643,17 @@ atomic, but the usage of \Src{fixJS} is straightforward, if verbose.
 \end{Code}
 Note that the `\Src{fib}' type here is a JSFunction object,
 and we also need to use the \Src{JS} monad, because JavaScript
-functions are effectful, but the function is expressible in Sunroof.
+functions are effectful. % , but the function is expressible in Sunroof.
 
 Continuations are functions that never return. JavaScript uses them; 
-for example some callbacks are actually continuations. We can express
-continuation objects (continuation functions on object form),
-using the type \Src{JSContinuation $\alpha$}.
+for example many callbacks are actually continuations. We can express
+continuation objects (continuations in object form),
+using the type \Src{JSContinuation$~\alpha$}.
 Technically, \Src{JSContinuation $\alpha$} are only
 specializations of functions, but
 restricted to a specific threading model. Continuations
 are meant to be a representation of side-effects -- 
-ongoing computations inside the \JS-monad -- and may  
+ongoing computations inside the \JS-monad -- and might  
 not terminate, so they do not return a value. As with functions, 
 there is a combinator to create and apply a continuation.
 \begin{Code}
@@ -685,7 +685,7 @@ are connected  to each other, as can be seen in \FigRef{fig:func-cont}.
 \Figure%
 {fig:func-cont}%
 {figures/sunroof-func-cont.pdf}%
-{How functions and continuations relate between the Haskell and Sunroof domains.}%
+{How functions and continuations relate between the Haskell and Sunroof.}%
 We can go back and forth between the Haskell and the Sunroof
 representation of a function or continuation. But once a function
 is specialized to a continuation, it is not possible to go back,
@@ -749,7 +749,7 @@ everything is typed correctly and prevents the need to resolve ambiguities
 through large type annotations inside of code.
 %
 The current release of Sunroof on Hackage provides bindings for most of the 
-core browser API, the HTML5 canvas element, and some of the JQuery API.
+core browser API, the HTML5 Canvas element, and some of the JQuery API.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -873,9 +873,9 @@ To see how Sunroof works in practice, we will look into the
 experience we gathered when writing a small calculator
 for arithmetic expressions (\FigRef{fig:example-application}). 
 We use Sunroof to display our interface
-and the results of our computation. Haskell will be used to parse the 
+and the results of our computation. Haskell was used to parse the 
 arithmetic expressions and calculate the result. The Sunroof server 
-will be used to implement this JavaScript/Haskell hybrid.
+was used to implement this JavaScript/Haskell hybrid.
 
 \begin{figure}[t]%
 %\vspace{-0.5cm}%
@@ -925,11 +925,12 @@ programer might.
 The code for displaying the results is basically a 
 transliteration of the JavaScript that you would write for this 
 purpose.
-The transliteration used here is not especially appealing. 
+The transliteration used here is not especially appealing,
+but understandable to Haskell or JavaScript programmers.
 In the future, this code can be generated through higher-level 
-libraries. Sunroof is intended to deliver a foundation for
-this purpose.
-The rest of our code to parse the arithmetic expression and calculate 
+libraries with better abstractions, which should help.
+Sunroof is intended to deliver a foundation for this purpose.
+The rest of our code parses the arithmetic expression and calculate 
 results is classical Haskell code. 
 
 \begin{table}[t]
