@@ -777,7 +777,7 @@ When compiling expressions, we use IO-based observable sharing~\cite{...} intern
 We preserve a simple and monomorphic representation of our expression
 type to allow our generated code to optionally contain types in comments -
 this was useful for debugging.
-Over, this aspect of the Sunroof compiler is straightforward and unsurprising.
+Overall, this aspect of the Sunroof compiler is straightforward and unsurprising.
 
 \paragraph{Function Reification:}
 The second technique is we use is capturing functions, as delimited
@@ -841,9 +841,9 @@ bind the computation result.
 \label{sec:server}
 
 The Sunroof server provides infrastructure to send arbitrary pieces 
-of JavaScript to a calling website for execution. 
-So, it is possible to interleave Haskell and JavaScript 
-computations with each other as needed. The three major functions
+of JavaScript to a web client for execution. 
+It is thus possible to interleave Haskell and JavaScript 
+computations as needed. The three major functions
 provided are \Src{sunroofServer}, \Src{syncJS} and \Src{asyncJS}.
 \begin{Code}
 sunroofServer :: SunroofServerOptions 
@@ -854,13 +854,13 @@ syncJS  :: SunroofResult a
         => SunroofEngine -> JS t a -> IO (ResultOf a)
 asyncJS :: SunroofEngine -> JS t () -> IO ()
 \end{Code}
-\Src{SunroofEngine} is a handle into our specific web session, one per instance of web application.
+\Src{SunroofEngine} is a handle into our specific web session, one per web application instance.
 \Src{sunroofServer} starts a server that will call the given callback function
 for each request.
 \Src{syncJS} and \Src{asyncJS} allow the server
 to run Sunroof code inside the requesting website.
 \Src{asyncJS} executes it asynchronously without 
-waiting for a return value. In contrast to that, 
+waiting for a return value. In contrast, 
 \Src{syncJS} waits until the execution is complete and
 then sends the result back to the server. It
 is converted into a Haskell value that can be processed further. 
@@ -919,7 +919,7 @@ exists this language barrier between JavaScript and Haskell.
 Data-structure definitions must be written
 to allow conversion between two essentially equal data structures.
 However, there is great potential in automatically 
-generating this code using techniques such as template Haskell
+generating this code using techniques such as Template Haskell
 \cite{Sheard:02:TemplateMetaProgrammingHaskell}.
 Furthermore, this results in surprisingly readable JavaScript,
 because these definitions are written to allow object fields
