@@ -771,8 +771,8 @@ This internal expression syntax is simple, with only five constructors:
 literals, variable names, JavaScript `dot', application, and anonymous functions.
 When compiling expressions, we use IO-based observable sharing~\cite{...} internally.
 We preserve a simple and monomorphic representation of our expression
-type to allow our generated code to optionally contain types in comments -
-this was useful for debugging.
+type to allow our generated code to optionally contain types in comments --
+this was especially useful for debugging.
 Overall, this aspect of the Sunroof compiler is straightforward and unsurprising.
 
 \paragraph{Function Reification:}
@@ -809,9 +809,40 @@ can be constrained.
 (>>=) :: Sunroof a => JS t a -> (a -> JS t b) -> JS t b
 \end{Code}
 A deep embedding of the monadic operations (bind, return), and the primitives
-(method call, etc.), allow 
+(method call, etc.), allow the capture of the operations.
+The trick is normalizing the monadic
+bind~\cite{Sculthorpe:13:ConstrainedMonads,Svenningsson:13:CompositionalMonadReification},
+both in the GADT, and in a smart instance of the monadic bind.
+\begin{Code}
+data JS :: * -> * -> * where
+  Return :: a -> JS t a
+  Bind :: (Sunroof a) => JSPrim t a -> (a -> JS t b) -> JS t b
 
-((( TODO BE WRITTEN )))
+instance Monad (JS t) where
+  return = Return
+  (Return a) >>= k = k a                        -- left id
+  (Bind va h) >>= Bind va (\ a -> h a >>= k)    -- assoc
+\end{Code}  
+Because \Src{Bind} is pre-normalized, constrains from the
+\Src{JSPrim} GADT (not shown) can discharge the \Src{Sunroof} constraint.
+Simplified, this is the compiler.
+\begin{Code}
+compileJS :: Sunroof a => JS a -> M (JSCode, a)
+compileJS (Return a) = return ("",a) 
+compileJS (Bind jx k) = do
+   (c1,x)  <- compileJSPrim jx -- typechecks, 
+   (c2, a) <- compileJS (k x)
+   return (c1 ++ c2,a)
+
+compileJSPrim :: Sunroof a => JSPrim a -> M (JSCode, a)
+-- Implementation of compileJSPrim not given
+\end{Code}
+Counterintuitively, there can be a constrain in the GADT variant
+of \Src{Bind}, but not be needed in the monad instance; indeed
+it was thought to be impossible to have GADT constrains inside
+\Src{Bind} and still use the standard monad infrastructure.
+For the technical details, including why it works, and what
+generalization are possible, see~\cite{Sculthorpe:13:ConstrainedMonads}.
 
 \paragraph{CPS translation:}
 
@@ -1028,7 +1059,9 @@ and higher-level abstractions like \Src{JSMVar} and \Src{JSChan}.
 We believe this is the first Haskell-to-JavaScript DSL that 
 makes use of monadic reification. We think that this form
 is reification gives a useful DSL, and we expect many future
-DSLs to re-use this design pattern.
+DSLs to re-use this design pattern. The sunroof compiler,
+server, and several examples, including our web-based unit tests,
+are available on \Src{github.com/ku-fpg} and \Src{hackage.haskell.org}.
 
 %\input{sections/conclusion-discussion}
 
@@ -1036,7 +1069,9 @@ DSLs to re-use this design pattern.
 
 We want to thank Conal Elliott for his support in adapting 
 the Boolean package \cite{project:boolean} and helping us to
-extend it with support for deeply embedded numbers.
+extend it with support for deeply embedded numbers. We would
+also like to thank the TFP referees for their useful feedback
+on an earlier version of this paper.
 
 %
 % ---- Bibliography ----
