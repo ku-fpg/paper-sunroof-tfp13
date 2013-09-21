@@ -220,12 +220,12 @@ jsCode = do                        function jsCode() {
 %\noindent 
 
 Here, we use a new monad, the \Src{JS} monad, our JavaScript
-analog to the \Src{IO} monad,
+analog of the \Src{IO} monad,
 and an explicit \Src{send} command that sends the JavaScript to the browser.
 This reversal of control, where the
 server sends the client commands is called the Ajax Comet~\cite{..},
 or simply {\em long polling\/}.
-This interface also bundles the \Src{prompt} and \Src{alert} commands
+This interface bundles the \Src{prompt} and \Src{alert} commands
 into one interaction transaction.
 It is this flavor of interface we want to support in our Sunroof compiler
 and web server.  
@@ -240,7 +240,7 @@ in Sunroof, and how they jointly form an object model,
 mapping these two worlds together.
 %
 \item We need to select a concurrent model for Sunroof.
-JavaScript natively only supports non-blocking threads.
+JavaScript natively only supports non-blockable threads.
 In Section~\ref{sec:threading-models}, we give the
 Sunroof interface for providing both non-blocking and blocking cooperative threads,
 using the type system to delimit the two concurrency models.
@@ -329,6 +329,7 @@ make this distinction, and does so using Haskell types.
 \end{tabular}
 \end{center}
 \caption{Sunroof types and their Haskell analogs.}
+\vspace{-0.2in}
 \label{tab:sunroof-types}
 \end{table} 
 
@@ -363,10 +364,10 @@ but specifically for generating JavaScript object keys,
 which are realized as JavaScript strings.
 \end{itemize}
 
-Using our \Src{JS}-types, we can build expressions using the traditional Haskell expression-build
+Using our \Src{JS}-types, we can build expressions using the traditional Haskell expression-building
 mechanisms. \Src{JSNumber} is overloaded, and thus can be used directly for arithmetic.
 \Src{JSBool} is an instance of the relevant classes in the Hackage package \verb|boolean|.
-Further, \Src{JSString} is a \Src{Monoid}~\cite{..}, which is only possible because JavaScript
+Further, \Src{JSString} is a \Src{Monoid}, which is only possible because JavaScript
 strings are immutable values.
 
 To help the conversion between classical Haskell values and Sunroof values,
@@ -376,10 +377,10 @@ The full types of \Src{js} is:
 \begin{Code}
 js :: (SunroofValue a, Sunroof (ValueOf a)) => a -> ValueOf a
 \end{Code}
-\Src{SunroofValue} and \Src{ValueOf} simply represent the mapping given in the table.
+\Src{SunroofValue} and the type-function \Src{ValueOf} represent the mapping given in the table.
 %
 Putting the expression-building capability together, 
-along with a show function called \Src{string}, we can write:
+along with a show function called \Src{toString}, we can write:
 \begin{Code}
   alert ("n=" <> js (n::Int) <> " m=" <> toString (m::JSNumber))
 \end{Code}
@@ -387,7 +388,7 @@ Here, \Src{n} is a Haskell \Src{Int}, and \Src{m} is a Sunroof number,
 presumably the result of a previous computation. Given that we are 
 bundling expressions to send to a browser for execution, \Src{n}
 is a static value, and \Src{m} is a dynamic value, unobservable until inside our browser's execution.
-\Src{toString} has type:
+Finally, \Src{toString} has type:
 \begin{Code}
 toString :: Sunroof a => a -> JSString
 \end{Code}
@@ -398,9 +399,9 @@ like \Src{JSArray}. What can be seen from this is that we
 enforce a Hindley–Milner style thinking to our containers,
 which is distinct from JavaScript dynamic typing.
 Some types involve
-phantom types to give imposed type safety \cite{Leijen:99:Phantom}.
+phantom types to enforce this imposed type safety \cite{Leijen:99:Phantom}.
 Thus, \Src{JSArray} is a restricted type of JavaScript \Src{array}, that, like Haskell,
-only support collections of the same type.
+only supports collections of the same type.
 
 From experience with using Sunroof,
 the mis-match in typing between Haskell and Sunroof/JavaScript
@@ -419,12 +420,13 @@ The building block of object-oriented programing is calling an object's method.
 This is almost universally done using the dot (\Src{.}) operator. JavaScript, our target language, 
 follows this trend, with the method-call syntax being as follows:
 \begin{Code}
-  // JavaScript
-  object.method(a1,a2,a3,...,aN)
+  object.method(a1,a2,a3,...,aN)   // JavaScript method call
 \end{Code}
-For our Sunroof object model, we want to model this as closely as possible.
-We, by convention, have our method calls take the object as the {\em last\/} argument,
-and use a monad, called the \Src{JS} monad, for the result because method calls are effectful.
+For our Sunroof object model, we want to follow this as closely as possible.
+
+\newpage\noindent
+We, have our method calls use a monad because method calls are effectful.
+By convention, we take the object as the {\em last\/} argument.
 \begin{Code}
 // Shape of a Sunroof method
 (SunroofArgument args, Sunroof res) => args -> (JSObject -> JS res)
@@ -449,8 +451,8 @@ while other Haskell abstraction mechanisms can be used for the interface that ca
 
 We piece together our Sunroof method calls using the Haskell support for monads.
 \begin{Code}
-  do r1 <- object # method1 (a1,a2,a3,...,aN)
-     r2 <- object # method2 ({-... can use r1 ...-})
+  do r1 <- obj # method1 (a1,a2,a3,...,aN)
+     r2 <- obj # method2 ({-... can use r1 ...-})
      ....
 \end{Code} 
 In this fragment, \Src{r1} is bound to the result of the \Src{method1} call,
@@ -460,10 +462,8 @@ Sometimes, a JavaScript API requires direct access to object attributes.
 We do so using a typed \Src{JSSelector}.
 \begin{Code}
 label :: JSString -> JSSelector a
-(!)   :: (Sunroof o, Sunroof a) 
-      => o -> JSSelector a -> a
-(:=)  :: (Sunroof a, Sunroof o) 
-      => JSSelector a -> a -> (o -> JS t ())
+(!)   :: (Sunroof o, Sunroof a) => o -> JSSelector a -> a
+(:=)  :: (Sunroof a, Sunroof o) => JSSelector a -> a -> (o -> JS t ())
 \end{Code}
 We can build a selector (\Src{label}), use a selector to access a attribute in a specific
 object (\Src{!}), or update an attribute in a specific object (\Src{:=}).
