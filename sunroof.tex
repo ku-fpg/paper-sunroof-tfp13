@@ -141,7 +141,7 @@ many standard libraries and Hackage packages are not supported directly,
 the generated code is not as efficiently executed as native Haskell, and
 the runtime system is often incomplete. These compilers will continue
 to improve, and with initiatives like asm.js~\cite{url:asmjs.org}
-and Emscripten~\cite{Kossakowski:12:JED},
+and Emscripten~\cite{project:emscripten},
 the efficiency gap will close.
 
 Rather than rewrite the compiler and runtime system,
@@ -1005,6 +1005,12 @@ The specific approach Sunroof takes
 to monadic reification, and alternative implementation techniques,
 are discussed in Sculthorpe et al. \cite{Sculthorpe:13:ConstrainedMonads} 
 in detail.
+
+Another effort to map a functional embedding to JavaScript is the JavaScript DSL
+embedded inside Scala~\cite{Kossakowski:12:JED}
+Rather than using a deep embedding, they use Lightweight Modular Staging (LMS)~\cite{Rompf:2010:LMS:1868294.1868314}.
+Though the language specific challenges are different,
+the two systems look comparable.
 
 The Sunroof server does not have the aim to provide a full-featured 
 web framework, as HAppS, Snap or Yesod do. It only provides 
