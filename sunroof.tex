@@ -1008,8 +1008,8 @@ implement a backend based on Sunroof \cite{project:sunroof-active}.
 \section{Conclusion}
 
 Sunroof takes the key idea of monad reification and
-successfully created a typed JavaScript language, based around the\JS-monad,
-to describe computations intended for a JavaScript engine.
+successfully creates a typed JavaScript language, based around the\JS-monad,
+to describe computations intended for a JavaScript interpreter.
 This paper documents our investigations since our initial prototype.
 With pervasive use of types in Sunroof, and the concepts
 of \Src{JSFunction} and \Src{JSContinuation}, there now is a 
@@ -1025,10 +1025,10 @@ to JavaScript. This enabled us to build applications
 that use a blocking threading model on top of JavaScript
 that resembles the model already known from Haskell.
 Based on this model and the provided abstraction over continuations,
-we can construction primitives like \Src{forkJS} or \Src{yield},
+we can construct primitives like \Src{forkJS} or \Src{yield},
 and higher-level abstractions like \Src{JSMVar} and \Src{JSChan}.
 
-We believe this is the first Haskell to JavaScript DSL that 
+We believe this is the first Haskell-to-JavaScript DSL that 
 makes use of monadic reification. We think that this form
 is reification gives a useful DSL, and we expect many future
 DSLs to re-use this design pattern.
