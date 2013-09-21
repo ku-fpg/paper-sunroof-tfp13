@@ -564,8 +564,7 @@ In \Src{forkJS}, the\linebreak\Src{SunroofThread} constraint allows the compiler
 to know if this callback should be blocking or non-blocking,
 based on the type of \Src{t1}. Both blocking and non-blocking
 threads can fork new threads, so \Src{t2} is unconstrained.
-\Src{threadDelay} is a form of \Src{yield} that sets 
-the callback to be called after a certain amount of time.
+\Src{threadDelay} sets a continuation callback to be called after a certain amount of time.
 We rely on the JavaScript function \Src{window.setTimeout} 
 \cite{whatwg:timers} to register our callbacks.
 
@@ -598,9 +597,8 @@ Functions are first class values in Haskell and JavaScript.
 Sunroof represents function {\em objects\/} with the type 
 \Src{JSFunction $\alpha$ $\beta$}, which corresponds
 to a function of type $\alpha \rightarrow \beta$ in JavaScript.
-In this section, we examine our solution to building functions
-in Sunroof.
-
+%In this section, we examine our solution to building functions
+%in Sunroof.
 In Sunroof, we create function objects with the \Src{function} combinator.
 \begin{Code}
 function :: (SunroofArgument a, Sunroof b) 
@@ -609,6 +607,15 @@ function :: (SunroofArgument a, Sunroof b)
 As a function can have side-effects, its computation and result have to be 
 expressed in the \JS-monad. The creation of a function is considered 
 a side-effect, due to observable allocation.
+To see an example of usage, consider defining a \Src{double} function.
+\begin{Code}
+  double <- function $ \ (n :: JSNumber) -> return (n + n)
+\end{Code}
+Now \Src{double}, which has type \Src{JSFunction JSNumber JSNumber}, can
+be stored in structures, passed to JavaScript functions, and enjoys
+all the privileges of first-class JavaScript function objects.
+\Src{function} acts as a staging combinator, converting  
+a monadic Haskell function into a JavaScript-level function.
 
 Function application of \Src{JSFunction} objects is done through 
 the \Src{apply}/\Src{\$\$} combinator; they are synonyms.
@@ -619,17 +626,6 @@ apply, ($$) :: (SunroofArgument a, Sunroof b)
 \end{Code}
 Together, \Src{function} and \Src{apply} give a way of getting into and
 back from the abstract \Src{JSFunction} object. 
-
-%\newpage\noindent
-To see an example of usage, consider defining a \Src{double} function.
-\begin{Code}
-  double <- function $ \ (n :: JSNumber) -> return (n + n)
-\end{Code}
-Now \Src{double}, which has type \Src{JSFunction JSNumber JSNumber}, can
-be stored in structures, passed to JavaScript functions, and enjoys
-all the privileges of first-class JavaScript function objects.
-\Src{function} acts as a staging combinator, converting  
-a monadic Haskell function into a JavaScript-level function.
 
 Sunroof also can express recursive functions, using a version
 of the fixpoint combinator.
