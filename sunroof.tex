@@ -765,7 +765,7 @@ in a full-scale embedded DSL.
 
 \paragraph{Expression Reification:}
 The first technique we use is capturing Sunroof expressions as expression trees. 
-This is a classical use of an deeply-embedded language. Every expression/\Src{JS}-type
+This is a classical use of a deeply-embedded language. Every expression/\Src{JS}-type
 is a Haskell \Src{newtype} wrapper around an expression syntax tree.
 This internal expression syntax is simple, with only five constructors:
 literals, variable names, JavaScript `dot', application, and anonymous functions.
@@ -791,14 +791,14 @@ We can reify \Src{f} by applying it to \Src{(Var "x")}, where \Src{"x"} is a fre
 giving~\Src{Plus (Var "x") (Lit 1)}. By overloading the literals and arithmetic -- 
 a common trick -- we can write a clean Haskell function that can still be reified:
 \begin{Code}
-f  x = x + 1
+f x = x + 1
 \end{Code}
 
 The Sunroof \Src{function} combinator reifies functions in exactly this way.
 The type of the argument is constrained by the \Src{SunroofArgument} class,
 and each instance of the class has a mechanism for generating a prototypical
 argument, like \Src{(Var "x")} above. For example, a 2-tuple argument
-would generate \Src{(Var "x",Var "y")} as the template argument.
+would generate \linebreak\Src{(Var "x",Var "y")} as the template argument.
 
 \paragraph{Monadic Reification:}
 
@@ -837,12 +837,12 @@ compileJS (Bind jx k) = do
 compileJSPrim :: Sunroof a => JSPrim a -> M (JSCode, a)
 -- Implementation of compileJSPrim not given
 \end{Code}
-Counterintuitively, there can be a constrain in the GADT variant
-of \Src{Bind}, but not be needed in the monad instance; indeed
-it was thought to be impossible to have GADT constrains inside
+Counterintuitively, there can be a constraint on the GADT 
+\Src{Bind} constructor which is not needed in the monad instance; indeed
+it was thought to be impossible to have GADT constraints on
 \Src{Bind} and still use the standard monad infrastructure.
 For the technical details, including why it works, and what
-generalization are possible, see~\cite{Sculthorpe:13:ConstrainedMonads}.
+generalizations are possible, see~\cite{Sculthorpe:13:ConstrainedMonads}.
 
 \paragraph{CPS translation:}
 
