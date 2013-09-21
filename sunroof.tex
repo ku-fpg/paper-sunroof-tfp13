@@ -109,7 +109,7 @@ the Sunroof compiler offers a robust platform to build interactive web applicati
 % Simon: Describe the problem
 There are many reasons to want to program in a functional language:
 efficiency of development, formal and informal reasoning, and high-level 
-control- and concurrency-structures, such as monads~\cite{...}.
+control- and concurrency-structures, such as monads~\cite{Moggi:89:LambdaMonads}.
 However, mainstream languages often have better environmental support
 than what is provided by functional language compilers,
 for example the Objective C and the iOS ecosystem, or JavaScript and HTML5
@@ -134,13 +134,13 @@ and compile Haskell to JavaScript by rewriting the
 compiler backend.
 Haskell already provides many similar hooks into the C RTS,
 so why not into JavaScript?
-There are already a number of systems attempting this~\cite{...}.
+There are already a number of systems attempting this~\cite{Stutterheim:12:ImprovingUHCJavaScriptBackend,project:ghcjs}.
 If executed well, this would be ideal,
 but there are engineering shortcomings: 
 many standard libraries and Hackage packages are not supported directly,
 the generated code is not as efficiently executed as native Haskell, and
 the runtime system is often incomplete. These compilers will continue
-to improve, and with initiatives like asm.js~\cite{...},
+to improve, and with initiatives like asm.js~\cite{url:asmjs.org},
 the efficiency gap is likely get smaller over time.
 
 Rather than rewrite the compiler and runtime system,
@@ -158,7 +158,7 @@ this idea to scale well.
 
 Another approach, and the one we investigate,
 is to use a deeply embedded Domain Specific Language (DSL), and
-recently discovered monad reification~\cite{..,..,..}.
+recently discovered monad reification~\cite{Persson:11:GenericMonadicConstructs,Farmer:12:WebDSL,Sculthorpe:13:ConstrainedMonads,Svenningsson:13:CompositionalMonadReification}.
 A Haskell-hosted deeply embedded DSL is where Haskell combinators 
 are used to build syntactical forms in the target language,
 in this case JavaScript.
@@ -223,7 +223,7 @@ Here, we use a new monad, the \Src{JS} monad, our JavaScript
 analog of the \Src{IO} monad,
 and an explicit \Src{send} command that sends the JavaScript to the browser.
 This reversal of control, where the
-server sends the client commands, follows the Comet AJAX application model~\cite{..}.
+server sends the client commands, follows the Comet AJAX application model.
 In this case, the Comet interaction is implemented by {\em long polling\/} on behalf of the client.
 This interface bundles the \Src{prompt} and \Src{alert} commands
 into a single interaction.
@@ -377,7 +377,7 @@ The full types of \Src{js} is:
 \begin{Code}
 js :: (SunroofValue a, Sunroof (ValueOf a)) => a -> ValueOf a
 \end{Code}
-\Src{SunroofValue} and the type-function \Src{ValueOf} represent the mapping given in the table.
+\Src{SunroofValue} and the type function~\cite{Chakravarty:05:AssociatedTypes}~\Src{ValueOf} represent the mapping given in the table.
 %
 Putting the expression-building capability together, 
 along with a show function called \Src{toString}, we can write:
@@ -501,7 +501,7 @@ So the question arises: do we generate non-blocking JavaScript code,
 and keep the callback centric model, or do we add concurrency
 support as value-added by our transliteration to JavaScript?
 
-In our earlier work~\cite{...}, we prototyped both blocking and non-blocking
+In our earlier work~\cite{Farmer:12:WebDSLs}, we prototyped both blocking and non-blocking
 translations, and observed that both choices had poor consequences.
 \begin{itemize}
 \item Existing JavaScript APIs assume atomic, non-blocking
@@ -513,7 +513,7 @@ the function must respect this non-blocking requirement.
 is strong. Threaded code is -- from experience -- cleaner if 
 directly used, rather that being faked in JavaScript itself.
 There are new libraries in JavaScript that encode
-some cooperative concurrency abstractions, like promises~\cite{...};
+some cooperative concurrency abstractions, like promises~\cite{url:taskjs.org};
 Sunroof is a chance to translate using cooperative concurrency 
 directly when generating JavaScript.
 \end{itemize}
@@ -769,7 +769,7 @@ This is a classical use of an deeply-embedded language. Every expression/\Src{JS
 is a Haskell \Src{newtype} wrapper around an expression syntax tree.
 This internal expression syntax is simple, with only five constructors:
 literals, variable names, JavaScript `dot', application, and anonymous functions.
-When compiling expressions, we use IO-based observable sharing~\cite{...} internally.
+When compiling expressions, we use IO-based observable sharing~\cite{Gill:09:TypeSafeReification} internally.
 We preserve a simple and monomorphic representation of our expression
 type to allow our generated code to optionally contain types in comments --
 this was especially useful for debugging.
@@ -892,7 +892,7 @@ waiting for a return value. In contrast,
 then sends the result back to the server. It
 is converted into a Haskell value that can be processed further. 
 Values that can be converted to a Haskell type after a synchronous
-call use the type function~\cite{..}~\Src{ResultOf} to
+call use the type function~\Src{ResultOf} to
 allow \Src{JSString} to return a Haskell \Src{String}, 
 \Src{JSNumber} to return \Src{Double} (as per the specification
 of JavaScript numbers), and \Src{()} to return \Src{()}.
