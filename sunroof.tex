@@ -497,13 +497,14 @@ callbacks, which should be non-blocking, as events occur.
 In contrast, Haskell has robust concurrency and wide-spread 
 abstractions for synchronization, e.g. \Src{MVar}s and \Src{Chan}s
 \cite{Jones:96:ConcurrentHaskell}.
-So the question arises: do we generate atomic JavaScript code, 
+So the question arises: do we generate non-blocking JavaScript code, 
 and keep the callback centric model, or do we add concurrency
 support as value-added by our transliteration to JavaScript?
 
 In our earlier work~\cite{...}, we prototyped both models
 of computation, and observed that both choices had poor consequences
-when mapping Haskell to JavaScript.
+when mapping Haskell to JavaScript (without proposing
+any solution.)
 \begin{itemize}
 \item Existing JavaScript API assume atomic, non-blocking
 semantics. Therefore, if we compile a higher-order function
@@ -511,14 +512,16 @@ for a callback, it must not block.
 Further, if this higher-order function returns a result, 
 the function must respect this non-blocking requirement.
 \item The lure of threads, and the abstractions they allow, 
-is strong. The code is -- from experience -- cleaner if such abstraction
-are used, rather that being faked in JavaScript itself.
+is strong. Threaded code is -- from experience -- cleaner if 
+directly used, rather that being faked in JavaScript itself.
 There are new libraries in JavaScript that encode
-concurrency~\cite{...}; Sunroof is a chance to
-perform the a cooperative concurrency translation
-when generating JavaScript.
+some cooperative concurrency abstractions, like promises~\cite{...};
+Sunroof is a chance to translate into a cooperative concurrency 
+directly when generating JavaScript.
 \end{itemize}
-In Sunroof, we decided to explicitly support both blocking
+In our full-scale implementation of Sunroof,
+we resolved this dilemma by
+decided to explicitly support both blocking
 and not-blocking threads,and use types to denote which
 threading {\em strategies\/} should be used.
 This means that the programmer can choose what concurrency model fits
