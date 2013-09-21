@@ -223,10 +223,10 @@ Here, we use a new monad, the \Src{JS} monad, our JavaScript
 analog of the \Src{IO} monad,
 and an explicit \Src{send} command that sends the JavaScript to the browser.
 This reversal of control, where the
-server sends the client commands is called the Ajax Comet~\cite{..},
-or simply {\em long polling\/}.
+server sends the client commands, follows the Comet AJAX application model~\cite{..}.
+In this case, the Comet interaction is implemented by {\em long polling\/} on behalf of the client.
 This interface bundles the \Src{prompt} and \Src{alert} commands
-into one interaction transaction.
+into a single interaction.
 It is this flavor of interface we want to support in our Sunroof compiler
 and web server.  
 
@@ -236,11 +236,11 @@ resolve the following issues:
 \item JavaScript is an object-based, imperative, dynamically typed language.
 Haskell is a pure, function-based, statically typed language.
 In Section~\ref{sec:object-model}, we introduce expressions and statements
-in Sunroof, and how they jointly form an object model,
+in Sunroof, and show how they jointly form an object model,
 mapping these two worlds together.
 %
-\item We need to select a concurrent model for Sunroof.
-JavaScript natively only supports non-blockable threads.
+\item We need to select a concurrency model for Sunroof.
+Natively, JavaScript only supports non-blockable threads.
 In Section~\ref{sec:threading-models}, we give the
 Sunroof interface for providing both non-blocking and blocking cooperative threads,
 using the type system to delimit the two concurrency models.
