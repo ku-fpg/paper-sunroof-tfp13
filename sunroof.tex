@@ -818,21 +818,21 @@ data JS :: * -> * -> * where
 
 instance Monad (JS t) where
   return = Return
-  (Return a) >>= k = k a                        -- left id
-  (Bind va h) >>= Bind va (\ a -> h a >>= k)    -- assoc
+  (Return a)  >>= k = k a                         -- left id
+  (Bind va h) >>= k = Bind va (\ a -> h a >>= k)  -- assoc
 \end{Code}  
 Because \Src{Bind} is pre-normalized, constraints from the
 \Src{JSPrim} GADT (not shown) can discharge the \Src{Sunroof} constraint.
 Simplified, this is the compiler.
 \begin{Code}
-compileJS :: Sunroof a => JS a -> M (JSCode, a)
+compileJS :: Sunroof a => JS t a -> M (JSCode, a)
 compileJS (Return a) = return ("",a) 
 compileJS (Bind jx k) = do
    (c1,x)  <- compileJSPrim jx -- typechecks
    (c2, a) <- compileJS (k x)
    return (c1 ++ c2,a)
 
-compileJSPrim :: Sunroof a => JSPrim a -> M (JSCode, a)
+compileJSPrim :: Sunroof a => JSPrim t a -> M (JSCode, a)
 -- Implementation of compileJSPrim not given
 \end{Code}
 Counterintuitively, there can be a constraint on the GADT 
