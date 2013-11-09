@@ -265,8 +265,10 @@ a web browser, we provide an expansion of the \Src{send} idea above,
 which we discuss in Section~\ref{sec:server}.
 \end{itemize}
 
-\noindent
 We close with a small case study, related work, and our conclusions.
+These ideas given here are not new, though the use of monadic reification
+for JavaScript generation is original. What we demonstrate is how
+far the science of DSL capture has come, using a full scale example.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -429,7 +431,7 @@ follows this trend, with the method-call syntax being as follows:
 \end{Code}
 For our Sunroof object model, we want to follow this as closely as possible.
 
-\newpage\noindent
+%\newpage\noindent
 We, have our method calls use a monad because method calls are (in general) effectful.
 By convention, we take the object as the {\em last\/} argument.
 \begin{Code}
@@ -437,7 +439,7 @@ By convention, we take the object as the {\em last\/} argument.
 (SunroofArgument args, Sunroof res) => args -> (JSObject -> JS res)
 \end{Code}
 A neat way of writing method calls in Haskell is transcribing the JavaScript dot, which is already use
-for both namespace resolution and function composition in Haskell, with the \Src{\#} combinator~\cite{Shields:01:Babel}.
+for both namespace resolution and function composition in Haskell, with the \Src{\#} combinator~\cite{Finne:99:HeavenHell,Shields:01:Babel}.
 The \Src{\#} combinator uses the ``last argument is the object'' convention.
 \begin{Code}
 // Sunroof        
@@ -523,9 +525,8 @@ Sunroof is a chance to translate using cooperative concurrency
 directly when generating JavaScript.
 \end{itemize}
 In our full-scale implementation of Sunroof,
-we resolved this dilemma by
-decided to explicitly support both blocking
-and not-blocking threads,and use types to denote which
+we decided to explicitly support both blocking
+and non-blocking threads,and use types to denote which
 threading {\em strategies\/} should be used.
 This means that the programmer can choose which concurrency model fits
 the given situation.
@@ -809,7 +810,7 @@ would generate \linebreak\Src{(Var "x",Var "y")} as the template argument.
 
 Monadic reification is the capture of monadic statements, including the bindings,
 as an abstract syntax tree.
-A GADT-based deep embedding of the specific monadic operations (bind, return), and the 
+A GADT-based deep embedding of the specific monadic operations (bind, return), and 
 all the primitives (method call, etc.), 
 allow the capture of the operations as abstract syntax trees.
 The trick is normalizing the monadic
@@ -927,8 +928,8 @@ for the server and client is in Haskell. The control logic
 for the client side is provided through the server.
 This leads to a tight coupling between both sides. 
 This also shows how Sunroof blurs the border between the server 
-and client side. You are not restricted by an interface or language 
-barrier. If you need the client to do something, you can just 
+and client side. The programmer is not restricted by an interface or language 
+barrier. If the programmer need the client to do something, you can just 
 send arbitrary Sunroof code to execute in the client.
 %
 \TabRef{tab:example-statistics} contains a few statistics 
