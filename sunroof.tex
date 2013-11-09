@@ -288,45 +288,45 @@ make this distinction, and does so using Haskell types.
 \begin{tabular}{r@{\quad}l@{\quad}l@{\quad}c}
 \hline\rule{0pt}{12pt}%
   Constraint
+  & Haskell Type \HaskellAnalog{$\tau$}
   & Sunroof Type $\tau$
-  & Haskell Analog \HaskellAnalog{$\tau$}
   & \Src{js} \\ \hline\rule{0pt}{12pt}%
   
-  & \Src{()}       & \Src{()}     & $\checkmark$ \\
-  & \Src{JSBool}   & \Src{Bool}   & $\checkmark$ \\
-  & \Src{JSNumber} & \Src{Double} & $\checkmark$ \\
-  & \Src{JSString} & \Src{String} & $\checkmark$ \\
+  & \Src{()}     & \Src{()}       & $\checkmark$ \\
+  & \Src{Bool}   & \Src{JSBool}   & $\checkmark$ \\
+  & \Src{Double} & \Src{JSNumber} & $\checkmark$ \\
+  & \Src{String} & \Src{JSString} & $\checkmark$ \\
   
   \Src{Sunroof $\alpha$}
-  & \Src{JSArray $\alpha$} 
   & \Src{[$\HaskellAnalog{\alpha}$]}
+  & \Src{JSArray $\alpha$} 
   & \\
   
   \Src{SunroofKey $\alpha$}
-  & \Src{JSMap $\alpha$ $\beta$}
   & \Src{Map $\HaskellAnalog{\alpha}$ $\HaskellAnalog{\beta}$}
+  & \Src{JSMap $\alpha$ $\beta$}
   & \\
   \Src{Sunroof $\beta$} \\
   
   \Src{SunroofArgument $\alpha$}
-  & \Src{JSFunction $\alpha$ $\beta$ }
   & \Src{$\HaskellAnalog{\alpha}$ $\rightarrow$ JS$_\Src{A}$ $\HaskellAnalog{\beta}$} 
+  & \Src{JSFunction $\alpha$ $\beta$ }
   & \\
   \Src{Sunroof $\beta$} \\
 
   \Src{SunroofArgument $\alpha$}
-  & \Src{JSContinuation $\alpha$}
   & \Src{$\HaskellAnalog{\alpha}$ $\rightarrow$ JS$_\Src{B}$ $\beta$} 
+  & \Src{JSContinuation $\alpha$}
   & \\
   
   \Src{SunroofArgument $\alpha$}
-  & \Src{JSMVar $\alpha$}
   & \Src{MVar $\HaskellAnalog{\alpha}$}
+  & \Src{JSMVar $\alpha$}
   & \\
   
   \Src{SunroofArgument $\alpha$}
-  & \Src{JSChan $\alpha$}
   & \Src{Chan $\HaskellAnalog{\alpha}$}
+  & \Src{JSChan $\alpha$}
   & \\[2pt]
 \hline
 \end{tabular}
