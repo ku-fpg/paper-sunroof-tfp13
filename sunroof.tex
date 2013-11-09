@@ -95,7 +95,7 @@ Haskell-based type schema to guide the Sunroof programmer.
 Furthermore, because we are generating code,
 we can offer Haskell-style concurrency patterns, such as MVars and Channels.
 In combination with a web-services package,
-the Sunroof compiler offers a robust platform to build interactive web applications.
+the Sunroof DSL offers a robust platform to build interactive web applications.
 
 \keywords{DSLs, JavaScript, Web Technologies, Cloud Computing}
 \end{abstract}
@@ -224,11 +224,11 @@ Here, we use a new monad, the \Src{JS} monad, our JavaScript
 analog of the \Src{IO} monad,
 and an explicit \Src{send} command that sends the JavaScript to the browser.
 This reversal of control, where the
-server sends the client commands, follows the Comet AJAX application model.
-In this case, the Comet interaction is implemented by {\em long polling\/} on behalf of the client.
+server sends the client commands, follows the Comet AJAX application model. Comet is a push technology that allows a server to push messages to a client.
+In our case, the Comet interaction is implemented by {\em long polling\/} on behalf of the client.
 This interface bundles the \Src{prompt} and \Src{alert} commands
 into a single interaction.
-It is this flavor of interface we want to support in our Sunroof compiler
+It is this flavor of interface we want to support in our Sunroof DSL
 and web server.  
 
 To make Sunroof a viable interface to JavaScript, we need to
@@ -239,6 +239,8 @@ Haskell is a pure, function-based, statically typed language.
 In Section~\ref{sec:object-model}, we introduce expressions and statements
 in Sunroof, and show how they jointly form an object model,
 mapping these two worlds together.
+The Sunroof DSL does not support laziness; the DSL expresses
+monadic Sunroof code strictly, reflecting the JavaScript target.
 %
 \item We need to select a concurrency model for Sunroof.
 Natively, JavaScript only supports non-blockable threads.
@@ -368,8 +370,10 @@ which are realized as JavaScript strings.
 Using our \Src{JS}-types, we can build expressions using the traditional Haskell expression-building
 mechanisms. \Src{JSNumber} is overloaded, and thus can be used directly for arithmetic.
 \Src{JSBool} is an instance of the relevant classes in the Hackage package \verb|boolean|.
+|boolean| provides the capability to express control-flow in an embedded DSL, 
+as needed by Sunroof.
 Further, \Src{JSString} is a \Src{Monoid}, which is only possible because JavaScript
-strings are immutable values.
+strings are immutable values, providing a neat and standard string concatenate operator for Sunroof.
 
 To help the conversion between classical Haskell values and Sunroof values,
 we provide the overloaded function \Src{js}. The right-hand column of 
@@ -426,7 +430,7 @@ follows this trend, with the method-call syntax being as follows:
 For our Sunroof object model, we want to follow this as closely as possible.
 
 \newpage\noindent
-We, have our method calls use a monad because method calls are effectful.
+We, have our method calls use a monad because method calls are (in general) effectful.
 By convention, we take the object as the {\em last\/} argument.
 \begin{Code}
 // Shape of a Sunroof method
@@ -434,7 +438,7 @@ By convention, we take the object as the {\em last\/} argument.
 \end{Code}
 A neat way of writing method calls in Haskell is transcribing the JavaScript dot, which is already use
 for both namespace resolution and function composition in Haskell, with the \Src{\#} combinator~\cite{Shields:01:Babel}.
-The \Src{\#} combinator simply applies the second argument to the first (object) argument.
+The \Src{\#} combinator uses the ``last argument is the object'' convention.
 \begin{Code}
 // Sunroof        
 (#) :: a -> (a -> JS b) -> JS b
@@ -561,7 +565,7 @@ threadDelay :: JSNumber -> JS B ()
 They can both be seen as analogs of their \IO~counterparts.
 \Src{forkJS} resembles \Src{forkIO};
 it registers the given computation as a callback. 
-In \Src{forkJS}, the\linebreak\Src{SunroofThread} constraint allows the compiler
+In \Src{forkJS}, the\linebreak\Src{SunroofThread} constraint allows the DSL compiler
 to know if this callback should be blocking or non-blocking,
 based on the type of \Src{t1}. Both blocking and non-blocking
 threads can fork new threads, so \Src{t2} is unconstrained.
@@ -760,7 +764,7 @@ core browser API, the HTML5 Canvas element, and some of the JQuery API.
 \label{sec:compiler}
 
 Our domain specific language, embedded in Haskell, is useless unless
-we can actually compile it to JavaScript. We apply four main techniques.
+we can actually compile the DSL to JavaScript. We apply four main techniques.
 We believe Sunroof is the first time all four have been used simultaneously
 in a full-scale embedded DSL.
 
@@ -774,7 +778,7 @@ When compiling expressions, we use IO-based observable sharing~\cite{Gill:09:Typ
 We preserve a simple and monomorphic representation of our expression
 type to allow our generated code to optionally contain types in comments --
 this was especially useful for debugging.
-Overall, this aspect of the Sunroof compiler is straightforward and unsurprising.
+Overall, this aspect of the Sunroof DSL compiler is straightforward and unsurprising.
 
 \paragraph{Function Reification:}
 The second technique is we use is capturing functions, as delimited
@@ -823,7 +827,8 @@ instance Monad (JS t) where
 \end{Code}  
 Because \Src{Bind} is pre-normalized, constraints from the
 \Src{JSPrim} GADT (not shown) can discharge the \Src{Sunroof} constraint.
-Simplified, this is the compiler.
+Simplified, this is the DSL compiler; \Src{JSCode} is a
+simple (and unsurprising) AST for JavaScript.
 \begin{Code}
 compileJS :: Sunroof a => JS t a -> M (JSCode, a)
 compileJS (Return a) = return ("",a) 
@@ -906,6 +911,9 @@ We use Sunroof to display our interface
 and the results of our computation. Haskell was used to parse the 
 arithmetic expressions and calculate the result. The Sunroof server 
 was used to implement this JavaScript/Haskell hybrid.
+We have written other larger applications in Sunroof,
+including a pdf-viewer which support marking up exam scripts in a systematic way,
+but the small calculator is a representative example.
 
 The classical approach to develop an application like this would have 
 been to write a server that provides a RESTful interface and replies 
@@ -979,9 +987,9 @@ the entire application compile to JavaScript.
 
 \section{Related Work}
 
-There have been several attempts to translate Haskell to JavaScript.
+There have been several attempts to compile Haskell to JavaScript.
 Prominent ones are the compiler backends for 
-UHC \cite{Stutterheim:12:ImprovingUHCJavaScriptBackend} and 
+UHC \cite{Dijkstra:12:BuildingJavaScript,Stutterheim:12:ImprovingUHCJavaScriptBackend} and 
 GHCJS \cite{project:ghcjs}. There are also projects like Fay \cite{project:fay} 
 that compile subsets of Haskell to JavaScript or JMacro \cite{project:jmacro}
 which use quasiquotation \cite{Mainland:07:QuasiquotingHaskell} to embed 
@@ -1056,7 +1064,7 @@ makes use of monadic reification. We think that this form
 is reification gives a useful DSL, and we expect many future
 DSLs to re-use this design pattern. 
 
-The sunroof compiler,
+The sunroof DSL compiler,
 server, and several examples, including our web-based unit tests,
 are available on \Src{github.com/ku-fpg} and \Src{hackage.haskell.org}.
 We plan to build a number of abstraction on top of Sunroof:
