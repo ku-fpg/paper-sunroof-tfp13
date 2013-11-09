@@ -234,7 +234,7 @@ and web server.
 To make Sunroof a viable interface to JavaScript, we need to
 resolve the following issues:
 \begin{itemize}
-\item JavaScript is an object-based, imperative, dynamically typed language.
+\item JavaScript is an object-based, imperative, dynamically typed language.\linebreak
 Haskell is a pure, function-based, statically typed language.
 In Section~\ref{sec:object-model}, we introduce expressions and statements
 in Sunroof, and show how they jointly form an object model,
@@ -265,10 +265,11 @@ a web browser, we provide an expansion of the \Src{send} idea above,
 which we discuss in Section~\ref{sec:server}.
 \end{itemize}
 
-We close with a small case study, related work, and our conclusions.
-These ideas given here are not new, though the use of monadic reification
+We close with a related work and our conclusions.
+All the ideas used here are not new, though the use of monadic reification
 for JavaScript generation is original. What we demonstrate is how
-far the science of DSL capture has come, using a full scale example.
+far the practical aspects of DSL capture has come, using the full scale example
+of Haskell to JavaScript translation.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -520,9 +521,9 @@ the function must respect this non-blocking requirement.
 is strong. Threaded code is -- from experience -- cleaner if 
 directly used, rather that being faked in JavaScript itself.
 There are new libraries in JavaScript that encode
-some cooperative concurrency abstractions, like promises~\cite{url:taskjs.org};
+some\linebreak{}cooperative concurrency abstractions, like promises~\cite{url:taskjs.org};
 Sunroof is a chance to translate using cooperative concurrency 
-directly when generating JavaScript.
+directly when generating\linebreak{}JavaScript.
 \end{itemize}
 In our full-scale implementation of Sunroof,
 we decided to explicitly support both blocking
@@ -545,6 +546,7 @@ restrictions on specific combinators, as well
 as provide combinators to allow both types of
 threads to cooperate.
 
+\pagebreak
 The blocking model hides the callback mechanism behind abstractions.
 This implies that every atomic computation can be converted into 
 a potentially blocking computation. \Src{liftJS} achieves this.
@@ -873,13 +875,12 @@ generalizations in Sunroof, is straightforward.
 
 The Sunroof server provides infrastructure to send arbitrary pieces 
 of JavaScript to a web client for execution. 
-It is thus possible to interleave Haskell and JavaScript 
+It is thus possible to interleave Haskell and\linebreak{}JavaScript 
 computations as needed. The three major functions
 provided are \Src{sunroofServer}, \Src{syncJS} and \Src{asyncJS}.
 \begin{Code}
 sunroofServer :: SunroofServerOptions 
-              -> (SunroofEngine -> IO ()) 
-              -> IO ()
+              -> (SunroofEngine -> IO ()) -> IO ()
 
 syncJS  :: SunroofResult a 
         => SunroofEngine -> JS t a -> IO (ResultOf a)
@@ -982,9 +983,9 @@ makes use of monadic reification. We think that this form
 is reification gives a useful DSL, and we expect many future
 DSLs to re-use this design pattern. 
 
-The sunroof DSL compiler,
-server, and several examples, including our web-based unit tests,
-are available on \Src{github.com/ku-fpg} and \Src{hackage.haskell.org}.
+The Sunroof DSL compiler,
+server, and several examples, including our\linebreak{}web-based unit tests,
+are available on \Src{github.com/ku-fpg} and\linebreak\Src{hackage.haskell.org}.
 We plan to build a number of abstraction on top of Sunroof:
 a port of diagrams~\cite{project:diagrams},
 an animation DSL~\cite{project:active},
@@ -992,13 +993,16 @@ and a simple GUI toolkit for teaching functional programming.
 
 %\input{sections/conclusion-discussion}
 
-%\section{Acknowledgments}
-%
-%We want to thank Conal Elliott for his support in adapting 
-%the Boolean package \cite{project:boolean} and helping us to
-%extend it with support for deeply embedded numbers. 
-%We would
-%also like to thank the TFP referees for their useful feedback
+\section{Acknowledgments}
+
+We want to thank Conal Elliott for his support in adapting 
+the Boolean package \cite{project:boolean} and helping us to
+extend it with support for deeply embedded numbers. 
+We would also like to thank both the TFP'13 
+and PADL'14 referees for their useful and constructive feedback.
+This material is based upon work supported by the
+National Science Foundation under Grant No. 1117569.
+
 %on an earlier version of this paper.
 
 %
