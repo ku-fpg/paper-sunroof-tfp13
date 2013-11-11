@@ -80,12 +80,12 @@ The University of Kansas, Lawrence, KS 66045}
 
 \begin{abstract}        
 Sunroof is a Haskell-hosted Domain Specific Language (DSL) for generating JavaScript.
-Sunroof is built on top of the JavaScript monad, which, like the Haskell \IO-monad, allows 
+The central feature of Sunroof is a JavaScript monad, which, like the Haskell \IO-monad, allows 
 access to external resources, but specifically JavaScript
 resources. As such, Sunroof is primarily a feature-rich 
 foreign-function API to the browser's JavaScript engine, and all the browser-specific
 functionality, including HTML-based rendering, event handling, and 
-drawing to the HTML5 {\tt canvas} element. 
+drawing to the HTML5 canvas element. 
 
 In this paper, we give the design and implementation of Sunroof.
 Using monadic reification, we generate JavaScript from
@@ -152,26 +152,27 @@ but instead the executed Haskell becomes a server that JavaScript,
 and the browser, interact with.
 Unfortunately, every JavaScript call becomes an expensive proposition: a Remote Procedure Call (RPC)
 to a browser.
-Though some straight-line calls can be batched together --
-our own blank-canvas Hackage package~\cite{Hackage:11:blank-canvas} was built on this idea --
+Though some straight-line calls can be batched together ---
+our own \verb|blank-canvas| Hackage package~\cite{Hackage:11:blank-canvas} was built on this idea ---
 the granularity of interaction through JavaScript calls is just too fine for
 this idea to scale well.
 
 Another approach, and the one we investigate,
-is to use a deeply embedded Domain Specific Language (DSL), and
-recently discovered monad reification~\cite{Persson:11:GenericMonadicConstructs,Farmer:12:WebDSLs,Sculthorpe:13:ConstrainedMonads,Svenningsson:13:CompositionalMonadReification}.
+is to use a deeply embedded Domain Specific Language (DSL), and the
+recently discovered monad reification
+technique~\cite{Persson:11:GenericMonadicConstructs,Farmer:12:WebDSLs,Sculthorpe:13:ConstrainedMonads,Svenningsson:13:CompositionalMonadReification}.
 A Haskell-hosted deeply embedded DSL is where Haskell combinators 
 are used to build syntactical forms in the target language,
 in this case JavaScript.
 Historically, these embeddings have worked well for 
 data-flow, for example generating combinatorial hardware,
 but had serious challenges with capturing binding and control flow.
-Monad reification, where the monad itself is representable in the deep embedding,
+Monad reification, where a monadic computation is representable in the deep embedding,
 partially mitigates this shortcoming, allowing statements and
 effectful bindings to be expressed directly.
 
 Sunroof is an exercise in scaling up the use of monad reification,
-and other domain specific language techniques, to a full-scale JavaScript DSL.
+and other domain-specific language techniques, to a full-scale JavaScript DSL.
 With Sunroof bindings being regular Haskell monadic bindings, 
 the language fits with what would be expected from a monadic API. 
 In a previous paper, we showed, using a prototype,
@@ -182,7 +183,7 @@ and show that monadic-reification is useful in practice.
 Building on this DSL, we also investigate providing
 JavaScript control flow and function abstraction mechanisms
 to the Haskell programmer interested in using the browser API.
-Though for technical reasons we can not directly compile
+Though for technical reasons we cannot directly compile
 pattern matching and let-binding to JavaScript without committing
 to a full Haskell to JavaScript compiler, both
 control flow and function abstraction can be provided
@@ -226,7 +227,7 @@ and an explicit \Src{send} command that sends the JavaScript to the browser.
 This reversal of control, where the
 server sends the client commands, follows the Comet AJAX application model. Comet is a push technology that allows a server to push messages to a client.
 In our case, the Comet interaction is implemented by {\em long polling\/} on behalf of the client.
-This interface bundles the \Src{prompt} and \Src{alert} commands
+For the above example, this interface bundles the \Src{prompt} and \Src{alert} commands
 into a single interaction.
 It is this flavor of interface we want to support in our Sunroof DSL
 and web server.  
@@ -255,7 +256,7 @@ we show how we support both functions and continuations.
 %
 \item We need to provide a foreign function interface,
 to allow us to call specific JavaScript-native functions,
-like \Src{prompt} and \Src{alert}.
+such as \Src{prompt} and \Src{alert}.
 In Section~\ref{sec:ffi} we present this interface.
 %
 \item Critically, we need to be able to compile our Sunroof DSL
@@ -266,9 +267,9 @@ which we discuss in Section~\ref{sec:server}.
 \end{itemize}
 
 We close with related work and our conclusions.
-All the ideas used here are not new, though the use of monadic reification
+The underlying ideas used here are not new, though the use of monadic reification
 for JavaScript generation is original. What we demonstrate is how
-far the practical aspects of DSL capture has come, using the full scale example
+far the practical aspects of DSL capture have come, using the full scale example
 of Haskell to JavaScript translation.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -345,16 +346,16 @@ There is support for booleans, strings, numbers, functions,
 arrays, and other common programming structures.
 The use of \Src{JSNumber}, rather than (say) \Src{Double},
 explicitly reminds us of the enforced diminished capabilities of
-being within an embedded language,
-and all of the \Src{JS}-types are representable in our target language.
-Table~\ref{tab:sunroof-types} enumerates the major \Src{JS} types used in Sunroof.
+being within an embedded language.
+All of the \Src{JS}- types are representable in our target language.
+Table~\ref{tab:sunroof-types} enumerates the major \Src{JS}- types used in Sunroof.
 %
 The left-hand column of Table~\ref{tab:sunroof-types} gives constraints,
 implemented via Haskell type classes.
 \begin{itemize}
 \item  All our core types are brought together with the \Src{Sunroof} class.
 If a type is an instance of \Src{Sunroof}, then that type can be realized inside JavaScript.
-All the \Src{JS} types are instances of \Src{Sunroof}.
+All the \Src{JS}- types are instances of \Src{Sunroof}.
 
 \item Instances of the \Src{SunroofArgument} class
 are values that can be passed to JavaScript functions and methods,
@@ -376,7 +377,7 @@ mechanisms. \Src{JSNumber} is overloaded, and thus can be used directly for arit
 \verb|boolean| provides the capability to express control-flow in an embedded DSL, 
 as needed by Sunroof.
 Further, \Src{JSString} is a \Src{Monoid}, which is only possible because JavaScript
-strings are immutable values, providing a neat and standard string concatenation operator for Sunroof.
+strings are immutable values, providing a neat and standard string-concatenation operator for Sunroof.
 
 To help the conversion between classical Haskell values and Sunroof values,
 we provide the overloaded function \Src{js}. The right-hand column of 
@@ -441,7 +442,7 @@ By convention, we take the object as the {\em last\/} argument.
 \end{Code}
 A neat way of writing method calls in Haskell is transcribing the JavaScript dot, which is already use
 for both namespace resolution and function composition in Haskell, with the \Src{\#} combinator~\cite{Finne:99:HeavenHell,Shields:01:Babel}.
-The \Src{\#} combinator uses the ``last argument is the object'' convention.
+%The \Src{\#} combinator uses the ``last argument is the object'' convention.
 \begin{Code}
 // Sunroof        
 (#) :: a -> (a -> JS b) -> JS b
@@ -457,7 +458,8 @@ In this way, JavaScript can be transliterated into Haskell where needed,
 native JavaScript call idioms can be used,
 while other Haskell abstraction mechanisms can be used for the interface that calls Sunroof code.
 
-We piece together our Sunroof method calls using the Haskell support for monads.
+We piece together our Sunroof method calls using \verb|do|-notation, Haskell's syntactic
+support for monads.
 \begin{Code}
   do r1 <- obj # method1 (a1,a2,a3,...,aN)
      r2 <- obj # method2 ({-... can use r1 ...-})
@@ -488,7 +490,7 @@ The net effect is that assignments to fields can be neatly expressed.
   // JavaScript                         // Sunroof
   c.fillStyle = "red";                  c # fillStyle := "red"
 \end{Code}
-Notice that `\Src{:=}' binds tighter then `\Src{\#}'; the `\Src{fillStyle := "red"}' is
+Notice that `\Src{:=}' binds tighter than `\Src{\#}'; the `\Src{fillStyle := "red"}' is
 effectively building and calling a setter method for `\Src{c}', on the fly.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -518,7 +520,7 @@ for a callback, it must not block.
 Further, if this higher-order function returns a result, 
 the function must respect this non-blocking requirement.
 \item The lure of threads, and the abstractions they allow, 
-is strong. Threaded code is -- from experience -- cleaner if 
+is strong. Threaded code is --- from experience --- cleaner if 
 directly used, rather that being faked in JavaScript itself.
 There are new libraries in JavaScript that encode
 some\linebreak{}cooperative concurrency abstractions, like promises~\cite{url:taskjs.org};
@@ -558,7 +560,7 @@ When suspending, we register our current
 continuation as a callback to resume later. This gives other 
 threads (registered continuations) a chance to run.
 Of course, this model depends on cooperation between the threads,
-because a not terminating or suspending thread will keep others from running.
+because a non-terminating or suspending thread will keep others from running.
 
 There are two main primitives for the blocking model:
 \begin{Code}
@@ -601,8 +603,8 @@ but \Src{readChan} may block, so uses the \Src{B} threading model.
 \section{Functions and Continuations}
 \label{sec:functions-continuations}
 
-Functions are first class values in Haskell and JavaScript.
-Sunroof represents function {\em objects\/} with the type 
+Functions are first-class values in Haskell and JavaScript.
+Sunroof represents function {\em values\/} with the type 
 \Src{JSFunction $\alpha$ $\beta$}, which corresponds
 to a function of type $\alpha \rightarrow \beta$ in JavaScript.
 %In this section, we examine our solution to building functions
@@ -640,7 +642,7 @@ of the fixpoint combinator.
 \begin{Code}
 fixJS :: (SunroofArgument a) => (a -> JS A a) -> JS t a
 \end{Code}
-There is a self-imposed restriction that the higher-order function be
+There is a restriction that the higher-order function be
 atomic, but the usage of \Src{fixJS} is straightforward, if verbose.
 \begin{Code}
   fib <- fixJS $ \ (fib :: JSFunction JSNumber JSNumber) -> 
@@ -649,9 +651,11 @@ atomic, but the usage of \Src{fixJS} is straightforward, if verbose.
                (return 1)
                (liftM2 (+) (fib $$ (n - 1)) (fib $$ (n - 2)))
 \end{Code}
-Note that the `\Src{fib}' type here is a JSFunction object,
+The `\Src{fib}' type is a \verb|JSFunction| object,
 and we also need to use the \Src{JS} monad, because JavaScript
-functions are effectful. % , but the function is expressible in Sunroof.
+functions are assumed to be effectful. % , but the function is expressible in Sunroof.
+\verb|<*| is the lifted version of \verb|<|, as provided
+by the \verb|boolean| package.
 
 Continuations are functions that never return. JavaScript uses them; 
 for example many callbacks are actually continuations. We can express
@@ -660,8 +664,8 @@ using the type \Src{JSContinuation$~\alpha$}.
 Technically, \Src{JSContinuation $\alpha$} are only
 specializations of functions, but
 restricted to a specific threading model. Continuations
-are meant to be a representation of side-effects -- 
-ongoing computations inside the \JS-monad -- and might  
+are meant to be a representation of side effects ---
+ongoing computations inside the \JS-monad --- and might  
 not terminate, so they do not return a value. As with functions, 
 there is a combinator to create and apply a continuation.
 \begin{Code}
@@ -676,9 +680,9 @@ It calls a continuation,
 as \Src{apply} calls functions.
 The difference is that a call to \Src{goto} will never
 return, as it executes the given continuation and abandons the 
-current one -- the \Src{()} result is never returned.
+current one --- the \Src{()} result is never returned.
 
-Access to the current continuations is given through
+Access to the current continuation is given through
 the powerful call-with-current-continuation 
 combinator \Src{callcc}.
 \begin{Code}
@@ -697,7 +701,7 @@ are connected  to each other, as can be seen in \FigRef{fig:func-cont}.
 We can go back and forth between the Haskell and the Sunroof
 representation of a function or continuation. But once a function
 is specialized to a continuation, it is not possible to go back,
-because continuations only model the side-effect, but do 
+because continuations only model the side effect, but do 
 not return anything. \Src{kast} is just a specialized version of \Src{cast}.
 
 % include discussion about one examp;e.
@@ -757,7 +761,7 @@ everything is typed correctly and prevents the need to resolve ambiguities
 through large type annotations inside of code.
 %
 The current release of Sunroof on Hackage provides bindings for most of the 
-core browser API, the HTML5 Canvas element, and some of the JQuery API.
+core browser API, the HTML5 canvas element, and some of the JQuery API.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -766,7 +770,7 @@ core browser API, the HTML5 Canvas element, and some of the JQuery API.
 \section{Compiling Sunroof}
 \label{sec:compiler}
 
-Our domain specific language, embedded in Haskell, is useless unless
+Our domain-specific language, embedded in Haskell, is useless unless
 we can actually compile the DSL to JavaScript. We apply four main techniques.
 We believe Sunroof is the first time all four have been used simultaneously
 in a full-scale embedded DSL.
@@ -779,7 +783,7 @@ This internal expression syntax is simple, with only five constructors:
 literals, variable names, JavaScript `dot', application, and anonymous functions.
 When compiling expressions, we use IO-based observable sharing~\cite{Gill:09:TypeSafeReification} internally.
 We preserve a simple and monomorphic representation of our expression
-type to allow our generated code to optionally contain types in comments --
+type to allow our generated code to optionally contain types in comments ---
 this was especially useful for debugging.
 Overall, this aspect of the Sunroof DSL compiler is straightforward and unsurprising.
 
@@ -796,8 +800,8 @@ f x = x `Plus` (Lit 1)
 \end{Code}
 
 We can reify \Src{f} by applying it to \Src{(Var "x")}, where \Src{"x"} is a fresh name,
-giving~\Src{Plus (Var "x") (Lit 1)}. By overloading the literals and arithmetic -- 
-a common trick -- we can write a clean Haskell function that can still be reified:
+giving~\Src{Plus (Var "x") (Lit 1)}. By overloading the literals and arithmetic --- 
+a common trick --- we can write a clean Haskell function that can still be reified:
 \begin{Code}
 f x = x + 1
 \end{Code}
@@ -814,9 +818,9 @@ Monadic reification is the capture of monadic statements, including the bindings
 as an abstract syntax tree.
 A GADT-based deep embedding of the specific monadic operations (bind, return), and 
 all the primitives (method call, etc.), 
-allow the capture of the operations as abstract syntax trees.
+allows the capture of the operations as abstract syntax trees.
 The trick is normalizing the monadic
-bind~\cite{Sculthorpe:13:ConstrainedMonads,Svenningsson:13:CompositionalMonadReification},
+bind~\cite{Sculthorpe:13:ConstrainedMonads},
 both in the GADT, and in a smart instance of the monadic bind.
 \begin{Code}
 data JS :: * -> * -> * where
@@ -826,7 +830,7 @@ data JS :: * -> * -> * where
 instance Monad (JS t) where
   return = Return
   (Return a)  >>= k = k a                         -- left id
-  (Bind va h) >>= k = Bind va (\ a -> h a >>= k)  -- assoc
+  (Bind ma h) >>= k = Bind ma (\ a -> h a >>= k)  -- assoc
 \end{Code}  
 Because \Src{Bind} is pre-normalized, constraints from the
 \Src{JSPrim} GADT (not shown) can discharge the \Src{Sunroof} constraint.
@@ -908,8 +912,15 @@ allow \Src{JSString} to return a Haskell \Src{String},
 
 There have been several attempts to compile Haskell to JavaScript.
 Prominent ones are the compiler backends for 
-UHC \cite{Dijkstra:12:BuildingJavaScript,Stutterheim:12:ImprovingUHCJavaScriptBackend} and 
-GHCJS \cite{project:ghcjs}. There are also projects like Fay \cite{project:fay} 
+UHC \cite{Dijkstra:12:BuildingJavaScript,Stutterheim:12:ImprovingUHCJavaScriptBackend} and
+GHCJS \cite{project:ghcjs}.
+%
+The functional language Clean has also used JavaScript as a
+backend~\cite{Domoszlai:11:Implementing},
+and there has been an attempt to use Clean's Core to support
+the translation of Haskell to JavaScript~\cite{Domoszlai:12:Compiling}.
+%
+There are also projects like Fay \cite{project:fay} 
 that compile subsets of Haskell to JavaScript or JMacro \cite{project:jmacro}
 which use quasiquotation \cite{Mainland:07:QuasiquotingHaskell} to embed 
 a custom-tailored language into Haskell code.
@@ -927,6 +938,7 @@ To our knowledge, creating a direct connection
 between Haskell and JavaScript continuations has not been 
 attempted before.
 
+\pagebreak
 Deep embeddings of monads based on data structures have been used before
 in Unimo \cite{Lin:06:Unimo} and Operational \cite{Apfelmus:10:Operational,Hackage:10:Operational}.
 The specific approach Sunroof takes 
@@ -935,12 +947,12 @@ are discussed in Sculthorpe et al. \cite{Sculthorpe:13:ConstrainedMonads}
 in detail.
 
 Another effort to map a functional embedding to JavaScript is the JavaScript DSL
-embedded inside Scala~\cite{Kossakowski:12:JED}
+embedded inside Scala~\cite{Kossakowski:12:JED}.
 Rather than using a deep embedding, they use Lightweight Modular Staging (LMS)~\cite{Rompf:2010:LMS:1868294.1868314}.
-Though the language specific challenges are different,
+Though the language-specific challenges are different,
 the two systems are comparable in capability.
 
-The Sunroof server does not have the aim to provide a full-featured 
+The Sunroof server does not aim to provide a full-featured 
 web framework, as HAppS, Snap or Yesod do. It only provides 
 the infrastructure to communicate with the currently calling website
 through the Kansas comet \cite{project:kansas-comet} 
@@ -952,19 +964,19 @@ in a type-safe manner. All other approaches discussed above
 either require a separate compilation step or introduce new 
 syntax inside of Haskell.
 %
-There also is an effort to generalize Active \cite{project:active}, a library for animations, and
-implement a backend based on Sunroof \cite{project:sunroof-active}.
+There also is an effort to generalize Active \cite{project:active}, a library for animations,
+by implementing a backend based on Sunroof \cite{project:sunroof-active}.
  
 \section{Conclusion}
 
 Sunroof takes the key idea of monad reification and
-successfully creates a typed JavaScript language, based around the\JS-monad,
+successfully creates a typed JavaScript language, based around the \JS-monad,
 to describe computations intended for a JavaScript interpreter.
 This paper documents our investigations since our initial prototype.
 With pervasive use of types in Sunroof, and the concepts
 of \Src{JSFunction} and \Src{JSContinuation}, there now is a 
 clearer connection between
-functions in the JavaScript and the Sunroof language space 
+functions in the JavaScript and Sunroof language spaces 
 (\FigRef{fig:func-cont}). It is possible to go back and forth between 
 both worlds. 
 
@@ -975,7 +987,7 @@ to JavaScript. This enabled us to build applications
 that use a blocking threading model on top of JavaScript
 that resembles the model already known from Haskell.
 Based on this model and the provided abstraction over continuations,
-we can construct primitives like \Src{forkJS} or \Src{threadDelay},
+we can construct primitives such as \Src{forkJS} or \Src{threadDelay},
 and higher-level abstractions like \Src{JSMVar} and \Src{JSChan}.
 
 We believe this is the first Haskell-to-JavaScript DSL that 
@@ -987,7 +999,7 @@ The Sunroof DSL compiler,
 server, and several examples, including our\linebreak{}web-based unit tests,
 are available on \Src{github.com/ku-fpg} and\linebreak\Src{hackage.haskell.org}.
 We plan to build a number of abstraction on top of Sunroof:
-a port of diagrams~\cite{project:diagrams},
+a port of \verb|diagrams|~\cite{project:diagrams},
 an animation DSL~\cite{project:active},
 and a simple GUI toolkit for teaching functional programming.
 
