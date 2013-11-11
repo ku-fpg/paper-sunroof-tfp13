@@ -201,7 +201,7 @@ from the server into the browser.
 \label{sec:js-rpc}
 
 From a programmers' point of view, calling JavaScript functions
-appears straightforward. We, as                                                                                                                      acommunity know how to reflect an
+appears straightforward. We, as a community know how to reflect an
 API into Haskell, using the IO monad. Furthermore, objects in
 the target API become handles in Haskell. 
 
@@ -265,7 +265,7 @@ a web browser, we provide an expansion of the \Src{send} idea above,
 which we discuss in Section~\ref{sec:server}.
 \end{itemize}
 
-We close with a related work and our conclusions.
+We close with related work and our conclusions.
 All the ideas used here are not new, though the use of monadic reification
 for JavaScript generation is original. What we demonstrate is how
 far the practical aspects of DSL capture has come, using the full scale example
@@ -364,7 +364,7 @@ The asymmetry here is a reflection of the JavaScript
 asymmetry inherited from C: you can pass multiple arguments
 to a function, but only get a single thing back.
 
-\item Finally, there is a third class, \Src{SunroofKey}, which is
+\item Finally, there is a third class, \Src{SunroofKey}, which
 is a JavaScript version of the Haskell \Src{Show} class,
 but specifically for generating JavaScript object keys,
 which are realized as JavaScript strings.
@@ -373,14 +373,14 @@ which are realized as JavaScript strings.
 Using our \Src{JS}-types, we can build expressions using the traditional Haskell expression-building
 mechanisms. \Src{JSNumber} is overloaded, and thus can be used directly for arithmetic.
 \Src{JSBool} is an instance of the relevant classes in the Hackage package \verb|boolean|.
-|boolean| provides the capability to express control-flow in an embedded DSL, 
+\verb|boolean| provides the capability to express control-flow in an embedded DSL, 
 as needed by Sunroof.
 Further, \Src{JSString} is a \Src{Monoid}, which is only possible because JavaScript
-strings are immutable values, providing a neat and standard string concatenate operator for Sunroof.
+strings are immutable values, providing a neat and standard string concatenation operator for Sunroof.
 
 To help the conversion between classical Haskell values and Sunroof values,
 we provide the overloaded function \Src{js}. The right-hand column of 
-table~\ref{tab:sunroof-types} shows what types can be converted, using \Src{js}.
+Table~\ref{tab:sunroof-types} shows what types can be converted, using \Src{js}.
 The full types of \Src{js} is:
 \begin{Code}
 js :: (SunroofValue a, Sunroof (ValueOf a)) => a -> ValueOf a
@@ -404,7 +404,7 @@ toString :: Sunroof a => a -> JSString
 One design decision in Sunroof is that we enforce a stronger typing than JavaScript itself would.
 Specifically, there are restrictions on the type arguments of our container types,
 like \Src{JSArray}. What can be seen from this is that we
-enforce a Hindley–Milner style thinking to our containers,
+enforce a Hindley{-}Milner style thinking to our containers,
 which is distinct from JavaScript dynamic typing.
 Some types involve
 phantom types to enforce this imposed type safety \cite{Leijen:99:Phantom}.
@@ -413,8 +413,8 @@ only supports collections of the same type.
 
 From experience with using Sunroof,
 the mis-match in typing between Haskell and Sunroof/JavaScript
-is not large problem in practice.
-However, sometime casting between types, which is implicit in JavaScript,
+is not a large problem in practice.
+However, sometimes casting between types, which is implicit in JavaScript,
 is needed. So we provide an explicit dynamic \Src{cast},
 for use where the type-systems differ,
 and both sides of the \Src{cast} are instances of \Src{Sunroof}.
@@ -449,7 +449,7 @@ The \Src{\#} combinator uses the ``last argument is the object'' convention.
 \end{Code}
 
 \noindent
-This gives the follow fragment for a Sunroof call to \Src{method} on \Src{object}.
+This gives the following fragment for a Sunroof call to \Src{method} on \Src{object}.
 \begin{Code}
   object # method (a1,a2,a3,...,aN)
 \end{Code}
@@ -473,7 +473,7 @@ label :: JSString -> JSSelector a
 (!)   :: (Sunroof o, Sunroof a) => o -> JSSelector a -> a
 (:=)  :: (Sunroof a, Sunroof o) => JSSelector a -> a -> (o -> JS t ())
 \end{Code}
-We can build a selector (\Src{label}), use a selector to access a attribute in a specific
+We can build a selector (\Src{label}), use a selector to access an attribute in a specific
 object (\Src{!}), or update an attribute in a specific object (\Src{:=}).
 The update is in our object-normal-form, that is the object is the final argument.
 Sunroof is, in essence, a strict functional language, with monads for effect.
@@ -980,7 +980,7 @@ and higher-level abstractions like \Src{JSMVar} and \Src{JSChan}.
 
 We believe this is the first Haskell-to-JavaScript DSL that 
 makes use of monadic reification. We think that this form
-is reification gives a useful DSL, and we expect many future
+of reification gives a useful DSL, and we expect many future
 DSLs to re-use this design pattern. 
 
 The Sunroof DSL compiler,
@@ -996,7 +996,7 @@ and a simple GUI toolkit for teaching functional programming.
 \section{Acknowledgments}
 
 We want to thank Conal Elliott for his support in adapting 
-the Boolean package \cite{project:boolean} and helping us to
+the \verb|boolean| package \cite{project:boolean} and helping us to
 extend it with support for deeply embedded numbers. 
 We would also like to thank both the TFP'13 
 and PADL'14 referees for their useful and constructive feedback.
