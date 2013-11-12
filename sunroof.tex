@@ -202,7 +202,7 @@ from the server into the browser.
 \label{sec:js-rpc}
 
 From a programmers' point of view, calling JavaScript functions
-appears straightforward. We, as a community know how to reflect an
+appears straightforward. We as a community know how to reflect an
 API into Haskell, using the IO monad. Furthermore, objects in
 the target API become handles in Haskell. 
 
@@ -215,7 +215,7 @@ ioCode = send jsCode
 
 jsCode :: JS ()
 jsCode = do                        function jsCode() {
-   name <- prompt "Your name?"       var name = prompt("Your name?"); 
+   name <- prompt "Name?"            var name = prompt("Name?"); 
    alert ("Your name: " <> name)     alert("Your name: " + name); 
                                    }
 \end{Code}%     
@@ -282,7 +282,7 @@ of Haskell to JavaScript translation.
 
 JavaScript makes a distinction between expressions and statements.
 Sunroof is a typed version of JavaScript, so therefore also
-make this distinction, and does so using Haskell types.
+makes this distinction, and does so using Haskell types.
 
 \subsection{Sunroof Expressions}
 
@@ -380,7 +380,7 @@ Further, \Src{JSString} is a \Src{Monoid}, which is only possible because JavaSc
 strings are immutable values, providing a neat and standard string-concatenation operator for Sunroof.
 
 To help the conversion between classical Haskell values and Sunroof values,
-we provide the overloaded function \Src{js}. The right-hand column of 
+we provide the overloaded function \Src{js}. The second column of 
 Table~\ref{tab:sunroof-types} shows what types can be converted, using \Src{js}.
 The full types of \Src{js} is:
 \begin{Code}
@@ -841,7 +841,7 @@ compileJS :: Sunroof a => JS t a -> M (JSCode, a)
 compileJS (Return a) = return ("",a) 
 compileJS (Bind jx k) = do
    (c1,x)  <- compileJSPrim jx -- typechecks
-   (c2, a) <- compileJS (k x)
+   (c2,a) <- compileJS (k x)
    return (c1 ++ c2,a)
 
 compileJSPrim :: Sunroof a => JSPrim t a -> M (JSCode, a)
@@ -920,8 +920,8 @@ backend~\cite{Domoszlai:11:Implementing},
 and there has been an attempt to use Clean's Core to support
 the translation of Haskell to JavaScript~\cite{Domoszlai:12:Compiling}.
 %
-There are also projects like Fay \cite{project:fay} 
-that compile subsets of Haskell to JavaScript or JMacro \cite{project:jmacro}
+There is also Fay \cite{project:fay} 
+that compile subsets of Haskell to JavaScript and JMacro \cite{project:jmacro}
 which use quasiquotation \cite{Mainland:07:QuasiquotingHaskell} to embed 
 a custom-tailored language into Haskell code.
 %
